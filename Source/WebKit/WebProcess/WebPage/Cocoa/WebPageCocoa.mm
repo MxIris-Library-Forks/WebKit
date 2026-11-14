@@ -2469,6 +2469,7 @@ void WebPage::willCommitMainFrameData(MainFrameData& data, const TransactionID& 
     data.viewportMetaTagWidthWasExplicit = m_viewportConfiguration.viewportArguments().widthWasExplicit;
     data.viewportMetaTagCameFromImageDocument = m_viewportConfiguration.viewportArguments().type == ViewportArguments::Type::ImageDocument;
     data.avoidsUnsafeArea = m_viewportConfiguration.avoidsUnsafeArea();
+    data.viewportFitEdges = m_viewportConfiguration.viewportFitEdges();
     data.isInStableState = m_isInStableState;
     if (RefPtr document = mainFrameView->frame().document())
         data.hasMainThreadScrollDrivenAnimations = document->hasProgressBasedScrollDrivenAnimation();
@@ -2870,8 +2871,8 @@ static void convertPositionInformationToMainFrameCoordinates(const LocalFrameVie
     };
 
     information.request.point = convertPoint(information.request.point);
-    if (information.automationAdjustedInteractionLocation)
-        information.automationAdjustedInteractionLocation = convertPoint(*information.automationAdjustedInteractionLocation);
+    if (information.nearbySliderInteractionLocation)
+        information.nearbySliderInteractionLocation = convertPoint(*information.nearbySliderInteractionLocation);
 
     information.bounds = convertRect(information.bounds);
     information.adjustedPointForNodeRespondingToClickEvents = localRootView.convertToRootViewAcrossIsolatedFrames(information.adjustedPointForNodeRespondingToClickEvents);
@@ -3473,6 +3474,21 @@ static RefPtr<RemoteFrame> remoteFrameForTapTarget(LocalFrame* localRootFrame, N
     return remoteFrame;
 }
 
+std::optional<WebCore::RemoteUserInputEventData> WebPage::remoteUserInputEventDataForTapTarget(LocalFrame* localRootFrame, Node* tapTarget, const FloatPoint& tapLocationInRootView)
+{
+    RefPtr remoteFrame = remoteFrameForTapTarget(localRootFrame, tapTarget, tapLocationInRootView);
+    if (!remoteFrame)
+        return std::nullopt;
+
+    RefPtr localRootView = localRootFrame->view();
+    RefPtr remoteFrameView = remoteFrame->view();
+    if (!localRootView || !remoteFrameView)
+        return std::nullopt;
+
+    RemoteFrameGeometryTransformer transformer(remoteFrameView.releaseNonNull(), localRootView.releaseNonNull(), remoteFrame->frameID());
+    return WebCore::RemoteUserInputEventData { remoteFrame->frameID(), transformer.transformToRemoteFrameCoordinates(tapLocationInRootView) };
+}
+
 Awaitable<std::optional<WebCore::RemoteUserInputEventData>> WebPage::potentialTapAtPosition(std::optional<WebCore::FrameIdentifier> frameID, WebKit::TapIdentifier requestID, WebCore::FloatPoint positionInRootView, bool shouldRequestMagnificationInformation, WebKit::WebEventInputSource inputSource)
 {
     m_potentialTapInputSource = platform(inputSource);
@@ -3483,16 +3499,8 @@ Awaitable<std::optional<WebCore::RemoteUserInputEventData>> WebPage::potentialTa
     if (localRootFrame)
         m_potentialTapNode = localRootFrame->nodeRespondingToClickEvents(positionInRootView, m_potentialTapLocation, m_potentialTapSecurityOrigin.get());
 
-    if (RefPtr remoteFrame = remoteFrameForTapTarget(localRootFrame.get(), protect(m_potentialTapNode).get(), m_potentialTapLocation)) {
-        RefPtr localRootView = localRootFrame ? localRootFrame->view() : nullptr;
-        if (RefPtr remoteFrameView = remoteFrame->view(); remoteFrameView && localRootView) {
-            RemoteFrameGeometryTransformer transformer(remoteFrameView.releaseNonNull(), localRootView.releaseNonNull(), remoteFrame->frameID());
-            co_return WebCore::RemoteUserInputEventData {
-                remoteFrame->frameID(),
-                transformer.transformToRemoteFrameCoordinates(m_potentialTapLocation)
-            };
-        }
-    }
+    if (auto remoteUserInputEventData = remoteUserInputEventDataForTapTarget(localRootFrame.get(), protect(m_potentialTapNode).get(), m_potentialTapLocation))
+        co_return remoteUserInputEventData;
 
 #if PLATFORM(IOS_FAMILY)
     auto lastTouchLocation = std::exchange(m_lastTouchLocationBeforeTap, { });

@@ -322,9 +322,9 @@ std::expected<void, String> validatePreflightResponse(PAL::SessionID sessionID, 
 }
 
 // https://fetch.spec.whatwg.org/#cross-origin-resource-policy-internal-check
-static inline bool shouldCrossOriginResourcePolicyCancelLoad(CrossOriginEmbedderPolicyValue coep, DocumentIsolationPolicyValue documentIsolationPolicy, const SecurityOrigin& origin, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, ForNavigation forNavigation, const OriginAccessPatterns& patterns)
+static inline bool shouldCrossOriginResourcePolicyCancelLoad(CrossOriginEmbedderPolicyValue coep, DocumentIsolationPolicyValue documentIsolationPolicy, const SecurityOrigin& origin, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, IncludesCredentials requestIncludesCredentials, ForNavigation forNavigation, const OriginAccessPatterns& patterns)
 {
-    if (forNavigation == ForNavigation::Yes && coep != CrossOriginEmbedderPolicyValue::RequireCORP)
+    if (forNavigation == ForNavigation::Yes && coep == CrossOriginEmbedderPolicyValue::UnsafeNone)
         return false;
 
     if (isResponseNull || origin.canRequest(responseURL, patterns))
@@ -333,8 +333,14 @@ static inline bool shouldCrossOriginResourcePolicyCancelLoad(CrossOriginEmbedder
     auto policy = parseCrossOriginResourcePolicyHeader(crossOriginResourcePolicyHeaderValue);
 
     // https://fetch.spec.whatwg.org/#cross-origin-resource-policy-internal-check (step 4).
-    if ((policy == CrossOriginResourcePolicy::None || policy == CrossOriginResourcePolicy::Invalid) && (coep == CrossOriginEmbedderPolicyValue::RequireCORP || documentIsolationPolicy == DocumentIsolationPolicyValue::IsolateAndRequireCORP))
-        return true;
+    if (policy == CrossOriginResourcePolicy::None || policy == CrossOriginResourcePolicy::Invalid) {
+        if (coep == CrossOriginEmbedderPolicyValue::RequireCORP || documentIsolationPolicy == DocumentIsolationPolicyValue::IsolateAndRequireCORP)
+            return true;
+        if (coep == CrossOriginEmbedderPolicyValue::Credentialless && (requestIncludesCredentials == IncludesCredentials::Yes || forNavigation == ForNavigation::Yes))
+            return true;
+        if (documentIsolationPolicy == DocumentIsolationPolicyValue::IsolateAndCredentialless && requestIncludesCredentials == IncludesCredentials::Yes)
+            return true;
+    }
 
     if (policy == CrossOriginResourcePolicy::SameOrigin)
         return true;
@@ -351,9 +357,9 @@ static inline bool shouldCrossOriginResourcePolicyCancelLoad(CrossOriginEmbedder
     return false;
 }
 
-std::optional<ResourceError> validateCrossOriginResourcePolicy(CrossOriginEmbedderPolicyValue coep, DocumentIsolationPolicyValue documentIsolationPolicy, const SecurityOrigin& origin, const URL& requestURL, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, ForNavigation forNavigation, const OriginAccessPatterns& patterns)
+std::optional<ResourceError> validateCrossOriginResourcePolicy(CrossOriginEmbedderPolicyValue coep, DocumentIsolationPolicyValue documentIsolationPolicy, const SecurityOrigin& origin, const URL& requestURL, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, IncludesCredentials requestIncludesCredentials, ForNavigation forNavigation, const OriginAccessPatterns& patterns)
 {
-    if (shouldCrossOriginResourcePolicyCancelLoad(coep, documentIsolationPolicy, origin, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, forNavigation, patterns))
+    if (shouldCrossOriginResourcePolicyCancelLoad(coep, documentIsolationPolicy, origin, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, requestIncludesCredentials, forNavigation, patterns))
         return ResourceError { errorDomainWebKitInternal, 0, requestURL, makeString("Cancelled load to "_s, responseURL.stringCenterEllipsizedToLength(), " because it violates the resource's Cross-Origin-Resource-Policy response header."_s), ResourceError::Type::AccessControl };
     return std::nullopt;
 }
@@ -363,7 +369,7 @@ std::optional<ResourceError> validateCrossOriginResourcePolicy(CrossOriginEmbedd
     bool isReponseNull = response.isNull();
     String crossOriginResourcePolicyHeaderValue = isReponseNull ? nullString() : response.httpHeaderField(HTTPHeaderName::CrossOriginResourcePolicy);
     URL responseURL = isReponseNull ? URL { } : response.url();
-    return validateCrossOriginResourcePolicy(coep, documentIsolationPolicy, origin, requestURL, isReponseNull, responseURL, crossOriginResourcePolicyHeaderValue, forNavigation, patterns);
+    return validateCrossOriginResourcePolicy(coep, documentIsolationPolicy, origin, requestURL, isReponseNull, responseURL, crossOriginResourcePolicyHeaderValue, response.requestIncludesCredentials(), forNavigation, patterns);
 }
 
 std::optional<ResourceError> performCrossOriginResourcePolicyCheck(const CrossOriginEmbedderPolicy& embedderPolicy, const DocumentIsolationPolicy& documentIsolationPolicy, const SecurityOrigin& origin, const URL& requestURL, const ResourceResponse& response, ForNavigation forNavigation, const OriginAccessPatterns& patterns, const CORPViolationReportContext* reportContext)
@@ -371,13 +377,13 @@ std::optional<ResourceError> performCrossOriginResourcePolicyCheck(const CrossOr
     bool isResponseNull = response.isNull();
     String crossOriginResourcePolicyHeaderValue = isResponseNull ? nullString() : response.httpHeaderField(HTTPHeaderName::CrossOriginResourcePolicy);
     URL responseURL = isResponseNull ? URL { } : response.url();
-    return performCrossOriginResourcePolicyCheck(embedderPolicy, documentIsolationPolicy, origin, requestURL, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, forNavigation, patterns, reportContext);
+    return performCrossOriginResourcePolicyCheck(embedderPolicy, documentIsolationPolicy, origin, requestURL, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, response.requestIncludesCredentials(), forNavigation, patterns, reportContext);
 }
 
-std::optional<ResourceError> performCrossOriginResourcePolicyCheck(const CrossOriginEmbedderPolicy& embedderPolicy, const DocumentIsolationPolicy& documentIsolationPolicy, const SecurityOrigin& origin, const URL& requestURL, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, ForNavigation forNavigation, const OriginAccessPatterns& patterns, const CORPViolationReportContext* reportContext)
+std::optional<ResourceError> performCrossOriginResourcePolicyCheck(const CrossOriginEmbedderPolicy& embedderPolicy, const DocumentIsolationPolicy& documentIsolationPolicy, const SecurityOrigin& origin, const URL& requestURL, bool isResponseNull, const URL& responseURL, const String& crossOriginResourcePolicyHeaderValue, IncludesCredentials requestIncludesCredentials, ForNavigation forNavigation, const OriginAccessPatterns& patterns, const CORPViolationReportContext* reportContext)
 {
     auto check = [&](CrossOriginEmbedderPolicyValue embedderPolicyValue, DocumentIsolationPolicyValue documentIsolationPolicyValue) {
-        return validateCrossOriginResourcePolicy(embedderPolicyValue, documentIsolationPolicyValue, origin, requestURL, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, forNavigation, patterns);
+        return validateCrossOriginResourcePolicy(embedderPolicyValue, documentIsolationPolicyValue, origin, requestURL, isResponseNull, responseURL, crossOriginResourcePolicyHeaderValue, requestIncludesCredentials, forNavigation, patterns);
     };
 
     // A response that is blocked without either policy is not reported.
@@ -385,20 +391,20 @@ std::optional<ResourceError> performCrossOriginResourcePolicyCheck(const CrossOr
         return error;
 
     if (reportContext) {
-        if (embedderPolicy.reportOnlyValue == CrossOriginEmbedderPolicyValue::RequireCORP && check(embedderPolicy.reportOnlyValue, DocumentIsolationPolicyValue::None))
+        if (embedderPolicy.reportOnlyValue != CrossOriginEmbedderPolicyValue::UnsafeNone && check(embedderPolicy.reportOnlyValue, DocumentIsolationPolicyValue::None))
             sendCOEPCORPViolation(reportContext->client, reportContext->contextURL, embedderPolicy.reportOnlyReportingEndpoint, COEPDisposition::Reporting, reportContext->destination, reportContext->blockedURL);
-        if (documentIsolationPolicy.reportOnlyValue == DocumentIsolationPolicyValue::IsolateAndRequireCORP && check(CrossOriginEmbedderPolicyValue::UnsafeNone, documentIsolationPolicy.reportOnlyValue))
+        if (documentIsolationPolicy.reportOnlyValue != DocumentIsolationPolicyValue::None && check(CrossOriginEmbedderPolicyValue::UnsafeNone, documentIsolationPolicy.reportOnlyValue))
             sendDocumentIsolationPolicyCORPViolation(reportContext->client, reportContext->contextURL, documentIsolationPolicy.reportOnlyReportingEndpoint, COEPDisposition::Reporting, reportContext->destination, reportContext->blockedURL);
     }
 
     // A response that both policies block gets a report for each.
     std::optional<ResourceError> error;
-    if (embedderPolicy.value == CrossOriginEmbedderPolicyValue::RequireCORP) {
+    if (embedderPolicy.value != CrossOriginEmbedderPolicyValue::UnsafeNone) {
         error = check(embedderPolicy.value, DocumentIsolationPolicyValue::None);
         if (error && reportContext)
             sendCOEPCORPViolation(reportContext->client, reportContext->contextURL, embedderPolicy.reportingEndpoint, COEPDisposition::Enforce, reportContext->destination, reportContext->blockedURL);
     }
-    if (documentIsolationPolicy.value == DocumentIsolationPolicyValue::IsolateAndRequireCORP) {
+    if (documentIsolationPolicy.value != DocumentIsolationPolicyValue::None) {
         if (auto documentIsolationPolicyError = check(CrossOriginEmbedderPolicyValue::UnsafeNone, documentIsolationPolicy.value)) {
             if (reportContext)
                 sendDocumentIsolationPolicyCORPViolation(reportContext->client, reportContext->contextURL, documentIsolationPolicy.reportingEndpoint, COEPDisposition::Enforce, reportContext->destination, reportContext->blockedURL);

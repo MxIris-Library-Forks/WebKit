@@ -71,6 +71,8 @@ WEBCORE_EXPORT std::expected<RetainPtr<CMSampleBufferRef>, ASCIILiteral> toCMSam
 WEBCORE_EXPORT UniqueRef<MediaSamplesBlock> samplesBlockFromCMSampleBuffer(CMSampleBufferRef, const TrackInfo* = nullptr);
 
 RetainPtr<CFArrayRef> compressedAlphaData(CMSampleBufferRef);
+bool hasSeparateAlphaStream(CMFormatDescriptionRef);
+RetainPtr<CMFormatDescriptionRef> createFormatDescriptionWithAlpha(CVPixelBufferRef);
 
 WEBCORE_EXPORT void attachColorSpaceToPixelBuffer(const PlatformVideoColorSpace&, CVPixelBufferRef);
 

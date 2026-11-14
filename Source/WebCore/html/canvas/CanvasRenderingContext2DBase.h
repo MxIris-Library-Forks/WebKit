@@ -467,6 +467,10 @@ private:
     void applyLineDash() const;
     void invalidateCachedContents(OptionSet<WillUpdateContentsOption>);
     void notifyCanvasEntireContentsWillChange(ShouldApplyPostProcessingToDirtyRect);
+    // For CanvasFilterContextSwitcher, which sets a target switcher for one draw and then sets back the previous
+    // one. The draw does not save() or restore(), so the target switcher is set without realizeSaves(), in the
+    // state that unrealized saves share with the level below.
+    void setTargetSwitcherForDraw(RefPtr<CanvasLayerContextSwitcher>&&);
     void setShadow(const FloatSize& offset, float blur, const Color&);
     void applyShadow();
     NODELETE bool shouldDrawShadows() const;
@@ -483,9 +487,10 @@ private:
     ColorSpace colorSpace() const final;
     bool willReadFrequently() const final;
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
-    bool canStoreHDRContent() const;
-    bool computeIsHDR() const;
-    bool isHDR() const final { return m_isHDR; }
+    bool canStoreEDRContent() const { return m_canStoreEDRContent; }
+    bool shouldShowEDRContent() const { return m_shouldShowEDRContent; }
+    PlatformDynamicRangeLimit effectiveDynamicRangeLimit() const;
+    bool isHDR() const final;
 #endif
 
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
@@ -584,12 +589,13 @@ private:
     unsigned m_unrealizedSaveCount { 0 };
     bool m_usesCSSCompatibilityParseMode;
     mutable Variant<CachedContentsTransparent, CachedContentsUnknown, CachedContentsImageData> m_cachedContents;
-    CanvasRenderingContext2DSettings m_settings;
+    const CanvasRenderingContext2DSettings m_settings;
     bool m_hasDeferredOperations { false };
     mutable bool m_hasCreatedImageBuffer { false };
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
+    const bool m_canStoreEDRContent;
+    const bool m_shouldShowEDRContent;
     PlatformDynamicRangeLimit m_dynamicRangeLimit { PlatformDynamicRangeLimit::initialValue() };
-    bool m_isHDR { false };
 #endif
 };
 

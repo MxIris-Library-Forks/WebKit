@@ -37,6 +37,7 @@
 #include <JavaScriptCore/SIMDInfo.h>
 #include <limits.h>
 #include <wtf/Assertions.h>
+#include <wtf/Borrow.h>
 #include <wtf/Vector.h>
 #include <stdint.h>
 
@@ -806,12 +807,15 @@ public:
     {
         CHECK_DATASIZE();
         ASSERT(!shift || shift == 12);
+        ASSERT_WITH_MESSAGE(!isSp(rd) || setFlags == DontSetFlags, "ADDS with immediate does not support SP for Xd, register 31 is Xd.");
         insn(addSubtractImmediate(DATASIZE, AddOp_ADD, setFlags, shift == 12, imm12, rn, rd));
     }
 
     template<int datasize, SetFlags setFlags = DontSetFlags>
     ALWAYS_INLINE void add(RegisterID rd, RegisterID rn, RegisterID rm)
     {
+        ASSERT_WITH_MESSAGE(!isSp(rd) || setFlags == DontSetFlags, "ADDS with shifted register does not support SP for Xd, it uses XZR for the register 31. ADDS with extended register support SP for Xd, but only if SetFlag is not used, otherwise register 31 is Xd.");
+        ASSERT_WITH_MESSAGE(!isSp(rm), "No encoding of ADDS supports SP for the third operand.");
         add<datasize, setFlags>(rd, rn, rm, LSL, 0);
     }
 
@@ -819,6 +823,7 @@ public:
     ALWAYS_INLINE void add(RegisterID rd, RegisterID rn, RegisterID rm, ExtendType extend, int amount)
     {
         CHECK_DATASIZE_SIMD();
+        ASSERT_WITH_MESSAGE(!isSp(rd) || setFlags == DontSetFlags, "ADDS with extended register does not support SP for Xd, register 31 is Xd.");
         insn(addSubtractExtendedRegister(DATASIZE, AddOp_ADD, setFlags, rm, extend, amount, rn, rd));
     }
 
@@ -912,6 +917,7 @@ public:
     template<int datasize>
     ALWAYS_INLINE void bfi(RegisterID rd, RegisterID rn, int lsb, int width)
     {
+        ASSERT(0 <= lsb && lsb < datasize && width >= 1 && lsb + width <= datasize);
         bfm<datasize>(rd, rn, (datasize - lsb) & (datasize - 1), width - 1);
     }
 
@@ -925,6 +931,7 @@ public:
     template<int datasize>
     ALWAYS_INLINE void bfxil(RegisterID rd, RegisterID rn, int lsb, int width)
     {
+        ASSERT(0 <= lsb && lsb < datasize && width >= 1 && lsb + width <= datasize);
         bfm<datasize>(rd, rn, lsb, lsb + width - 1);
     }
 
@@ -2797,6 +2804,7 @@ public:
     template<int datasize>
     ALWAYS_INLINE void sbfiz(RegisterID rd, RegisterID rn, int lsb, int width)
     {
+        ASSERT(0 <= lsb && lsb < datasize && width >= 1 && lsb + width <= datasize);
         sbfm<datasize>(rd, rn, (datasize - lsb) & (datasize - 1), width - 1);
     }
 
@@ -3022,6 +3030,7 @@ public:
     {
         CHECK_DATASIZE();
         ASSERT(!shift || shift == 12);
+        ASSERT_WITH_MESSAGE(!isSp(rd) || setFlags == DontSetFlags, "SUBS with immediate does not support SP for Xd, register 31 is Xd.");
         insn(addSubtractImmediate(DATASIZE, AddOp_SUB, setFlags, shift == 12, imm12, rn, rd));
     }
 
@@ -3041,6 +3050,7 @@ public:
     ALWAYS_INLINE void sub(RegisterID rd, RegisterID rn, RegisterID rm, ExtendType extend, int amount)
     {
         CHECK_DATASIZE();
+        ASSERT_WITH_MESSAGE(!isSp(rd) || setFlags == DontSetFlags, "SUBS with extended register does not support SP for Xd, register 31 is Xd.");
         insn(addSubtractExtendedRegister(DATASIZE, AddOp_SUB, setFlags, rm, extend, amount, rn, rd));
     }
 
@@ -3109,6 +3119,7 @@ public:
     template<int datasize>
     ALWAYS_INLINE void ubfiz(RegisterID rd, RegisterID rn, int lsb, int width)
     {
+        ASSERT(0 <= lsb && lsb < datasize && width >= 1 && lsb + width <= datasize);
         ubfm<datasize>(rd, rn, (datasize - lsb) & (datasize - 1), width - 1);
     }
 
@@ -4158,7 +4169,50 @@ public:
 
     Vector<LinkRecord, 0, UnsafeVectorOverflow>& jumpsToLink()
     {
-        std::ranges::sort(m_jumpsToLink, { }, &LinkRecord::from);
+        auto byFrom = [](const LinkRecord& a, const LinkRecord& b) {
+            return a.from() < b.from();
+        };
+        if (std::ranges::is_sorted(m_jumpsToLink, byFrom))
+            return m_jumpsToLink;
+
+        unsigned size = m_jumpsToLink.size();
+        if (size <= 96) {
+            std::ranges::sort(m_jumpsToLink, byFrom);
+            return m_jumpsToLink;
+        }
+
+        // Jumps linked late, such as YarrJIT backtracking, leave a few records far out of place, where
+        // comparison sorts do poorly. Radix sorting packed (offset, index) keys and permuting the records once
+        // is cheaper for anything but small counts.
+        Vector<uint64_t> buffer(static_cast<size_t>(size) * 2);
+        Borrow borrowedBuffer = buffer;
+        auto keys = borrowedBuffer->mutableSpan().first(size);
+        auto scratch = borrowedBuffer->mutableSpan().subspan(size);
+        uint32_t maxFrom = 0;
+        for (unsigned index = 0; index < size; ++index) {
+            uint64_t from = m_jumpsToLink[index].from();
+            ASSERT(from <= std::numeric_limits<uint32_t>::max());
+            maxFrom = std::max(maxFrom, static_cast<uint32_t>(from));
+            keys[index] = (from << 32) | index;
+        }
+        for (unsigned shift = 32; shift < 64 && (static_cast<uint64_t>(maxFrom) << 32) >> shift; shift += 8) {
+            std::array<unsigned, 257> starts { };
+            for (uint64_t key : keys)
+                ++starts[((key >> shift) & 0xff) + 1];
+            for (unsigned digit = 0; digit < 256; ++digit)
+                starts[digit + 1] += starts[digit];
+            for (uint64_t key : keys)
+                scratch[starts[(key >> shift) & 0xff]++] = key;
+            std::swap(keys, scratch);
+        }
+
+        auto sorted = [&] {
+            Borrow jumpsToLink = m_jumpsToLink;
+            return WTF::map<0, UnsafeVectorOverflow>(keys, [&](uint64_t key) {
+                return jumpsToLink[static_cast<uint32_t>(key)];
+            });
+        }();
+        m_jumpsToLink = WTF::move(sorted);
         return m_jumpsToLink;
     }
 
@@ -4543,8 +4597,8 @@ protected:
 
     ALWAYS_INLINE static int bitfield(Datasize sf, BitfieldOp opc, int immr, int imms, RegisterID rn, RegisterID rd)
     {
-        ASSERT(immr < (sf ? 64 : 32));
-        ASSERT(imms < (sf ? 64 : 32));
+        ASSERT(0 <= immr && immr < (sf ? 64 : 32));
+        ASSERT(0 <= imms && imms < (sf ? 64 : 32));
         const int N = sf;
         return (0x13000000 | sf << 31 | opc << 29 | N << 22 | immr << 16 | imms << 10 | xOrZr(rn) << 5 | xOrZr(rd));
     }
@@ -4570,6 +4624,7 @@ protected:
     {
         ASSERT(!(imm5 & ~0x1f));
         ASSERT(nzcv < 16);
+        ASSERT(cond < ConditionAL);
         const int S = 1;
         const int o2 = 0;
         const int o3 = 0;
@@ -4579,6 +4634,7 @@ protected:
     ALWAYS_INLINE static int conditionalCompareRegister(Datasize sf, AddOp op, RegisterID rm, Condition cond, RegisterID rn, int nzcv)
     {
         ASSERT(nzcv < 16);
+        ASSERT(cond < ConditionAL);
         const int S = 1;
         const int o2 = 0;
         const int o3 = 0;
@@ -4590,6 +4646,7 @@ protected:
     ALWAYS_INLINE static int conditionalSelect(Datasize sf, bool op, RegisterID rm, Condition cond, bool op2, RegisterID rn, RegisterID rd)
     {
         const int S = 0;
+        ASSERT(cond < ConditionAL);
         return (0x1a800000 | sf << 31 | op << 30 | S << 29 | xOrZr(rm) << 16 | cond << 12 | op2 << 10 | xOrZr(rn) << 5 | xOrZr(rd));
     }
 
@@ -4628,7 +4685,7 @@ protected:
 
     ALWAYS_INLINE static int extract(Datasize sf, RegisterID rm, int imms, RegisterID rn, RegisterID rd)
     {
-        ASSERT(imms < (sf ? 64 : 32));
+        ASSERT(0 <= imms && imms < (sf ? 64 : 32));
         const int op21 = 0;
         const int N = sf;
         const int o0 = 0;

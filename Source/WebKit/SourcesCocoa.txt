@@ -190,6 +190,8 @@ Shared/Cocoa/AuxiliaryProcessCocoa.mm @nonARC
 Shared/Cocoa/CodeSigning.mm @nonARC
 Shared/Cocoa/CompletionHandlerCallChecker.mm @nonARC
 Shared/Cocoa/DefaultWebBrowserChecks.mm @nonARC
+Shared/Cocoa/DigitalCredentialsPresentment.mm @nonARC
+Shared/Cocoa/DigitalCredentialsRequestValidatorBridge.mm @nonARC
 Shared/Cocoa/EnhancedSecurityLinkUtilities.mm @nonARC
 Shared/Cocoa/InteractionInformationAtPosition.mm @nonARC
 Shared/Cocoa/InteractionInformationRequest.cpp
@@ -345,6 +347,7 @@ UIProcess/API/Cocoa/_WKWebPushDaemonConnection.mm @nonARC
 UIProcess/API/Cocoa/_WKWebPushMessage.mm @nonARC
 UIProcess/API/Cocoa/_WKWebPushSubscriptionData.mm @nonARC
 UIProcess/API/Cocoa/_WKWebExtension.mm @nonARC
+UIProcess/API/Cocoa/_WKWebExtensionBookmarkConfiguration.mm
 UIProcess/API/Cocoa/_WKWebExtensionNotification.mm
 UIProcess/API/Cocoa/_WKWebExtensionSidebar.mm
 UIProcess/API/Cocoa/_WKWebPushAction.mm @nonARC
@@ -535,6 +538,7 @@ UIProcess/Extensions/Cocoa/API/WebExtensionContextAPIWebNavigationCocoa.mm
 UIProcess/Extensions/Cocoa/API/WebExtensionContextAPIWindowsCocoa.mm
 UIProcess/Extensions/Cocoa/API/WebExtensionControllerAPITestCocoa.mm
 UIProcess/Extensions/Cocoa/WebExtensionActionCocoa.mm
+UIProcess/Extensions/Cocoa/WebExtensionBookmarkCocoa.mm
 UIProcess/Extensions/Cocoa/WebExtensionCocoa.mm
 UIProcess/Extensions/Cocoa/WebExtensionCommandCocoa.mm
 UIProcess/Extensions/Cocoa/WebExtensionContextCocoa.mm
@@ -766,7 +770,6 @@ WebProcess/cocoa/UserMediaCaptureManager.cpp
 WebProcess/cocoa/VideoPresentationManager.mm @nonARC @cost:7
 WebProcess/cocoa/WebProcessCocoa.mm @nonARC @cost:4
 
-WebProcess/cocoa/IdentityDocumentServices/DigitalCredentialsRequestValidatorBridge.mm @nonARC
 
 WebProcess/EntryPoint/Cocoa/XPCService/WebContentServiceEntryPoint.mm @nonARC
 

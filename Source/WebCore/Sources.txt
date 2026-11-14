@@ -2033,6 +2033,7 @@ inspector/agents/LayerTreeInspectionState.cpp @header:RenderStyleGetters
 inspector/agents/WebConsoleAgent.cpp
 inspector/agents/WebDebuggerAgent.cpp
 inspector/agents/WebHeapAgent.cpp
+inspector/agents/frame/FrameAnimationAgent.cpp
 inspector/agents/frame/FrameCSSAgent.cpp @header:RenderStyleGetters
 inspector/agents/frame/FrameCanvasAgent.cpp
 inspector/agents/frame/FrameConsoleAgent.cpp
@@ -2749,7 +2750,6 @@ platform/graphics/ImageBuffer.cpp
 platform/graphics/ImageBufferAllocator.cpp
 platform/graphics/ImageBufferBackend.cpp
 platform/graphics/ImageBufferContextSwitcher.cpp
-platform/graphics/ImageBufferDisplayListBackend.cpp
 platform/graphics/ImageDecoder.cpp
 platform/graphics/ImageFrame.cpp
 platform/graphics/ImageResolution.cpp
@@ -4368,6 +4368,7 @@ JSFlacEncoderConfig.cpp
 JSFocusEvent.cpp
 JSFocusOptions.cpp
 JSFontFace.cpp
+JSFontFaceLoadStatus.cpp
 JSFontFaceSet.cpp
 JSFormDataEvent.cpp
 JSFragmentDirective.cpp

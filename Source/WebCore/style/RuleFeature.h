@@ -25,7 +25,6 @@
 #include "CommonAtomStrings.h"
 #include <wtf/CompactVariant.h>
 #include <wtf/Forward.h>
-#include <wtf/GenericHashKey.h>
 #include <wtf/HashMap.h>
 #include <wtf/HashSet.h>
 #include <wtf/Markable.h>
@@ -172,7 +171,7 @@ struct RuleFeatureSet {
     void shrinkToFit();
 
     struct CollectionContext {
-        HashSet<GenericHashKey<SelectorDeduplicationKey>> selectorDeduplicationSet;
+        HashSet<SelectorDeduplicationKey> selectorDeduplicationSet;
     };
     void collectFeatures(CollectionContext&, const RuleData&, const Vector<Ref<const StyleRuleScope>>& scopeRules = { });
 
@@ -192,8 +191,8 @@ struct RuleFeatureSet {
 
     HashSet<AtomString> classesAffectingHost;
     HashSet<AtomString> attributesAffectingHost;
-    HashSet<CSSSelector::PseudoClass, IntHash<CSSSelector::PseudoClass>, WTF::StrongEnumHashTraits<CSSSelector::PseudoClass>> pseudoClassesAffectingHost;
-    HashSet<CSSSelector::PseudoClass, IntHash<CSSSelector::PseudoClass>, WTF::StrongEnumHashTraits<CSSSelector::PseudoClass>> pseudoClasses;
+    HashSet<CSSSelector::PseudoClass, IntHash<CSSSelector::PseudoClass>> pseudoClassesAffectingHost;
+    HashSet<CSSSelector::PseudoClass, IntHash<CSSSelector::PseudoClass>> pseudoClasses;
 
     std::array<bool, matchRelationCount> usedRelations { };
 

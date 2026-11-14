@@ -276,11 +276,12 @@ CanvasRenderingContext2DBase::CanvasRenderingContext2DBase(CanvasBase& canvas, C
     , m_stateStack(1)
     , m_usesCSSCompatibilityParseMode(usesCSSCompatibilityParseMode)
     , m_settings(WTF::move(settings))
+#if ENABLE(PIXEL_FORMAT_RGBA16F)
+    , m_canStoreEDRContent(allowExtendedColorSpace(pixelFormat()) == AllowExtendedColorSpace::Yes)
+    , m_shouldShowEDRContent(m_settings.toneMapping.mode != CanvasToneMappingMode::Standard)
+#endif
 {
     ASSERT(is2dBase());
-#if ENABLE(PIXEL_FORMAT_RGBA16F)
-    m_isHDR = computeIsHDR();
-#endif
 }
 
 CanvasRenderingContext2DBase::~CanvasRenderingContext2DBase()
@@ -1085,6 +1086,11 @@ void CanvasRenderingContext2DBase::applyLineDash() const
     for (size_t i = 0; i < state.lineDash.size(); ++i)
         convertedLineDash[i] = static_cast<DashArrayElement>(state.lineDash[i]);
     c->setLineDash(convertedLineDash, state.lineDashOffset);
+}
+
+void CanvasRenderingContext2DBase::setTargetSwitcherForDraw(RefPtr<CanvasLayerContextSwitcher>&& targetSwitcher)
+{
+    m_stateStack.last().targetSwitcher = WTF::move(targetSwitcher);
 }
 
 void CanvasRenderingContext2DBase::setGlobalAlpha(double alpha)
@@ -2033,7 +2039,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(WebCodecsVideoFrame& f
     RasterDrawingOptions options = {
         internalFrame->orientation(),
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
-        (canStoreHDRContent() && usesITUR2100TF(internalFrame->colorSpace())) ? DrawsHDRContent::Yes : DrawsHDRContent::No,
+        (canStoreEDRContent() && usesITUR2100TF(internalFrame->colorSpace())) ? DrawsHDRContent::Yes : DrawsHDRContent::No,
 #endif
         compositeOperator,
         state().globalBlend
@@ -2128,7 +2134,7 @@ ExceptionOr<void> CanvasRenderingContext2DBase::drawImage(Document& document, Im
         InvertContent::No,
 #endif
 #if ENABLE(PIXEL_FORMAT_RGBA16F)
-        (canStoreHDRContent() && !firstFrame && sourceImage.hasHDRContent()) ? DrawsHDRContent::Yes : DrawsHDRContent::No,
+        (canStoreEDRContent() && !firstFrame && sourceImage.hasHDRContent()) ? DrawsHDRContent::Yes : DrawsHDRContent::No,
         document.settings().hdrAcceleratedApplyGainMapEnabled() ? AllowAcceleratedApplyGainMap::Yes : AllowAcceleratedApplyGainMap::No,
 #endif
     };
@@ -3762,23 +3768,6 @@ ColorSpace CanvasRenderingContext2DBase::colorSpace() const
     return toColorSpace(m_settings.colorSpace, allowExtendedColorSpace(m_settings.colorType));
 }
 
-#if ENABLE(PIXEL_FORMAT_RGBA16F)
-
-bool CanvasRenderingContext2DBase::canStoreHDRContent() const
-{
-    return allowExtendedColorSpace(pixelFormat()) == AllowExtendedColorSpace::Yes;
-}
-
-bool CanvasRenderingContext2DBase::computeIsHDR() const
-{
-    if (!canStoreHDRContent())
-        return false;
-
-    return m_settings.toneMapping.mode != CanvasToneMappingMode::Standard;
-}
-
-#endif
-
 bool CanvasRenderingContext2DBase::willReadFrequently() const
 {
     return m_settings.willReadFrequently;
@@ -3800,24 +3789,42 @@ struct DisplayEDRState {
 
 static DisplayEDRState displayEDRState(const CanvasBase& canvas)
 {
-#if HAVE(SUPPORT_HDR_DISPLAY)
     RefPtr document = dynamicDowncast<Document>(canvas.scriptExecutionContext());
-    if (RefPtr page = document ? document->page() : nullptr)
-        return { currentEDRHeadroomForDisplay(page->displayID()), suppressEDRForDisplay(page->displayID()) };
-#else
-    UNUSED_PARAM(canvas);
+    RefPtr page = document ? document->page() : nullptr;
+    if (!page)
+        return { };
+
+    DisplayEDRState state;
+    state.suppressEDR = page->shouldSuppressHDR();
+#if HAVE(SUPPORT_HDR_DISPLAY)
+    state.headroom = currentEDRHeadroomForDisplay(page->displayID());
+    state.suppressEDR |= suppressEDRForDisplay(page->displayID());
 #endif
-    return { };
+    return state;
+}
+
+PlatformDynamicRangeLimit CanvasRenderingContext2DBase::effectiveDynamicRangeLimit() const
+{
+    return WebCore::effectiveDynamicRangeLimit(m_dynamicRangeLimit, displayEDRState(protect(canvasBase())).suppressEDR);
 }
 
 std::optional<double> CanvasRenderingContext2DBase::getEffectiveDynamicRangeLimitValue() const
 {
-    return effectiveDynamicRangeLimit(m_dynamicRangeLimit, displayEDRState(protect(canvasBase())).suppressEDR).value();
+    return effectiveDynamicRangeLimit().value();
+}
+
+bool CanvasRenderingContext2DBase::isHDR() const
+{
+    // The displayed headroom is the lesser of the bitmap's (none with "standard" tone mapping) and the one
+    // allowed by the dynamic range limit (none with "standard").
+    // https://html.spec.whatwg.org/multipage/canvas.html#colour-spaces-and-colour-correction
+    // The display state is only queried for canvases that could be HDR.
+    return canStoreEDRContent() && shouldShowEDRContent() && effectiveDynamicRangeLimit() > PlatformDynamicRangeLimit::standard();
 }
 
 RasterDrawingOptions CanvasRenderingContext2DBase::drawingOptionsForDisplay() const
 {
-    if (!canStoreHDRContent())
+    if (!canStoreEDRContent())
         return { };
 
     auto dynamicRangeLimit = isHDR() ? m_dynamicRangeLimit : PlatformDynamicRangeLimit::standard();

@@ -89,6 +89,7 @@
 #include "VisibilityAdjustment.h"
 #include "WebAnimationTypes.h"
 #include <wtf/RobinHoodHashSet.h>
+#include <wtf/WeakHashMap.h>
 
 #if PLATFORM(COCOA)
 #include <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
@@ -443,6 +444,22 @@ void Adjuster::adjustFirstLineStyle(Style::ComputedStyle& style)
 
     // Force inline display.
     style.setDisplayMaintainingOriginalDisplay(DisplayType::InlineFlow);
+}
+
+static WeakHashMap<Element, WebCore::Color, WeakPtrImplWithEventTargetData>& overrideBackgroundColorsForTesting()
+{
+    static MainThreadNeverDestroyed<WeakHashMap<Element, WebCore::Color, WeakPtrImplWithEventTargetData>> colors;
+    return colors;
+}
+
+void Adjuster::setOverrideBackgroundColorForTesting(Element& element, std::optional<WebCore::Color>&& color)
+{
+    if (color)
+        overrideBackgroundColorsForTesting().set(element, WTF::move(*color));
+    else
+        overrideBackgroundColorsForTesting().remove(element);
+
+    element.invalidateStyle();
 }
 
 void Adjuster::adjust(Style::ComputedStyle& style) const
@@ -830,6 +847,11 @@ void Adjuster::adjust(Style::ComputedStyle& style) const
 
     adjustForSiteSpecificQuirks(style);
 
+    if (m_element) {
+        if (auto overrideBackgroundColor = overrideBackgroundColorsForTesting().getOptional(*m_element)) [[unlikely]]
+            style.setOverrideBackgroundColor({ WTF::move(*overrideBackgroundColor) });
+    }
+
     adjustUsedUserSelect(style);
     // Don't allow selecting individual glyphs on text recognized inside an image:
 #if ENABLE(IMAGE_ANALYSIS)
@@ -1069,22 +1091,6 @@ void Adjuster::adjustThemeStyle(Style::ComputedStyle& style, const Style::Comput
     }
 }
 
-#if HAVE(APPKIT_GESTURES_SUPPORT)
-static inline void adjustForManipulationSurfaceQuirk(ComputedStyle& style)
-{
-    if (toPlatform(style.usedTouchAction()) == OptionSet { WebCore::TouchAction::PanX, WebCore::TouchAction::PanY })
-        style.setUsedTouchAction(CSS::Keyword::None { });
-}
-
-static inline void adjustForBoxAnnotationQuirk(ComputedStyle& style)
-{
-    style.setUsedTouchAction(CSS::Keyword::Auto { });
-}
-#else
-NODELETE static inline void adjustForManipulationSurfaceQuirk(ComputedStyle&) { }
-NODELETE static inline void adjustForBoxAnnotationQuirk(ComputedStyle&) { }
-#endif
-
 void Adjuster::adjustForSiteSpecificQuirks(Style::ComputedStyle& style) const
 {
     if (!m_element)
@@ -1147,13 +1153,17 @@ void Adjuster::adjustForSiteSpecificQuirks(Style::ComputedStyle& style) const
         }
     }
 
+#if HAVE(APPKIT_GESTURES_SUPPORT)
     // google.com/maps/embed rdar://184166392
-    if (documentQuirks.needsGoogleMapsEmbedManipulationSurfaceQuirk())
-        adjustForManipulationSurfaceQuirk(style);
+    if (documentQuirks.needsGoogleMapsEmbedManipulationSurfaceQuirk()) {
+        if (toPlatform(style.usedTouchAction()) == OptionSet { WebCore::TouchAction::PanX, WebCore::TouchAction::PanY })
+            style.setUsedTouchAction(CSS::Keyword::None { });
+    }
 
     // box.com rdar://187475153
     if (documentQuirks.needsBoxAnnotationQuirk(protect(*m_element)))
-        adjustForBoxAnnotationQuirk(style);
+        style.setUsedTouchAction(CSS::Keyword::Auto { });
+#endif // HAVE(APPKIT_GESTURES_SUPPORT)
 
 #if PLATFORM(IOS_FAMILY)
     if (documentQuirks.needsGoogleMapsScrollingQuirk()) {

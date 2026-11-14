@@ -448,6 +448,20 @@ enum class WebCore::ViewportFit : uint8_t {
     Cover,
 };
 
+enum class WebCore::ViewportFitEdge : uint8_t {
+    Contain,
+    ImplicitCover,
+    ExplicitCover,
+};
+
+header: <WebCore/ViewportArguments.h>
+[CustomHeader] struct WebCore::ViewportFitEdges {
+    WebCore::ViewportFitEdge top;
+    WebCore::ViewportFitEdge left;
+    WebCore::ViewportFitEdge bottom;
+    WebCore::ViewportFitEdge right;
+};
+
 enum class WebCore::InteractiveWidgetValue : uint8_t {
     ResizesVisual,
     ResizesContent,
@@ -1145,6 +1159,10 @@ struct WebCore::ViewportArguments {
     WebCore::ViewportFit viewportFit;
     bool widthWasExplicit;
     WebCore::InteractiveWidgetValue interactiveWidgetValue;
+    std::optional<WebCore::ViewportFit> viewportFitTop;
+    std::optional<WebCore::ViewportFit> viewportFitLeft;
+    std::optional<WebCore::ViewportFit> viewportFitBottom;
+    std::optional<WebCore::ViewportFit> viewportFitRight;
 };
 #endif // ENABLE(META_VIEWPORT)
 
@@ -1817,7 +1835,7 @@ header: <WebCore/SearchPopupMenu.h>
 
 struct WebCore::EventTrackingRegions {
     WebCore::Region asynchronousDispatchRegion;
-    HashMap<WebCore::EventTrackingRegions::EventType, WebCore::Region, WTF::IntHash<WebCore::EventTrackingRegions::EventType>, WTF::StrongEnumHashTraits<WebCore::EventTrackingRegions::EventType>> eventSpecificSynchronousDispatchRegions;
+    HashMap<WebCore::EventTrackingRegions::EventType, WebCore::Region, WTF::IntHash<WebCore::EventTrackingRegions::EventType>> eventSpecificSynchronousDispatchRegions;
 };
 
 enum class WebCore::HasInsecureContent : bool
@@ -1913,6 +1931,13 @@ struct WebCore::DictationAlternative {
     WebCore::UserContentMatchParentFrame matchParentFrame();
     WebCore::UserStyleLevel level();
     std::optional<WebCore::PageIdentifier> pageID();
+    bool persistsAcrossDocuments();
+};
+
+header: <WebCore/ScrollTypes.h>
+[CustomHeader] enum class WebCore::ScrollRelativity : uint8_t {
+    Delta,
+    Absolute
 };
 
 header: <WebCore/ScrollTypes.h>
@@ -1990,6 +2015,7 @@ header: <WebCore/ScrollingCoordinatorTypes.h>
     WebCore::ScrollUpdateType updateType;
     WebCore::ScrollingLayerPositionAction updateLayerPositionAction;
     std::optional<WebCore::LayoutViewportOriginOrOverrideRect> layoutViewportOriginOrOverrideRect;
+    std::optional<WebCore::ScrollRelativity> scrollRelativity;
 };
 
 header: <WebCore/ScrollingCoordinatorTypes.h>
@@ -2212,6 +2238,9 @@ struct WebCore::PlatformMediaDecodingConfiguration : WebCore::PlatformMediaConfi
     std::optional<WebCore::PageIdentifier> pageIdentifier;
     bool canExposeVP9;
 };
+
+header: <WebCore/IncludesCredentials.h>
+enum class WebCore::IncludesCredentials : bool;
 
 header: <WebCore/ResourceResponseBase.h>
 enum class WebCore::UsedLegacyTLS : bool;
@@ -2863,7 +2892,11 @@ enum class WebCore::AutocapitalizeType : uint8_t {
     AllCharacters
 };
 
-enum class WebCore::CrossOriginEmbedderPolicyValue : bool
+enum class WebCore::CrossOriginEmbedderPolicyValue : uint8_t {
+    UnsafeNone,
+    RequireCORP,
+    Credentialless
+};
 
 struct WebCore::CrossOriginEmbedderPolicy {
     WebCore::CrossOriginEmbedderPolicyValue value;
@@ -2873,7 +2906,11 @@ struct WebCore::CrossOriginEmbedderPolicy {
 };
 
 header: <WebCore/DocumentIsolationPolicy.h>
-enum class WebCore::DocumentIsolationPolicyValue : bool
+enum class WebCore::DocumentIsolationPolicyValue : uint8_t {
+    None,
+    IsolateAndRequireCORP,
+    IsolateAndCredentialless
+};
 
 struct WebCore::DocumentIsolationPolicy {
     WebCore::DocumentIsolationPolicyValue value;
@@ -5866,6 +5903,7 @@ enum class WebCore::UserContentMatchParentFrame : uint8_t {
     WebCore::UserScriptInjectionTime injectionTime();
     WebCore::UserContentInjectedFrames injectedFrames();
     WebCore::UserContentMatchParentFrame matchParentFrame();
+    std::optional<WebCore::PageIdentifier> pageID();
 }
 
 enum class WebCore::WindRule : bool
@@ -6991,8 +7029,8 @@ struct WebCore::OwnerPermissionsPolicyData {
 class WebCore::PermissionsPolicy {
     WebCore::PermissionsPolicy::InheritedPolicy inheritedPolicy()
 };
-using WebCore::PermissionsPolicy::InheritedPolicy = HashSet<WebCore::PermissionsPolicy::Feature, IntHash<WebCore::PermissionsPolicy::Feature>, WTF::StrongEnumHashTraits<WebCore::PermissionsPolicy::Feature>>;
-using WebCore::OwnerPermissionsPolicyData::PolicyDirective = HashMap<WebCore::PermissionsPolicy::Feature, WebCore::Allowlist, IntHash<WebCore::PermissionsPolicy::Feature>, WTF::StrongEnumHashTraits<WebCore::PermissionsPolicy::Feature>>;
+using WebCore::PermissionsPolicy::InheritedPolicy = HashSet<WebCore::PermissionsPolicy::Feature, IntHash<WebCore::PermissionsPolicy::Feature>>;
+using WebCore::OwnerPermissionsPolicyData::PolicyDirective = HashMap<WebCore::PermissionsPolicy::Feature, WebCore::Allowlist, IntHash<WebCore::PermissionsPolicy::Feature>>;
 
 #if PLATFORM(COCOA)
 header: <WebCore/ImageUtilities.h>
@@ -7230,6 +7268,7 @@ header: <WebCore/TrackInfo.h>
     Vector<std::pair<WebCore::FourCC, Ref<WebCore::SharedBuffer>>> extensionAtoms;
     std::optional<uint8_t> reorderQueueMaxSize;
     std::optional<WebCore::VideoPixelFormat> pixelFormat;
+    bool hasSeparateAlphaStream;
 
 #if PLATFORM(VISION)
     std::optional<WebCore::ImmersiveVideoMetadata> immersiveVideoMetadata;
@@ -7343,13 +7382,6 @@ struct WebCore::DocumentSecurityPolicy {
     WebCore::CrossOriginOpenerPolicy crossOriginOpenerPolicy;
     WebCore::IsSecureContext isSecureContext;
     std::optional<WebCore::AgentClusterIdentifier> agentClusterIdentifier;
-};
-
-header: <WebCore/ProcessSwapDisposition.h>
-enum class WebCore::ProcessSwapDisposition : uint8_t {
-    None,
-    COOP,
-    Other
 };
 
 struct WebCore::MessageForTesting {

@@ -805,6 +805,8 @@ endforeach ()
 webkit_target_add_swift_options(TestWebKit "-Xcc -I${CMAKE_SOURCE_DIR}/Source")
 
 list(APPEND TestWebKit_SOURCES
+    Tests/Testing+Extras.swift
+
     "Tests/WebKit/WebPage/Mac Touch Support Tests/BasicMacTouchSupportTests.swift"
     "Tests/WebKit/WebPage/Mac Touch Support Tests/DoubleTapMacTouchSupportTests.swift"
     "Tests/WebKit/WebPage/Mac Touch Support Tests/EmbeddedMacTouchSupportTests.swift"
@@ -823,6 +825,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/NavigationResponseProcessSwapTests.swift
     Tests/WebKit/WKWebView/PDFLookUpTests.swift
     Tests/WebKit/WKWebView/ProcessSwapBackForwardTests.swift
+    Tests/WebKit/WKWebView/ProcessSwapCOOPProcessReuseTests.swift
     Tests/WebKit/WKWebView/ProcessSwapStaleNavigationTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAnimationControlTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAutocorrectionTests.swift
@@ -873,7 +876,12 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebExtensionAPINamespace.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIOffscreen.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIPermissions.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPITest.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIWebNavigation.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIWebRequest.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIWindows.swift
+    Tests/WebKit/WKWebView/WKWebExtensionContext.swift
+    Tests/WebKit/WKWebView/WKWebExtensionController.swift
     Tests/WebKit/WKWebView/WKWebExtensionControllerConfiguration.swift
     Tests/WebKit/WKWebView/WKWebExtensionDataRecord.swift
     Tests/WebKit/WKWebView/WKWebExtensionMatchPattern.swift

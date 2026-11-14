@@ -1388,7 +1388,7 @@ static WKDragSessionContext *ensureLocalDragSessionContext(id <UIDragSession> se
 #if ENABLE(IMAGE_ANALYSIS)
     _imageAnalysisDeferringGestureRecognizer = adoptNS([[WKDeferringGestureRecognizer alloc] initWithDeferringGestureDelegate:self]);
     [_imageAnalysisDeferringGestureRecognizer setName:@"Deferrer for image analysis"];
-    [_imageAnalysisDeferringGestureRecognizer setImmediatelyFailsAfterActionEnd:YES];
+    [_imageAnalysisDeferringGestureRecognizer setImmediatelyFailsAfterTouchEnd:YES];
     [_imageAnalysisDeferringGestureRecognizer setEnabled:WebKit::isLiveTextAvailableAndEnabled()];
 #endif
 
@@ -2625,7 +2625,7 @@ static void appendRecognizerIfNonNull(RetainPtr<NSMutableArray>& array, const Re
     return protect(_page)->exposedContentRect();
 }
 
-- (BOOL)clickHighlightControllerIsPotentialClickInProgress:(WKClickHighlightController *)controller
+- (BOOL)clickHighlightControllerIsPotentialTapInProgress:(WKClickHighlightController *)controller
 {
     return _potentialTapInProgress;
 }
@@ -2713,8 +2713,49 @@ static void appendRecognizerIfNonNull(RetainPtr<NSMutableArray>& array, const Re
     [_touchEventGestureRecognizer cancel];
 }
 
+- (BOOL)_selectionIsInSiteIsolatedSubframe
+{
+    RefPtr page = _page;
+    if (!page || !page->editorState().hasVisualData())
+        return NO;
+
+    auto rootFrameID = page->editorState().visualData->rootFrameID;
+    RefPtr mainFrame = page->mainFrame();
+    return rootFrameID && mainFrame && mainFrame->frameID() != *rootFrameID;
+}
+
+- (void)_updateEditorStateForSiteIsolatedSelectionAfterScrolling
+{
+    if (![self _selectionIsInSiteIsolatedSubframe])
+        return;
+
+    protect(_page)->scheduleFullEditorStateUpdate();
+}
+
+- (void)_refreshSiteIsolatedSelectionWhileScrolling
+{
+    if (_hasPendingSiteIsolatedSelectionRefreshDuringScrolling)
+        return;
+
+    if (![self _selectionIsInSiteIsolatedSubframe])
+        return;
+
+    RefPtr page = _page;
+    if (!page)
+        return;
+
+    _hasPendingSiteIsolatedSelectionRefreshDuringScrolling = YES;
+    page->scheduleFullEditorStateUpdate();
+    page->callAfterNextPresentationUpdate([weakSelf = WeakObjCPtr<WKContentView>(self)] {
+        if (auto strongSelf = weakSelf.get())
+            strongSelf->_hasPendingSiteIsolatedSelectionRefreshDuringScrolling = NO;
+    });
+}
+
 - (void)_didScroll
 {
+    [self _refreshSiteIsolatedSelectionWhileScrolling];
+
     [self _updateFrameOfContainerForContextMenuHintPreviewsIfNeeded];
 
     [self _cancelLongPressGestureRecognizer];
@@ -2729,6 +2770,8 @@ static void appendRecognizerIfNonNull(RetainPtr<NSMutableArray>& array, const Re
 - (void)_scrollingNodeScrollingDidEnd:(std::optional<WebCore::ScrollingNodeID>)scrollingNodeID
 {
     RefPtr page = _page;
+    [self _updateEditorStateForSiteIsolatedSelectionAfterScrolling];
+
     if (auto& state = page->editorState(); state.hasVisualData() && scrollingNodeID && scrollingNodeID == state.visualData->enclosingScrollingNodeID) {
         page->scheduleFullEditorStateUpdate();
         _waitingForEditorStateAfterScrollingSelectionContainer = YES;
@@ -4154,6 +4197,8 @@ static void cancelPotentialTapIfNecessary(WKContentView* contentView)
 
 - (void)_didEndScrollingOrZooming
 {
+    [self _updateEditorStateForSiteIsolatedSelectionAfterScrolling];
+
     if (!_needsDeferredEndScrollingSelectionUpdate)
         [protect(_textInteractionWrapper) didEndScrollingOrZooming];
     protect(_page)->setIsScrollingOrZooming(false);
@@ -10517,7 +10562,7 @@ static WebCore::DataOwnerType coreDataOwnerType(_UIDataOwner platformType)
 
 #pragma mark - WKDeferringGestureRecognizerDelegate
 
-- (BOOL)deferringGestureRecognizer:(WKDeferringGestureRecognizer *)deferringGestureRecognizer shouldDeferGesturesForEventThatWillBeginAction:(UIEvent *)event
+- (BOOL)deferringGestureRecognizer:(WKDeferringGestureRecognizer *)deferringGestureRecognizer shouldDeferGesturesForEventThatWillBeginTouches:(UIEvent *)event
 {
     protect(self.gestureRecognizerConsistencyEnforcer)->beginTracking(deferringGestureRecognizer);
 
@@ -10535,7 +10580,7 @@ static WebCore::DataOwnerType coreDataOwnerType(_UIDataOwner platformType)
         protect(self.gestureRecognizerConsistencyEnforcer)->endTracking(deferringGestureRecognizer);
 }
 
-- (void)deferringGestureRecognizer:(WKDeferringGestureRecognizer *)deferringGestureRecognizer didEndActionWithEvent:(UIEvent *)event
+- (void)deferringGestureRecognizer:(WKDeferringGestureRecognizer *)deferringGestureRecognizer didEndTouchesWithEvent:(UIEvent *)event
 {
     protect(protect(self).get().gestureRecognizerConsistencyEnforcer).get().endTracking(deferringGestureRecognizer);
 

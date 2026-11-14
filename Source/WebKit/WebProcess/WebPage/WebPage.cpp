@@ -4524,6 +4524,18 @@ void WebPage::setLastKnownMousePosition(WebCore::FrameIdentifier frameID, const 
     frame->coreLocalFrame()->eventHandler().setLastKnownMousePosition(eventPoint, globalPoint, WTF::move(source));
 }
 
+void WebPage::dispatchFakeMouseMoveEventInFrame(WebCore::FrameIdentifier frameID, const DoublePoint& eventPoint, const DoublePoint& globalPoint)
+{
+    RefPtr frame = WebProcess::singleton().webFrame(frameID);
+    RefPtr localFrame = frame ? frame->coreLocalFrame() : nullptr;
+    if (!localFrame || !localFrame->view())
+        return;
+
+    CheckedRef eventHandler = localFrame->eventHandler();
+    eventHandler->setLastKnownMousePosition(eventPoint, globalPoint, LastKnownMousePositionSource::Mouse);
+    eventHandler->dispatchFakeMouseMoveEventSoon();
+}
+
 void WebPage::mousePointerDidDisappear()
 {
     if (RefPtr page = corePage()) {
@@ -11122,7 +11134,7 @@ void WebPage::setLinkDecorationFilteringData(Vector<WebCore::LinkDecorationFilte
     m_internals->linkDecorationFilteringData.clear();
 
     for (auto& data : borrow(strings)) {
-        if (!m_internals->linkDecorationFilteringData.isValidKey(data.linkDecoration)) {
+        if (data.linkDecoration.isNull()) {
             WEBPAGE_RELEASE_LOG_ERROR(ResourceLoadStatistics, "Unable to set link decoration filtering data (invalid key)");
             ASSERT_NOT_REACHED();
             continue;
@@ -11133,10 +11145,7 @@ void WebPage::setLinkDecorationFilteringData(Vector<WebCore::LinkDecorationFilte
         }).iterator;
 
         if (!data.domain.isEmpty()) {
-            if (auto& domains = it->value.domains; domains.isValidValue(data.domain))
-                domains.add(data.domain);
-            else
-                ASSERT_NOT_REACHED();
+            it->value.domains.add(data.domain);
         }
 
         if (!data.path.isEmpty())
@@ -11148,7 +11157,7 @@ void WebPage::setAllowedQueryParametersForAdvancedPrivacyProtections(Vector<Link
 {
     m_internals->allowedQueryParametersForAdvancedPrivacyProtections.clear();
     for (auto& data : borrow(allowStrings)) {
-        if (!m_internals->allowedQueryParametersForAdvancedPrivacyProtections.isValidKey(data.domain))
+        if (data.domain.string().isNull())
             continue;
 
         m_internals->allowedQueryParametersForAdvancedPrivacyProtections.ensure(data.domain, [&] {

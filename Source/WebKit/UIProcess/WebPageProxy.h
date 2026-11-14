@@ -159,6 +159,7 @@ class CornerRadii;
 class Cursor;
 class DataSegment;
 class DocumentSyncData;
+class DoublePoint;
 class DragData;
 class Exception;
 class FloatPoint;
@@ -233,7 +234,7 @@ enum class DataOwnerType : uint8_t;
 enum class DeviceOrientationOrMotionPermissionState : uint8_t;
 enum class DevicePostureType : uint8_t;
 enum class DiagnosticLoggingDomain : uint8_t;
-enum class DocumentIsolationPolicyValue : bool;
+enum class DocumentIsolationPolicyValue : uint8_t;
 enum class DragControllerAction : uint8_t;
 enum class DragEventHandled : bool;
 enum class DragHandlingMethod : uint8_t;
@@ -264,7 +265,6 @@ enum class PermissionState : uint8_t;
 enum class PlatformEventModifier : uint8_t;
 enum class PlatformMediaSessionRemoteControlCommandType : uint8_t;
 enum class PolicyAction : uint8_t;
-enum class ProcessSwapDisposition : uint8_t;
 enum class ReasonForDismissingAlternativeText : uint8_t;
 enum class ReferrerPolicy : uint8_t;
 enum class ReloadOption : uint8_t;
@@ -947,6 +947,7 @@ public:
     void sendMessageToInspectorFrontend(const String& targetId, const String& message);
     void frameDidPauseForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
     void frameDidContinueForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
+    void debuggerDidPause(IPC::Connection&);
 
     void getAllFrames(CompletionHandler<void(std::optional<FrameTreeNodeData>&&)>&&);
     void getAllFrameTreesForSiteIsolationTesting(CompletionHandler<void(Vector<FrameTreeNodeData>&&)>&&);
@@ -1587,7 +1588,8 @@ public:
 
     NODELETE bool isProcessingMouseEvents() const;
     void processNextQueuedMouseEvent();
-    void sendMouseEvent(WebCore::FrameIdentifier, Ref<NativeWebMouseEvent>&&, std::optional<Vector<SandboxExtensionHandle>>&&);
+    enum class UpdateProcessAwaitingMouseEventReply : bool { No, Yes };
+    void sendMouseEvent(WebCore::FrameIdentifier, Ref<NativeWebMouseEvent>&&, std::optional<Vector<SandboxExtensionHandle>>&&, UpdateProcessAwaitingMouseEventReply = UpdateProcessAwaitingMouseEventReply::Yes);
     void handleMouseEvent(Ref<NativeWebMouseEvent>&&);
     void recordUIProcessUserActivation(const WebEvent&);
     void dispatchMouseDidMoveOverElementForModifierFlagsChange(Ref<NativeWebMouseEvent>&&);
@@ -2217,6 +2219,7 @@ public:
 
     void tapHighlightAtPosition(const WebCore::FloatPoint&, TapIdentifier requestID);
     void attemptSyntheticClick(const WebCore::FloatPoint&, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastTouchStart);
+    void attemptSyntheticClickInFrame(std::optional<WebCore::FrameIdentifier>, const WebCore::IntPoint&, OptionSet<WebEventModifier>, TransactionID layerTreeTransactionIdAtLastTouchStart);
     void didRecognizeLongPress();
 
     void inspectorNodeSearchMovedToPosition(const WebCore::FloatPoint&);
@@ -3472,6 +3475,7 @@ private:
     void runJavaScriptPrompt(IPC::Connection&, WebCore::FrameIdentifier, FrameInfoData&&, String&&, String&&, CompletionHandler<void(const String&)>&&);
     void setStatusText(const String&);
     void mouseDidMoveOverElement(WebHitTestResultData&&, OptionSet<WebEventModifier>);
+    void dispatchFakeMouseMoveEventInRemoteFrame(IPC::Connection&, WebCore::FrameIdentifier, const WebCore::DoublePoint&, const WebCore::DoublePoint&);
     void performHitTestForModifierFlagsChangeInFrame(WebCore::FrameIdentifier, Ref<WebMouseEvent>&&);
 
     NODELETE void getIsViewVisible(bool&);
@@ -3680,6 +3684,7 @@ private:
     void discardQueuedMouseEvents();
 
     void mouseEventHandlingCompleted(bool handled, std::optional<WebCore::RemoteUserInputEventData>);
+    void handleMouseEventReplyForParkedEvent(Ref<NativeWebMouseEvent>&&, WebCore::FrameIdentifier, std::optional<WebCore::RemoteUserInputEventData>&&);
     void remoteFrameMouseEventTimedOut();
     void mouseMoveWasHandledInFrame(WebCore::FrameIdentifier);
     void keyEventHandlingCompleted(bool handled);
@@ -3866,9 +3871,9 @@ private:
 
     void reportPageLoadResult(const WebCore::ResourceError&);
 
-    void continueNavigationInNewProcess(API::Navigation&, WebFrameProxy&, RefPtr<SuspendedPageProxy>&&, BrowsingContextGroup&, Ref<WebProcessProxy>&&, ProcessSwapRequestedByClient, WebCore::ShouldTreatAsContinuingLoad, std::optional<NetworkResourceLoadIdentifier> existingNetworkResourceLoadIdentifierToResume, LoadedWebArchive, WebCore::NavigationUpgradeToHTTPSBehavior, WebCore::ProcessSwapDisposition, WebsiteDataStore* replacedDataStoreForWebArchiveLoad, MonotonicTime originalNavigationStartTime, const std::optional<WebCore::Site>& backForwardInheritedSite);
+    void continueNavigationInNewProcess(API::Navigation&, WebFrameProxy&, RefPtr<SuspendedPageProxy>&&, BrowsingContextGroup&, Ref<WebProcessProxy>&&, ProcessSwapRequestedByClient, WebCore::ShouldTreatAsContinuingLoad, std::optional<NetworkResourceLoadIdentifier> existingNetworkResourceLoadIdentifierToResume, LoadedWebArchive, WebCore::NavigationUpgradeToHTTPSBehavior, WebsiteDataStore* replacedDataStoreForWebArchiveLoad, MonotonicTime originalNavigationStartTime, const std::optional<WebCore::Site>& backForwardInheritedSite);
     RefPtr<WebProcessProxy> processLoadingNavigation(const API::Navigation&, WebFrameProxy&, WebCore::ProcessIdentifier loadingWebProcess);
-    void performProcessSwapForNavigationResponse(API::Navigation&, Ref<BrowsingContextGroup>&&, Ref<WebProcessProxy>&&, WebCore::ProcessSwapDisposition, WebCore::ProcessIdentifier loadingWebProcess, NetworkResourceLoadIdentifier, MonotonicTime originalNavigationStartTime, CompletionHandler<void(NavigationResponseProcessSwapResult&&)>&&);
+    void performProcessSwapForNavigationResponse(API::Navigation&, Ref<BrowsingContextGroup>&&, Ref<WebProcessProxy>&&, WebCore::ProcessIdentifier loadingWebProcess, NetworkResourceLoadIdentifier, MonotonicTime originalNavigationStartTime, CompletionHandler<void(NavigationResponseProcessSwapResult&&)>&&);
     void removeSuspendedPagesBeforeNavigation(WebProcessProxy&);
 
     void setNeedsFontAttributes(bool);

@@ -47,6 +47,9 @@ http/tests/site-isolation [ Pass ]
 http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-001.html [ Skip ]
 http/tests/site-isolation/date-time-picker-in-cross-origin-iframe-002.html [ Skip ]
 
+webkit.org/b/331339 http/tests/site-isolation/ios/caret-follows-overflow-scroll-around-cross-origin-iframe.html [ Pass Failure ]
+webkit.org/b/331339 http/tests/site-isolation/ios/caret-follows-main-frame-scroll-with-fixed-cross-origin-iframe.html [ Pass Failure ]
+
 fast/forms/switch [ Pass ]
 fast/snapshot [ Skip ]
 
@@ -1391,6 +1394,7 @@ fast/spatial-navigation/snav-unit-overflow-and-scroll-in-direction.html [ Skip ]
 http/tests/navigation/keyboard-events-during-provisional-navigation.html [ Skip ]
 http/tests/navigation/keyboard-events-during-provisional-subframe-navigation.html [ Skip ]
 http/tests/resourceLoadStatistics/prevalent-resource-handled-keydown.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-keyboard-scroll-on-body.html [ Skip ]
 
 # Volume is locked on iOS
 media/audio-playback-volume-changes-with-restrictions-and-user-gestures.html [ Skip ]
@@ -1705,6 +1709,8 @@ webkit.org/b/178487 compositing/video/video-clip-change-src.html [ ImageOnlyFail
 # No scrollbars on iOS
 compositing/iframes/iframe-content-flipping.html [ Failure ]
 http/tests/site-isolation/compositing/iframes/iframe-content-flipping.html [ Failure ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-scrollbar-button-clicks.html [ Skip ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-scrollbar-track-clicks.html [ Skip ]
 
 # CSS tests to triage
 webkit.org/b/178588 css3/zoom-coords.xhtml [ Failure ]
@@ -3042,6 +3048,7 @@ webkit.org/b/157201 fast/scrolling/rtl-drag-vertical-scroller.html [ Failure ]
 webkit.org/b/157201 css3/scroll-snap/scroll-snap-drag-scrollbar-thumb.html [ Failure ]
 webkit.org/b/157201 css3/scroll-snap/scroll-snap-drag-scrollbar-thumb-with-relayouts.html [ Failure ]
 webkit.org/b/157201 css3/scroll-snap/scroll-snap-drag-scrollbar-thumb-with-sticky.html [ Failure ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-mouse-drag-scroll.html [ Skip ]
 
 # DumpRenderTree doesn't support logging calls to runOpenPanel and iOS's WebKitTestRunner doesn't support eventSender.mouseDown.
 fast/forms/file/open-file-panel.html [ Skip ]
@@ -10333,8 +10340,6 @@ webkit.org/b/325019 [ Debug ] imported/w3c/web-platform-tests/css/selectors/user
 webkit.org/b/325019 [ Release ] imported/w3c/web-platform-tests/css/selectors/user-valid.html [ Pass Failure ]
 
 webkit.org/b/325021 imported/w3c/web-platform-tests/html/semantics/popovers/popover-focus-invoker-inside-popover.html [ Failure ]
-
-webkit.org/b/325022 [ Debug ] ipc/ios/pasteboard-read-disallowed-uikit-type.html [ Failure ]
 
 webkit.org/b/325023 [ Debug ] ipc/cocoa/legacy-cdm-session-avcontentkeysession-destruction-race.html [ Crash ]
 

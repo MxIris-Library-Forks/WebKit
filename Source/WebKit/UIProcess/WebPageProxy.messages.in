@@ -35,6 +35,7 @@ messages -> WebPageProxy {
     RunJavaScriptConfirm(WebCore::FrameIdentifier frameID, struct WebKit::FrameInfoData frameInfo, String message) -> (bool result) Synchronous
     RunJavaScriptPrompt(WebCore::FrameIdentifier frameID, struct WebKit::FrameInfoData frameInfo, String message, String defaultValue) -> (String result) Synchronous
     MouseDidMoveOverElement(struct WebKit::WebHitTestResultData hitTestResultData, OptionSet<WebKit::WebEventModifier> modifiers)
+    [EnabledBy=SiteIsolationEnabled] DispatchFakeMouseMoveEventInRemoteFrame(WebCore::FrameIdentifier frameID, WebCore::DoublePoint eventPoint, WebCore::DoublePoint globalPoint)
 
     SetCursor(WebCore::Cursor cursor)
     SetCursorHiddenUntilMouseMoves(bool hiddenUntilMouseMoves)
@@ -466,6 +467,7 @@ messages -> WebPageProxy {
     SendMessageToInspectorFrontend(String targetId, String message)
     FrameDidPauseForDebugger(WebCore::FrameIdentifier frameID)
     FrameDidContinueForDebugger(WebCore::FrameIdentifier frameID)
+    DebuggerDidPause()
 
     # Search popup menus
     SaveRecentSearches(String name, Vector<WebCore::RecentSearch> searchItems)

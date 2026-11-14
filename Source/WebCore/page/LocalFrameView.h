@@ -285,6 +285,7 @@ public:
     void updateLayerPositionsAfterOverflowScroll(RenderLayer&);
     void updateCompositingLayersAfterScrolling() final;
     static WEBCORE_EXPORT bool scrollRectToVisible(const LayoutRect& absoluteRect, const RenderObject&, bool insideFixed, const ScrollRectToVisibleOptions&);
+    WEBCORE_EXPORT void scrollRectToVisibleContinuingFromChildFrame(Frame& childFrame, const IntRect& rectInChildFrameView, const ScrollRectToVisibleOptions&);
 
     bool requestStartKeyboardScrollAnimation(const KeyboardScroll&) final;
     bool requestStopKeyboardScrollAnimation(bool immediate) final;
@@ -320,6 +321,11 @@ public:
 
     NODELETE WEBCORE_EXPORT void setVisualViewportOverrideRect(std::optional<LayoutRect>);
     std::optional<LayoutRect> visualViewportOverrideRect() const { return m_visualViewportOverrideRect; }
+
+    // The height, in document coordinates, of the part of the view above the software keyboard,
+    // or std::nullopt when no software keyboard covers the view.
+    std::optional<LayoutUnit> heightAboveSoftwareKeyboard() const;
+    WEBCORE_EXPORT void setSoftwareKeyboardHeightForTesting(std::optional<LayoutUnit>);
 
     // These are in document coordinates, unaffected by page scale (but affected by zooming).
     WEBCORE_EXPORT LayoutRect layoutViewportRect() const final;
@@ -1010,6 +1016,7 @@ private:
     static MonotonicTime sCurrentPaintTimeStamp; // used for detecting decoded resource thrash in the cache
 
     void scrollRectToVisibleInChildView(const LayoutRect& absoluteRect, EnumSet<BoxAxis> isFixed, const ScrollRectToVisibleOptions&, const HTMLFrameOwnerElement*);
+    void scrollRectToVisibleInRemoteParent(const IntRect& rectInFrameView, const ScrollRectToVisibleOptions&);
     void scrollRectToVisibleInTopLevelView(const LayoutRect& absoluteRect, EnumSet<BoxAxis> isFixed, const ScrollRectToVisibleOptions&);
     LayoutRect getPossiblyFixedRectToExpose(const LayoutRect& visibleRect, const LayoutRect& exposeRect, EnumSet<BoxAxis> isFixed, const ScrollAlignment& alignX, const ScrollAlignment& alignY) const;
     LayoutRect getPossiblyFixedRectToExpose(const LayoutRect& visibleRect, const LayoutRect& exposeRect, bool isFixed, const ScrollAlignment& alignX, const ScrollAlignment& alignY) const;
@@ -1062,6 +1069,7 @@ private:
     LayoutPoint m_layoutViewportOrigin;
     std::optional<LayoutRect> m_layoutViewportOverrideRect;
     std::optional<LayoutRect> m_visualViewportOverrideRect; // Used when the iOS keyboard is showing.
+    std::optional<LayoutUnit> m_softwareKeyboardHeightForTesting;
 
     std::optional<FloatRect> m_viewExposedRect;
     std::optional<IntRect> m_visibleRectFromParentFrameProcess;

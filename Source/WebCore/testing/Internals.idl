@@ -601,6 +601,7 @@ enum LayerType {
     DOMString computedAppleColorFilter(Element element);
     [Conditional=AX_CUSTOM_COLOR_MODE] undefined setAXCustomColorModeElementQuirksForTesting(DOMString forceFilterSelector, DOMString preserveAuthoredColorsSelector);
     DOMString usedBackgroundColor(Element element);
+    undefined setOverrideBackgroundColor(Element element, DOMString? color);
 
     Node ensureUserAgentShadowRoot(Element host);
     Node? shadowRoot(Element host);
@@ -985,6 +986,9 @@ enum LayerType {
 
     float obscuredContentInsetTop();
 
+    // Covers the bottom of the view with a fake software keyboard; 0 removes it.
+    undefined setSoftwareKeyboardHeight(unrestricted float height);
+
     undefined setFullscreenInsets(FullscreenInsets insets);
     undefined setFullscreenAutoHideDuration(double duration);
 
@@ -1120,6 +1124,7 @@ enum LayerType {
 
     [Conditional=VIDEO] double effectiveDynamicRangeLimitValue(HTMLMediaElement media);
     double getContextEffectiveDynamicRangeLimitValue(HTMLCanvasElement canvas);
+    boolean isCanvasContextHDR(HTMLCanvasElement canvas);
     undefined setPageShouldSuppressHDR(boolean shouldSuppressHDR);
 
     [Conditional=VIDEO&FULLSCREEN_API] boolean isChildOfElementFullscreen(HTMLMediaElement media);

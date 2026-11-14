@@ -459,6 +459,7 @@ list(APPEND WebKit_PRIVATE_FRAMEWORK_HEADERS
     UIProcess/API/Cocoa/_WKWebAuthenticationPanelForTesting.h
     UIProcess/API/Cocoa/_WKWebExtension.h
     UIProcess/API/Cocoa/_WKWebExtensionAction.h
+    UIProcess/API/Cocoa/_WKWebExtensionBookmarkConfiguration.h
     UIProcess/API/Cocoa/_WKWebExtensionBookmarks.h
     UIProcess/API/Cocoa/_WKWebExtensionCommand.h
     UIProcess/API/Cocoa/_WKWebExtensionCommandPrivate.h
@@ -547,6 +548,7 @@ set(WebKit_PROJECT_HEADERS
 
     Platform/Logging.h
 
+    Shared/Cocoa/DigitalCredentialsRequestValidatorBridge.h
     Shared/Cocoa/SecItemRequestData.h
 
     UIProcess/Cocoa/WKShareSheet.h
@@ -591,7 +593,6 @@ set(WebKit_PROJECT_HEADERS
     WebKitSwift/WritingTools/WKIntelligenceSmartReplyTextEffectCoordinator.h
     WebKitSwift/WritingTools/WKIntelligenceTextEffectCoordinator.h
 
-    WebProcess/cocoa/IdentityDocumentServices/DigitalCredentialsRequestValidatorBridge.h
 )
 
 if (WEBKIT_SDK_IS_IOS_FAMILY)

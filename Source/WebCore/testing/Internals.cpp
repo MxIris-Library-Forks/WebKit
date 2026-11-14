@@ -52,6 +52,7 @@
 #include "CachedImage.h"
 #include "CachedMatchFinder.h"
 #include "CanvasBase.h"
+#include "CanvasRenderingContext.h"
 #include "CertificateInfo.h"
 #include "Chrome.h"
 #include "ChromeClient.h"
@@ -264,6 +265,7 @@
 #include "StorageNamespaceProvider.h"
 #include "StreamTransferUtilities.h"
 #include "StringCallback.h"
+#include "StyleAdjuster.h"
 #include "StyleBackgroundLayers.h"
 #include "StyleDocumentScope.h"
 #include "StyleExtractor.h"
@@ -1767,6 +1769,20 @@ void Internals::setAXCustomColorModeElementQuirksForTesting(const String& forceF
 String Internals::usedBackgroundColor(Element& element)
 {
     return serializationForCSS(protect(element.computedStyle())->usedBackgroundColorResolvingCurrentColor());
+}
+
+ExceptionOr<void> Internals::setOverrideBackgroundColor(Element& element, const String& colorValue)
+{
+    std::optional<Color> color;
+    if (!colorValue.isNull()) {
+        Ref document = element.document();
+        color = CSSPropertyParserHelpers::parseColorRaw(colorValue, document->cssParserContext(), document.get());
+        if (!color->isValid())
+            return Exception { ExceptionCode::SyntaxError };
+    }
+
+    Style::Adjuster::setOverrideBackgroundColorForTesting(element, WTF::move(color));
+    return { };
 }
 
 Node& Internals::ensureUserAgentShadowRoot(Element& host)
@@ -4586,6 +4602,16 @@ float Internals::obscuredContentInsetTop()
     return protect(document->page())->obscuredContentInsets().top();
 }
 
+ExceptionOr<void> Internals::setSoftwareKeyboardHeight(float height)
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->view())
+        return Exception { ExceptionCode::InvalidAccessError };
+
+    protect(document->view())->setSoftwareKeyboardHeightForTesting(height > 0 ? std::optional { LayoutUnit { height } } : std::nullopt);
+    return { };
+}
+
 void Internals::setFullscreenInsets(FullscreenInsets insets)
 {
     RefPtr contextDocument = this->contextDocument();
@@ -5443,6 +5469,18 @@ ExceptionOr<double> Internals::getContextEffectiveDynamicRangeLimitValue(const H
     if (value.has_value())
         return *value;
     return Exception { ExceptionCode::InvalidStateError };
+}
+
+ExceptionOr<bool> Internals::isCanvasContextHDR(const HTMLCanvasElement& canvas)
+{
+    RefPtr context = canvas.renderingContext();
+    if (!context)
+        return Exception { ExceptionCode::InvalidStateError };
+#if ENABLE(PIXEL_FORMAT_RGBA16F)
+    return context->isHDR();
+#else
+    return false;
+#endif
 }
 
 ExceptionOr<void> Internals::setPageShouldSuppressHDR(bool shouldSuppressHDR)

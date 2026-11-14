@@ -2743,7 +2743,7 @@ webkit.org/b/216071 fast/canvas/webgl/move-canvas-in-document-while-clean.html [
 
 webkit.org/b/210239 fast/canvas/webgl/out-of-bounds-simulated-vertexAttrib0-drawArrays.html [ Slow ]
 
-webkit.org/b/251195 webgl/1.0.x/conformance/extensions/ext-color-buffer-half-float.html [ Failure ]
+webkit.org/b/251195 webgl/1.0.x/conformance/extensions/ext-color-buffer-half-float.html [ Failure Pass ]
 webkit.org/b/251514 webgl/1.0.x/conformance/extensions/khr-parallel-shader-compile.html [ Skip ]
 webkit.org/b/251514 webgl/2.0.y/conformance/extensions/khr-parallel-shader-compile.html [ Skip ]
 
@@ -2924,6 +2924,8 @@ http/wpt/webrtc/rtcNetworkInterface.html [ Skip ]
 
 # Fails when using two textures.
 webkit.org/b/258296 webrtc/canvas-to-peer-connection.html [ Failure Timeout ]
+
+webrtc/canvas-to-peer-connection-check-colorspace.html [ Failure ]
 
 # The MediaStream implementation is not completed yet
 webkit.org/b/79203 fast/mediastream/RTCPeerConnection-ice.html [ Timeout ]
@@ -3434,9 +3436,6 @@ ipc/send-message-with-many-attachments.html [ Skip ]
 # Hardcodes Cocoa's WebCore::CertificateInfo::trust field in the IPC payload; SOUP's
 # CertificateInfo serializes a GRefPtr<GTlsCertificate> that coreipc.js cannot construct.
 http/tests/ipc/createnewpage-file-body-sandbox-extension.html [ Skip ]
-
-# Hardcodes Cocoa's WebCore::FontPlatformDataAttributes in the IPC payload.
-ipc/move-to-image-buffer-cross-thread-font-crash.html [ Skip ]
 
 # Sends WebCore::PixelFormat index 3; the glib ports enable none of RGB10, RGB10A8
 # and RGBA16F, so the enum stops at BGRA8.
@@ -5301,23 +5300,23 @@ webkit.org/b/316419 [ Debug ] imported/w3c/web-platform-tests/html/semantics/emb
 webkit.org/b/329158 http/tests/media/video-redirect.html [ Pass Timeout ]
 
 # The ideographic and ideographic-ink text box edges are not implemented
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vlr,ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vlr,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vlr,ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vlr,ideographic-ink [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic [ Crash ]
-imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic-ink [ Crash ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vlr,ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vlr,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-end-001.html?class=vrl,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vrl,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-001.html?class=vlr,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-inline-box-text-decoration-002.html?class=vlr,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vlr,ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vlr,ideographic-ink [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic [ Skip ]
+imported/w3c/web-platform-tests/css/css-inline/text-box-trim/text-box-trim-start-001.html?class=vrl,ideographic-ink [ Skip ]
 
 webkit.org/b/329247 webkit.org/b/330313 http/tests/inspector/network/fetch-response-body-304.html [ Crash Failure ]
 
@@ -5339,6 +5338,11 @@ webkit.org/b/330318 webaudio/audioworklet-stops-on-document-stop.html [ Failure 
 
 webkit.org/b/330502 [ Debug ] media/video-source-error.html [ Failure Pass ]
 webkit.org/b/330503 [ Debug ] http/tests/workers/service/indexeddb-file-posted-to-message-port-after-release.html [ Pass Timeout ]
+
+webkit.org/b/327259 imported/w3c/web-platform-tests/html/browsers/browsing-the-web/history-traversal/pagereveal/order-in-new-document-navigation-iframe.html [ Failure Pass ]
+webkit.org/b/331423 imported/w3c/web-platform-tests/gpc/navigator-globalPrivacyControl.https.html [ Failure Pass ]
+webkit.org/b/331425 http/tests/workers/service/Client-properties-subframe.html [ Crash Pass ]
+webkit.org/b/297001 http/tests/local/blob/navigate-blob.html [ Crash Failure Pass ]
 
 # End: Common failures between GTK and WPE.
 

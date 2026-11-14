@@ -718,7 +718,7 @@ RefPtr<WebGPU::RenderPassEncoder> CommandEncoder::beginRenderPass(const WebGPU::
     uint32_t bytesPerSample = 0;
     const auto maxColorAttachmentBytesPerSample = m_device->limits().maxColorAttachmentBytesPerSample;
     uint32_t textureWidth = 0, textureHeight = 0, sampleCount = 0;
-    using SliceSet = HashSet<uint64_t, DefaultHash<uint64_t>, WTF::UnsignedWithZeroKeyHashTraits<uint64_t>>;
+    using SliceSet = HashSet<uint64_t>;
     HashMap<void*, SliceSet> depthSlices;
     NSUInteger compositorTextureSlice = 0;
     for (size_t i = 0; i < descriptor.colorAttachments.size(); ++i) {
@@ -2576,7 +2576,7 @@ void CommandEncoder::trackEncoderForQuerySet(const QuerySet& querySet, TrackedRe
         m_trackedQuerySets.append(querySet);
 }
 
-void CommandEncoder::trackEncoder(CommandEncoder& commandEncoder, HashSet<uint64_t, DefaultHash<uint64_t>, WTF::UnsignedWithZeroKeyHashTraits<uint64_t>>& encoderContainer)
+void CommandEncoder::trackEncoder(CommandEncoder& commandEncoder, HashSet<uint64_t>& encoderContainer)
 {
     encoderContainer.add(commandEncoder.uniqueId());
 }
@@ -2606,7 +2606,7 @@ bool CommandEncoder::useResidencySet(id<MTLResidencySet> residencySet)
 
 void CommandEncoder::skippedDrawIndexedValidation(uint64_t bufferIdentifier, DrawIndexCacheContainerIterator it)
 {
-    m_skippedDrawIndexedValidationKeys.add(bufferIdentifier, Vector<std::pair<DrawIndexCacheContainerValue, uint32_t>> { }).iterator->value.append(std::make_pair(DrawIndexCacheContainerValue(it->key.key()), it->value.vertexCount));
+    m_skippedDrawIndexedValidationKeys.add(bufferIdentifier, Vector<std::pair<DrawIndexCacheContainerValue, uint32_t>> { }).iterator->value.append(std::make_pair(DrawIndexCacheContainerValue(it->key), it->value.vertexCount));
 }
 
 void CommandEncoder::skippedBundleIndirectDrawValidation(uint64_t bufferIdentifier, ReusedIndirectIndexedDraw&& draw)

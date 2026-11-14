@@ -65,7 +65,7 @@ struct InspectorFontMetadata {
     friend bool operator==(const InspectorFontMetadata&, const InspectorFontMetadata&) = default;
 };
 
-using CharacterSet = HashSet<char32_t, DefaultHash<char32_t>, WTF::UnsignedWithZeroKeyHashTraits<char32_t>>;
+using CharacterSet = HashSet<char32_t>;
 
 class RenderedFont final : public RefCounted<RenderedFont> {
     WTF_MAKE_TZONE_ALLOCATED_INLINE(RenderedFont);
@@ -325,7 +325,9 @@ private:
 
     bool paintingDisabled() const final { return true; }
 
+#if !USE(CG) && !USE(SKIA)
     void didUpdateState(GraphicsContextState&) final { }
+#endif
 
     void drawNativeImage(const NativeImage&, const FloatRect&, const FloatRect&, RasterDrawingOptions) final { }
 
@@ -385,7 +387,7 @@ private:
     void drawBidiText(const FontCascade& font, const TextRun& run, const FloatPoint& point, FontCascade::CustomFontNotReadyAction customFontNotReadyAction = FontCascade::CustomFontNotReadyAction::DoNotPaintIfFontNotReady) final
     {
         auto currentPoint = point;
-        for (CheckedRef subrun : visuallyOrderedSubruns(run))
+        for (auto& subrun : visuallyOrderedSubruns(run))
             currentPoint.move(recordFontUsage(font, subrun, currentPoint, 0, std::nullopt, customFontNotReadyAction));
     }
 

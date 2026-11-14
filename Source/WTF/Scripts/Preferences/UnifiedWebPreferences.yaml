@@ -960,6 +960,14 @@ CSSFieldSizingEnabled:
   humanReadableDescription: "Enable field-sizing CSS property"
   defaultValue: true
 
+CSSFitContentFunctionEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS fit-content() sizing function"
+  humanReadableDescription: "Enable support for CSS fit-content() in the sizing properties"
+  defaultValue: false
+
 CSSFlexWrapBalanceEnabled:
   type: bool
   status: testable
@@ -1377,14 +1385,6 @@ CSSURLIntegrityModifierEnabled:
   humanReadableDescription: "Enable support for CSS Values and Units Module Level 5 URL integrity() modifier"
   defaultValue: true
 
-CSSURLModifiersEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "CSS URL Modifiers"
-  humanReadableDescription: "Enable support for CSS Values and Units Module Level 5 URL modifiers"
-  defaultValue: true
-
 CSSUnprefixedBackdropFilterEnabled:
   type: bool
   status: Backdropfilter_feature_status
@@ -1778,6 +1778,16 @@ CoreMathMLEnabled:
     WebKit:
       "PLATFORM(GTK) || PLATFORM(WPE)": true
       default: false
+
+# FIXME: This has to require Local Network Access or Opaque Response Blocking before it can become stable.
+CrossOriginEmbedderPolicyCredentiallessEnabled:
+  type: bool
+  status: unstable
+  category: security
+  humanReadableName: "Cross-Origin-Embedder-Policy: credentialless"
+  humanReadableDescription: "Support for credentialless Cross-Origin-Embedder-Policy and Document-Isolation-Policy values"
+  defaultValue: false
+  sharedPreferenceForWebProcess: true
 
 CrossOriginEmbedderPolicyEnabled:
   type: bool
@@ -2629,6 +2639,14 @@ FullscreenRequirementForScreenOrientationLockingEnabled:
   humanReadableName: "Require being in Fullscreen to lock screen orientation"
   humanReadableDescription: "Require being in Fullscreen to lock screen orientation"
   defaultValue: true
+
+FullscreenSafeAreaQuirkEnabled:
+  type: bool
+  status: internal
+  humanReadableName: "Fullscreen safe area quirk enabled"
+  humanReadableDescription: "Fullscreen safe area quirk enabled"
+  condition: PLATFORM(IOS)
+  defaultValue: false
 
 FullscreenSceneAspectRatioLockingEnabled:
   type: bool
@@ -4321,6 +4339,12 @@ MediaVideoCodecIDsAllowedInLockdownMode:
   excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: '"avc1,zavc,qavc,cavc"_str'
 
+MediaVideoCodecIDsDecodedInContentProcess:
+  type: String
+  status: embedder
+  excludeFrom: [ WebKitLegacy, WebCore ]
+  defaultValue: '"vp08"_str'
+
 MetaViewportInteractiveWidgetEnabled:
   type: bool
   status: stable
@@ -4432,6 +4456,16 @@ ModelElementImmersiveEnabled:
     default: false
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
+
+ModelElementSTLEnabled:
+  type: bool
+  status: preview
+  category: html
+  humanReadableName: "STL in HTML <model> element"
+  humanReadableDescription: "Enable loading STL models in the HTML <model> element"
+  condition: ENABLE(MODEL_ELEMENT)
+  defaultValue: false
+  disableInLockdownMode: true
 
 ModelNoPortalAttributeEnabled:
   type: bool
@@ -4853,11 +4887,15 @@ PasswordEchoEnabled:
 
 PasswordFieldScreenCaptureProtectionEnabled:
   type: bool
-  status: unstable
+  status: internal
   category: html
   humanReadableName: "Password field screen capture protection"
   humanReadableDescription: "Hide password fields from screenshots, screen sharing and screen recording"
-  defaultValue: false
+  defaultValue:
+    default: false
+    WebKit:
+      "PLATFORM(IOS_FAMILY)": true
+      default: false
 
 PeerConnectionEnabled:
   type: bool
@@ -4881,6 +4919,14 @@ PeerConnectionVideoScalingAdaptationDisabled:
   humanReadableName: "WebRTC Peer Connection Video Scaling Adaptation"
   humanReadableDescription: "Disable RTCPeerConnection Video Scaling Adaptation"
   condition: ENABLE(WEB_RTC)
+  defaultValue: false
+
+PerEdgeViewportFitEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "Per-edge viewport-fit"
+  humanReadableDescription: "Enable the viewport-fit-top, viewport-fit-left, viewport-fit-bottom and viewport-fit-right attributes on the viewport meta element"
   defaultValue: false
 
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
@@ -6965,6 +7011,15 @@ VideoRendererUseDecompressionSessionForProtected:
     "PLATFORM(VISION)" : true
     default: false
     WebKitLegacy: false
+  sharedPreferenceForWebProcess: true
+
+VideoSoftwareDecodingInContentProcessEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "Video software decoding in content process"
+  humanReadableDescription: "Decode the video codecs listed in MediaVideoCodecIDsDecodedInContentProcess in software in the content process and send the decoded frames to the GPU process"
+  defaultValue: false
   sharedPreferenceForWebProcess: true
 
 ViewGestureDebuggingEnabled:

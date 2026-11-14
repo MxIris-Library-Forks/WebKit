@@ -326,6 +326,7 @@ public:
     void setAXCustomColorModeElementQuirksForTesting(const String& forceFilterSelector, const String& preserveAuthoredColorsSelector);
 #endif
     String usedBackgroundColor(Element&);
+    ExceptionOr<void> setOverrideBackgroundColor(Element&, const String& colorValue);
 
     Node& ensureUserAgentShadowRoot(Element& host);
     Node* shadowRoot(Element& host);
@@ -738,6 +739,7 @@ public:
     void setFooterHeight(float);
 
     float obscuredContentInsetTop();
+    ExceptionOr<void> setSoftwareKeyboardHeight(float);
 
     struct FullscreenInsets {
         float top { 0 };
@@ -937,6 +939,7 @@ public:
 #endif
 #endif
     ExceptionOr<double> getContextEffectiveDynamicRangeLimitValue(const HTMLCanvasElement&);
+    ExceptionOr<bool> isCanvasContextHDR(const HTMLCanvasElement&);
 
     ExceptionOr<void> setPageShouldSuppressHDR(bool);
 

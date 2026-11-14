@@ -467,6 +467,9 @@ webkit.org/b/202617 imported/w3c/web-platform-tests/picture-in-picture/permissio
 # PiP API tests are only relevant on mac and iPad
 media/picture-in-picture [ Skip ]
 
+# Document Picture-in-Picture is unsupported.
+imported/w3c/web-platform-tests/document-picture-in-picture [ Skip ]
+
 media/remove-video-element-in-pip-from-document.html [ Skip ]
 # This test is only relevent on iPhone where videos always play in fullscreen.
 media/video-element-fullscreen-not-in-dom-accelerated-iphone.html [ Skip ]
@@ -1132,6 +1135,7 @@ imported/w3c/web-platform-tests/html/semantics/interactive-elements/the-dialog-e
 
 # Cross-Origin-Embedder-Policy: credentialless is not supported.
 imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/credentialless
+imported/w3c/web-platform-tests/html/cross-origin-embedder-policy/credentialless/no-cors-omit.https.window.html [ Pass ]
 
 # Document-Isolation-Policy requires site isolation and is partially implemented.
 webkit.org/b/325516 imported/w3c/web-platform-tests/html/document-isolation-policy [ Skip ]
@@ -2069,7 +2073,6 @@ imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/dense-pac
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/dense-packing/row-fill-reverse-dense-packing-definite-size-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/grid-lanes-item-placement-006.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/grid-lanes-item-placement-007.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/row-auto-placement-min-content.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/item-placement/row-negative-margin-004.html [ ImageOnlyFailure ]
 # Grid lanes does not use the limited min-content contribution for items spanning flexible tracks under a min-content constraint.
 imported/w3c/web-platform-tests/css/css-grid/grid-lanes/items/column-flex-spanning-items.html [ ImageOnlyFailure ]
@@ -4648,11 +4651,8 @@ imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-scroll-
 imported/w3c/web-platform-tests/css/css-values/vh-update-and-transition-in-subframe.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-dynamic-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/viewport-units-scrollbars-scroll-vw-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-values/urls/cross-origin/url-import-cross-origin-anonymous.sub.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-values/urls/cross-origin/url-import-cross-origin-use-credentials.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/urls/cross-origin/url-svg-filter-cross-origin-anonymous.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/urls/cross-origin/url-svg-filter-cross-origin-use-credentials.sub.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-values/urls/integrity/url-import-integrity.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/urls/integrity/url-svg-filter-integrity.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/urls/referrer-policy/no-referrer/url-svg-filter-referrer-policy.sub.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-values/urls/referrer-policy/unsafe-url/url-image-referrer-policy-external-stylesheet.html [ ImageOnlyFailure ]
@@ -4660,22 +4660,6 @@ imported/w3c/web-platform-tests/css/css-values/urls/referrer-policy/unsafe-url/u
 # wpt css-sizing failures
 webkit.org/b/203583 imported/w3c/web-platform-tests/css/css-sizing/aspect-ratio-affects-container-width-when-height-changes.html [ Pass Failure ]
 webkit.org/b/214463 imported/w3c/web-platform-tests/css/css-sizing/image-fractional-height-with-wide-aspect-ratio.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-001.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-002.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-003.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-005.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-006.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-007.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-008.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-009.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-010.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-011.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-012.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-013.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-014.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-015.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-sizing/fit-content-length-percentage-016.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-sizing/max-content-input-001.html [ ImageOnlyFailure ]
 # These references give min-height: min-content the initial value (min-height: 0), but in the block axis it is the automatic size
 # (https://drafts.csswg.org/css-sizing-3/#valdef-width-min-content), and the compressed min-content contribution of a percentage-sized
@@ -5702,6 +5686,15 @@ imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-sta
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrollable-change.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrollable-root.html [ Pass ]
 imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrollable-body-001.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-home-end-scroll.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-hv.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-keyboard-scroll-on-body.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-mouse-drag-scroll.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-programmatic-absolute-scrolls.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-programmatic-relative-scrolls.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-scrollbar-button-clicks.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-scrollbar-track-clicks.html [ Pass ]
+imported/w3c/web-platform-tests/css/css-conditional/container-queries/scroll-state/scroll-state-scrolled-wm.html [ Pass ]
 
 webkit.org/b/279424 [ Debug ] imported/w3c/web-platform-tests/css/css-conditional/container-queries/svg-foreignobject-no-size-container.html [ Skip ] # Crash
 
@@ -6120,13 +6113,6 @@ fast/text/accessibility-bold-system-font [ Pass Failure ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/streams/transferable/gc-crash.html [ Skip ]
 
-# A writable stream erroring before a chunk is enqueued trips a debug assertion in the WritableStreamDefaultWriter write builtin.
-[ Debug ] imported/w3c/web-platform-tests/streams/piping/crashtests/shutdown.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/streams/piping/error-propagation-backward.any.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/streams/piping/error-propagation-backward.any.worker.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/streams/piping/error-propagation-backward.any.serviceworker.html [ Skip ]
-[ Debug ] imported/w3c/web-platform-tests/streams/piping/error-propagation-backward.any.sharedworker.html [ Skip ]
-
 # Its subtest names include a signature generated for each run.
 imported/w3c/web-platform-tests/subresource-integrity/signatures/tentative/authority.https.window.html [ Skip ]
 
@@ -6402,6 +6388,10 @@ imported/w3c/web-platform-tests/mediacapture-streams/MediaStream-MediaElement-sr
 imported/w3c/web-platform-tests/navigation-timing/nav2-test-redirect-chain-xserver-final-original-origin.html [ Skip ]
 imported/w3c/web-platform-tests/navigation-timing/supported-navigation-type.window.html [ Skip ]
 imported/w3c/web-platform-tests/notifications/constructor-non-secure.html [ Skip ]
+imported/w3c/web-platform-tests/notifications/event-onclose.https.html [ Skip ]
+imported/w3c/web-platform-tests/notifications/icon-fetch.tentative.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/notifications/registration-association.https.window.html [ Skip ]
+imported/w3c/web-platform-tests/notifications/tag.https.html [ Skip ]
 imported/w3c/web-platform-tests/paint-timing/fcp-only/fcp-background-size.html [ Skip ]
 imported/w3c/web-platform-tests/paint-timing/fcp-only/fcp-bg-image-set.html [ Skip ]
 imported/w3c/web-platform-tests/paint-timing/fcp-only/fcp-bg-image-two-steps.html [ Skip ]

@@ -1450,7 +1450,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     history/CachedFramePlatformData.h
     history/CachedPage.h
     history/HistoryItem.h
-    history/ProcessSwapDisposition.h
 
     html/Allowlist.h
     html/AnchorElementFunctions.h
@@ -2533,7 +2532,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ImageBufferAllocator.h
     platform/graphics/ImageBufferBackend.h
     platform/graphics/ImageBufferParameters.h
-    platform/graphics/ImageBufferDisplayListBackend.h
     platform/graphics/ImageBufferFormat.h
     platform/graphics/ImageBufferResourceLimits.h
     platform/graphics/ImageBufferTransferIdentifier.h
@@ -2901,6 +2899,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/network/HTTPParsers.h
     platform/network/HTTPSByDefaultMode.h
     platform/network/HTTPStatusCodes.h
+    platform/network/IncludesCredentials.h
     platform/network/NetworkLoadInformation.h
     platform/network/NetworkLoadMetrics.h
     platform/network/NetworkStateNotifier.h

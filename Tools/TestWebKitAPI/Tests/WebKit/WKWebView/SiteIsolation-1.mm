@@ -2144,6 +2144,38 @@ TEST(SiteIsolation, SelectWithTwoTouchesInUnfocusedCrossOriginIframe)
     }));
 }
 
+// "Open" in a link's context menu or action sheet sends a synthetic click to the point that was long-pressed. Over a
+// cross-origin iframe, only the iframe's process can find the link there; the main frame's process sees the <iframe>.
+TEST(SiteIsolation, OpenElementActionOnLinkInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameWithPositionedCrossOriginIframe } },
+        { "/iframe"_s, { "<body style='margin: 0'><a href='https://webkit.org/destination' style='display: block; width: 400px; height: 300px;'>link</a></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+
+    __block bool navigationAttempted = false;
+    __block RetainPtr<NSURL> navigationURL;
+    __block bool targetsMainFrame = true;
+    [navigationDelegate setDecidePolicyForNavigationAction:^(WKNavigationAction *action, void (^decisionHandler)(WKNavigationActionPolicy)) {
+        navigationURL = action.request.URL;
+        targetsMainFrame = action.targetFrame.isMainFrame;
+        navigationAttempted = true;
+        decisionHandler(WKNavigationActionPolicyCancel);
+    }];
+
+    // The middle of the link, which fills the iframe at (100, 100) to (500, 400).
+    [webView _simulateElementAction:_WKElementActionTypeOpen atLocation:CGPointMake(300, 250)];
+
+    ASSERT_TRUE(Util::runFor(&navigationAttempted, 5_s));
+    EXPECT_WK_STREQ("https://webkit.org/destination", [navigationURL absoluteString]);
+    EXPECT_FALSE(targetsMainFrame);
+}
+
 #endif // PLATFORM(IOS_FAMILY)
 
 #if PLATFORM(MAC)
@@ -2488,6 +2520,34 @@ TEST(SiteIsolation, ModifierKeyChangeOverLinkInCrossOriginIframe)
         return lastHover.hitTestResult && (lastHover.flags & NSEventModifierFlagCommand);
     }));
     EXPECT_WK_STREQ("https://webkit.org/destination", [lastHover.hitTestResult absoluteLinkURL].absoluteString);
+}
+
+TEST(SiteIsolation, ScrollingMainFrameHoversElementInCrossOriginIframeUnderStillMouse)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body style='margin: 0; height: 2000px'><iframe src='https://webkit.org/iframe' style='display: block; width: 300px; height: 300px; border: none'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body style='margin: 0'><div id='a' style='height: 100px'></div><div id='b' style='height: 100px'></div>"
+            "<script>window.hovered = []; for (const id of ['a', 'b']) document.getElementById(id).addEventListener('mouseover', () => hovered.push(id));</script></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 400, 300));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_NE([webView mainFrame].info._processIdentifier, [childFrame _processIdentifier]);
+
+    CGPoint pointOverA = [webView convertPoint:CGPointMake(50, 50) toView:nil];
+    [webView mouseEnterAtPoint:pointOverA];
+    [webView mouseMoveToPoint:pointOverA withFlags:0];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"hovered.join()" inFrame:childFrame.get()] isEqualToString:@"a"];
+    }));
+
+    [webView stringByEvaluatingJavaScript:@"scrollTo(0, 100)"];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView stringByEvaluatingJavaScript:@"hovered.join()" inFrame:childFrame.get()] isEqualToString:@"a,b"];
+    }));
 }
 
 #endif // PLATFORM(MAC)
@@ -3953,7 +4013,10 @@ static void checkPopupUsesWebsiteDataStoreOfOpener(bool siteIsolationEnabled)
     EXPECT_WK_STREQ([opened.uiDelegate waitForAlert], "true");
 
     [opened.webView objectByEvaluatingJavaScript:@"document.cookie = 'popup=1'"];
-    EXPECT_TRUE(dataStoreHasCookieNamed(dataStore.get(), @"popup"));
+    // The web process doesn't wait for the network process to store the cookie.
+    EXPECT_TRUE(Util::waitFor([&] {
+        return dataStoreHasCookieNamed(dataStore.get(), @"popup");
+    }));
     EXPECT_FALSE(dataStoreHasCookieNamed(opener.webView.get().configuration.websiteDataStore, @"popup"));
 }
 

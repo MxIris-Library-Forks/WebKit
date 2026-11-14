@@ -75,6 +75,7 @@
 #include <WebCore/MIMETypeRegistry.h>
 #include <WebCore/NavigationScheduler.h>
 #include <WebCore/RemoteFrameLayoutInfo.h>
+#include <WebCore/RenderLayer.h>
 #include <WebCore/SecurityOrigin.h>
 #include <WebCore/SecurityOriginData.h>
 #include <WebCore/SecurityPolicy.h>
@@ -154,15 +155,14 @@ NODELETE static HashMap<FrameIdentifier, WeakRef<WebFrameProxy>>& allFrames()
 
 WebFrameProxy* WebFrameProxy::webFrame(std::optional<FrameIdentifier> identifier)
 {
-    if (!identifier || !std::remove_reference_t<decltype(allFrames())>::isValidKey(*identifier))
+    if (!identifier)
         return nullptr;
     return allFrames().get(*identifier);
 }
 
 bool WebFrameProxy::canCreateFrame(FrameIdentifier frameID)
 {
-    return std::remove_reference_t<decltype(allFrames())>::isValidKey(frameID)
-        && !allFrames().contains(frameID);
+    return !allFrames().contains(frameID);
 }
 
 WebFrameProxy::WebFrameProxy(WebPageProxy& page, FrameProcess& process, FrameIdentifier frameID, SandboxFlags effectiveSandboxFlags, ReferrerPolicy effectiveReferrerPolicy, WebCore::ScrollbarMode scrollingMode, WebFrameProxy* opener, WebFrameProxy* parent, IsMainFrame isMainFrame, std::optional<URL>&& previousURL)
@@ -555,7 +555,7 @@ bool WebFrameProxy::didHandleContentFilterUnblockNavigation(const ResourceReques
     bool webContentRestrictionsAskToEnabled = page->preferences().webContentRestrictionsAskToEnabled();
     if (webContentRestrictionsAskToEnabled)
         unblockRequestURL = request.url();
-#if HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER)
+#if HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER) && HAVE(UI_VIEW)
     RetainPtr<CocoaView> presentingView = webContentRestrictionsAskToEnabled ? reinterpret_cast<CocoaView *>(page->cocoaView().get()) : nullptr;
 #endif
 #endif
@@ -581,7 +581,7 @@ bool WebFrameProxy::didHandleContentFilterUnblockNavigation(const ResourceReques
     }
 #endif
 
-#if HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER) && !HAVE(WEBCONTENTRESTRICTIONS_PATH_SPI)
+#if HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER) && !HAVE(WEBCONTENTRESTRICTIONS_PATH_SPI) && PLATFORM(IOS)
     WebParentalControlsURLFilter::setSharedParentalControlsURLFilterIfNecessary();
 #endif
 
@@ -589,7 +589,7 @@ bool WebFrameProxy::didHandleContentFilterUnblockNavigation(const ResourceReques
         if (unblocked)
             page->reload({ });
     }, unblockRequestURL
-#if HAVE(WEBCONTENTRESTRICTIONS_ASK_TO) && HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER)
+#if HAVE(WEBCONTENTRESTRICTIONS_ASK_TO) && HAVE(BROWSERENGINEKIT_WEBCONTENTFILTER) && HAVE(UI_VIEW)
     , presentingView
 #endif
     );
@@ -1231,6 +1231,14 @@ void WebFrameProxy::findFocusableElementContinuingFromFrame(WebCore::FocusDirect
     send(Messages::WebFrame::FindFocusableElementContinuingFromFrame(direction, frameID, focusEventData, shouldFocusElement));
 }
 
+void WebFrameProxy::scrollRectToVisibleContinuingFromFrame(WebCore::FrameIdentifier childFrameID, const WebCore::IntRect& rectInChildFrameView, const WebCore::ScrollRectToVisibleOptions& options)
+{
+    RefPtr childFrame = WebFrameProxy::webFrame(childFrameID);
+    if (!childFrame || childFrame->parentFrame() != this)
+        return;
+    send(Messages::WebFrame::ScrollRectToVisibleContinuingFromFrame(childFrameID, rectInChildFrameView, options));
+}
+
 std::optional<SharedPreferencesForWebProcess> WebFrameProxy::sharedPreferencesForWebProcess() const
 {
     return process().sharedPreferencesForWebProcess();
@@ -1373,7 +1381,7 @@ void WebFrameProxy::updateDocumentSecurityOrigin(WebCore::SandboxFlags responseS
 WebCore::CertificateInfo WebFrameProxy::provisionalCertificateInfoFromNetworkProcess(const URL& url) const
 {
     String hostAndPort = url.hostAndPort();
-    if (!decltype(m_hostAndPortToCertificateInfo)::isValidKey(hostAndPort))
+    if (hostAndPort.isNull())
         return { };
 
     if (!url.protocolIsSecure())
@@ -1410,7 +1418,7 @@ void WebFrameProxy::receivedMainResourceResponseWithCertificateInfo(String&& hos
     // FIXME: This has no corresponding remove call. If we know a host is not being used by the back/forward
     // cache and is not being navigated to, we could clean up this map. Since we don't re-use main frames for
     // multiple hosts, this would only affect iframes that navigate to many hosts.
-    if (decltype(m_hostAndPortToCertificateInfo)::isValidKey(hostAndPort))
+    if (!hostAndPort.isNull())
         m_hostAndPortToCertificateInfo.set(WTF::move(hostAndPort), WTF::move(certificateInfo));
 }
 

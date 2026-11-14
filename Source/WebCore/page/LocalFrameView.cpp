@@ -96,6 +96,7 @@
 #include "ProgressTracker.h"
 #include "Quirks.h"
 #include "RemoteFrame.h"
+#include "RemoteFrameClient.h"
 #include "RenderAncestorIterator.h"
 #include "RenderBoxInlines.h"
 #include "RenderElementInlines.h"
@@ -1997,6 +1998,24 @@ void LocalFrameView::setVisualViewportOverrideRect(std::optional<LayoutRect> rec
     m_visualViewportOverrideRect = rect;
 }
 
+std::optional<LayoutUnit> LocalFrameView::heightAboveSoftwareKeyboard() const
+{
+    if (m_softwareKeyboardHeightForTesting)
+        return std::max(LayoutUnit { unobscuredContentRect().height() } - *m_softwareKeyboardHeightForTesting, 0_lu);
+#if PLATFORM(IOS_FAMILY)
+    // The visual viewport override ends at the top of the software keyboard and form accessory bar. Its origin
+    // can be stale after a scroll initiated by the web process, so only its height is used.
+    if (m_visualViewportOverrideRect)
+        return m_visualViewportOverrideRect->height();
+#endif
+    return std::nullopt;
+}
+
+void LocalFrameView::setSoftwareKeyboardHeightForTesting(std::optional<LayoutUnit> height)
+{
+    m_softwareKeyboardHeightForTesting = height;
+}
+
 LayoutSize LocalFrameView::baseLayoutViewportSize() const
 {
     return renderView() ? renderView()->borderBoxSize() : size();
@@ -3641,6 +3660,8 @@ bool LocalFrameView::scrollRectToVisible(const LayoutRect& absoluteRect, const R
     RefPtr ownerElement = frameView->m_frame->document() ? frameView->m_frame->document()->ownerElement() : nullptr;
     if (ownerElement && ownerElement->renderer())
         frameView->scrollRectToVisibleInChildView(adjustedRect, isFixed, adjustedOptions, ownerElement.get());
+    else if (is<RemoteFrame>(frameView->m_frame->tree().parent()))
+        frameView->scrollRectToVisibleInChildView(adjustedRect, isFixed, adjustedOptions, nullptr);
     else
         frameView->scrollRectToVisibleInTopLevelView(adjustedRect, isFixed, adjustedOptions);
     return true;
@@ -3687,7 +3708,7 @@ void LocalFrameView::scrollRectToVisibleInChildView(const LayoutRect& absoluteRe
     // simulate padding the scroll container. This rectangle is passed up the tree of scrolling elements to
     // ensure that the padding on this scroll container is maintained.
     auto targetRect = absoluteRect;
-    RefPtr element = ownerElement->contentDocument() ? ownerElement->contentDocument()->documentElement() : nullptr;
+    RefPtr element = m_frame->document() ? m_frame->document()->documentElement() : nullptr;
     if (CheckedPtr renderer = element ? element->renderBox() : nullptr)
         targetRect.expand(renderer->scrollPaddingForViewportRect(viewRect));
 
@@ -3705,9 +3726,43 @@ void LocalFrameView::scrollRectToVisibleInChildView(const LayoutRect& absoluteRe
     if (options.shouldAllowCrossOriginScrolling == ShouldAllowCrossOriginScrolling::No && !safeToPropagateScrollToParent())
         return;
 
+    if (!ownerElement) {
+        scrollRectToVisibleInRemoteParent(contentsToView(enclosingIntRect(targetRect)), options);
+        return;
+    }
+
     // FIXME: ideally need to determine if this <iframe> is inside position:fixed.
     if (CheckedPtr ownerRenderer = ownerElement->renderer())
         scrollRectToVisible(contentsToContainingViewContents(enclosingIntRect(targetRect)), *ownerRenderer, false /* insideFixed */, options);
+}
+
+void LocalFrameView::scrollRectToVisibleInRemoteParent(const IntRect& rectInFrameView, const ScrollRectToVisibleOptions& options)
+{
+    RefPtr remoteParent = dynamicDowncast<RemoteFrame>(m_frame->tree().parent());
+    if (!remoteParent)
+        return;
+
+    auto parentOptions = options;
+    parentOptions.visibilityCheckRect = std::nullopt;
+    remoteParent->client().scrollRectToVisibleContinuingFromFrame(m_frame->frameID(), rectInFrameView, parentOptions);
+}
+
+void LocalFrameView::scrollRectToVisibleContinuingFromChildFrame(Frame& childFrame, const IntRect& rectInChildFrameView, const ScrollRectToVisibleOptions& options)
+{
+    if (childFrame.tree().parent() != m_frame.ptr())
+        return;
+
+    RefPtr ownerElement = childFrame.ownerElement();
+    RefPtr childView = childFrame.virtualView();
+    if (!ownerElement || !childView)
+        return;
+
+    CheckedPtr ownerRenderer = ownerElement->renderer();
+    if (!ownerRenderer)
+        return;
+
+    auto rectInContents = viewToContents(childView->convertToContainingView(rectInChildFrameView));
+    scrollRectToVisible(rectInContents, *ownerRenderer, false /* insideFixed */, options);
 }
 
 void LocalFrameView::scrollRectToVisibleInTopLevelView(const LayoutRect& absoluteRect, EnumSet<BoxAxis> isFixed, const ScrollRectToVisibleOptions& options)
@@ -3728,7 +3783,7 @@ void LocalFrameView::scrollRectToVisibleInTopLevelView(const LayoutRect& absolut
     auto maxScrollPosition = maximumScrollPosition();
 
 #if !PLATFORM(IOS_FAMILY)
-    auto viewRect = visibleContentRect();
+    LayoutRect viewRect = visibleContentRect();
 #else
     // FIXME: ContentInsets should be taken care of in UI process side. webkit.org/b/199682
     // To do that, getRectToExposeForScrollIntoView needs to return the additional scrolling to do beyond content rect.
@@ -3741,6 +3796,15 @@ void LocalFrameView::scrollRectToVisibleInTopLevelView(const LayoutRect& absolut
     minScrollPosition.move(-contentInsets.left(), -contentInsets.top());
     maxScrollPosition.move(contentInsets.right(), contentInsets.bottom());
 #endif
+
+    // Keep the revealed rect above a software keyboard covering the bottom of the view. On iOS, viewRect is the visual
+    // viewport, which already ends at the top of the keyboard, expanded by whatever part of the scroll view's content
+    // insets is scrolled into view. The bottom inset is scrolled into view whenever the document doesn't reach the
+    // bottom of the view, such as when it's scrolled to the end or when the page scrolls inside a container. While
+    // the keyboard is up, that inset is behind the keyboard and form accessory bar, so it has to come back off.
+    if (auto height = heightAboveSoftwareKeyboard())
+        viewRect.shiftMaxYEdgeTo(std::min(viewRect.maxY(), LayoutUnit { scrollPosition().y() } + *height));
+
     // Move the target rect into "scrollView contents" coordinates. The header isn't zoomed, so it needs
     // scaling down to match when the page scale is applied above the contents. A no-op otherwise.
     auto targetRect = absoluteRect;
@@ -3842,8 +3906,8 @@ void LocalFrameView::scrollOffsetChangedViaPlatformWidgetImpl(const ScrollOffset
 // These scroll positions are affected by zooming.
 void LocalFrameView::scrollPositionChanged(const ScrollPosition& oldPosition, const ScrollPosition& newPosition)
 {
-    UNUSED_PARAM(oldPosition);
-    UNUSED_PARAM(newPosition);
+    if (shouldTrackScrolledDirections())
+        updateScrolledDirections(oldPosition, newPosition);
 
     RefPtr page = m_frame->page();
     Seconds throttlingDelay = page ? page->chrome().client().eventThrottlingDelay() : 0_s;
@@ -6711,6 +6775,8 @@ bool LocalFrameView::handleWheelEventForScrolling(const PlatformWheelEvent& whee
         ScrollPosition oldPosition = scrollPosition();
         ScrollPosition newPosition = oldPosition - IntSize(wheelEvent.deltaX(), wheelEvent.deltaY());
         if (oldPosition != newPosition) {
+            // scrollTo() skips setScrollPosition() where the scroll relativity is normally set.
+            setCurrentScrollRelativity(ScrollRelativity::Delta);
             ScrollView::scrollTo(newPosition);
             scrollPositionChanged(oldPosition, scrollPosition());
             didChangeScrollOffset();

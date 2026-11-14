@@ -308,7 +308,6 @@ list(APPEND WebKit_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBKIT_DIR}/WebProcess/WebPage/ios"
     "${WEBKIT_DIR}/WebProcess/WebPage/mac"
     "${WEBKIT_DIR}/WebProcess/cocoa"
-    "${WEBKIT_DIR}/WebProcess/cocoa/IdentityDocumentServices"
     "${WEBKIT_DIR}/WebProcess/mac"
     "${WEBKIT_DIR}/webpushd"
     "${WEBKIT_DIR}/webpushd/webpushtool"
@@ -596,12 +595,12 @@ list(APPEND WebKit_SOURCES
 
     ${WEBKIT_DIR}/UIProcess/mac/_WKCaptionStyleMenuControllerAVKitMac.mm
     ${WEBKIT_DIR}/UIProcess/mac/_WKCaptionStyleMenuControllerMac.mm
-    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/AppKitGesturesExtras.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKAppKitGestureController.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKDOMDoubleClickGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKDirectionalScrollLockTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKFastScrollTracker.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKMouseTrackingGestureRecognizer.swift
+    ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKPanGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKPointerTrackingGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/AppKitGestures/WKPressGestureRecognizer.swift
     ${WEBKIT_DIR}/UIProcess/mac/SpatialShim.swift
@@ -1965,6 +1964,7 @@ list(APPEND WebKit_PRIVATE_FRAMEWORK_HEADERS
     UIProcess/API/Cocoa/_WKVisitedLinkStoreInternal.h
     UIProcess/API/Cocoa/_WKWebAuthenticationAssertionResponseInternal.h
     UIProcess/API/Cocoa/_WKWebAuthenticationPanelInternal.h
+    UIProcess/API/Cocoa/_WKWebExtensionBookmarkConfigurationInternal.h
     UIProcess/API/Cocoa/_WKWebExtensionNotificationInternal.h
     UIProcess/API/Cocoa/_WKWebExtensionSidebarInternal.h
     UIProcess/API/Cocoa/_WKWebPushActionInternal.h

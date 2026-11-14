@@ -81,6 +81,7 @@
 #include <WebCore/Cookie.h>
 #include <WebCore/CookieJar.h>
 #include <WebCore/CookieStoreGetOptions.h>
+#include <WebCore/CrossOriginEmbedderPolicy.h>
 #include <WebCore/DeprecatedGlobalSettings.h>
 #include <WebCore/DocumentStorageAccess.h>
 #include <WebCore/HTTPCookieAcceptPolicy.h>
@@ -573,6 +574,11 @@ void NetworkConnectionToWebProcess::removeSocketChannel(WebSocketIdentifier iden
 void NetworkConnectionToWebProcess::countWebSocketChannelsForTesting(CompletionHandler<void(uint32_t)>&& completionHandler)
 {
     completionHandler(static_cast<uint32_t>(m_networkSocketChannels.size()));
+}
+
+CredentiallessSupport NetworkConnectionToWebProcess::credentiallessSupport() const
+{
+    return WebCore::credentiallessSupport(m_sharedPreferencesForWebProcess.crossOriginEmbedderPolicyCredentiallessEnabled);
 }
 
 NetworkSession* NetworkConnectionToWebProcess::networkSession()
@@ -1195,7 +1201,7 @@ void NetworkConnectionToWebProcess::setCookieFromDOMAsync(const URL& firstParty,
 // Replies std::nullopt rather than an empty vector on failure, so that WebCookieCache does not cache it as "no cookies".
 void NetworkConnectionToWebProcess::domCookiesForHost(const URL& url, CompletionHandler<void(std::optional<Vector<WebCore::Cookie>>&&)>&& completionHandler)
 {
-    MESSAGE_CHECK_COMPLETION(HashSet<String>::isValidValue(url.host().toString()), completionHandler(std::nullopt));
+    MESSAGE_CHECK_COMPLETION(!url.host().isNull(), completionHandler(std::nullopt));
     auto access = validateCookieAccess("domCookiesForHost"_s, url, url, nullptr, std::nullopt);
     if (access != CookieAccess::Allow || RegistrableDomain(url).isEmpty())
         return completionHandler(std::nullopt);
@@ -1217,7 +1223,7 @@ void NetworkConnectionToWebProcess::subscribeToCookieChangeNotifications(const U
         return completionHandler({ });
 
     auto host = url.host().toString();
-    MESSAGE_CHECK_COMPLETION(m_hostsWithCookieListeners.isValidValue(host), completionHandler(false));
+    MESSAGE_CHECK_COMPLETION(!host.isNull(), completionHandler(false));
 
     bool startedListening = false;
     if (CheckedPtr networkStorageSession = storageSession())
@@ -1230,7 +1236,7 @@ void NetworkConnectionToWebProcess::subscribeToCookieChangeNotifications(const U
 
 void NetworkConnectionToWebProcess::unsubscribeFromCookieChangeNotifications(const String& host)
 {
-    MESSAGE_CHECK(m_hostsWithCookieListeners.isValidValue(host));
+    MESSAGE_CHECK(!host.isNull());
 
     bool removed = m_hostsWithCookieListeners.remove(host);
     ASSERT_UNUSED(removed, removed);
@@ -2123,8 +2129,6 @@ void NetworkConnectionToWebProcess::prioritizeResourceLoads(const Vector<WebCore
 
 RefPtr<NetworkResourceLoader> NetworkConnectionToWebProcess::takeNetworkResourceLoader(WebCore::ResourceLoaderIdentifier resourceLoadIdentifier)
 {
-    if (!NetworkResourceLoadMap::MapType::isValidKey(resourceLoadIdentifier))
-        return nullptr;
     return m_networkResourceLoaders.take(resourceLoadIdentifier);
 }
 

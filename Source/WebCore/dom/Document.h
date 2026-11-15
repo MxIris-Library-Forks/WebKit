@@ -64,6 +64,7 @@
 #include <WebCore/ViewportArguments.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/Deque.h>
+#include <wtf/HashCountedSet.h>
 #include <wtf/HashSet.h>
 #include <wtf/Logger.h>
 #include <wtf/Observer.h>
@@ -237,6 +238,7 @@ class Region;
 class RenderBlockFlow;
 class RenderTreeBuilder;
 class RenderView;
+class DeferredFetchRegistry;
 class ReportingScope;
 class RequestAnimationFrameCallback;
 class ResizeObserver;
@@ -1669,7 +1671,7 @@ public:
 
     void didRemoveEventTargetNode(Node&);
 
-    bool hasWheelEventHandlers() const { return !m_wheelEventTargets.isEmptyIgnoringNullReferences(); }
+    bool hasWheelEventHandlers() const { return !m_wheelEventTargets.computeIsEmpty(); }
     bool mayHaveListBoxes() const { return m_mayHaveListBoxes; }
     void setMayHaveListBoxes() { m_mayHaveListBoxes = true; }
 
@@ -2161,6 +2163,9 @@ public:
 
     std::optional<PAL::SessionID> sessionID() const final;
 
+    DeferredFetchRegistry* deferredFetchRegistryIfExists() const { return m_deferredFetchRegistry.get(); }
+    DeferredFetchRegistry& ensureDeferredFetchRegistry();
+
     ReportingScope* reportingScopeIfExists() const { return m_reportingScope.get(); }
     inline ReportingScope& reportingScope() const;
     WEBCORE_EXPORT String endpointURIForToken(const String&) const final;
@@ -2545,7 +2550,7 @@ private:
     RefPtr<TextResourceDecoder> m_decoder;
 
     HashSet<LiveNodeList*> m_listsInvalidatedAtDocument;
-    HashSet<HTMLCollection*> m_collectionsInvalidatedAtDocument;
+    HashCountedSet<HTMLCollection*> m_collectionsInvalidatedAtDocument;
     std::array<unsigned, numNodeListInvalidationTypes> m_nodeListAndCollectionCounts = { };
 
     const RefPtr<XPathEvaluator> m_xpathEvaluator;
@@ -2794,6 +2799,7 @@ private:
 
     WeakHashSet<Element, WeakPtrImplWithEventTargetData> m_renderBlockingElements;
 
+    RefPtr<DeferredFetchRegistry> m_deferredFetchRegistry;
     const RefPtr<ReportingScope> m_reportingScope;
 
     const std::unique_ptr<WakeLockManager> m_wakeLockManager;

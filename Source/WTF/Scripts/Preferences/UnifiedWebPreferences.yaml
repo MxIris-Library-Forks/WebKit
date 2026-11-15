@@ -1251,6 +1251,14 @@ CSSSelectorJITCompilerEnabled:
   condition: ENABLE(CSS_SELECTOR_JIT)
   defaultValue: true
 
+CSSSingleAxisScrollContainersEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS single-axis scroll containers"
+  humanReadableDescription: "Allow overflow: clip in the other axis of a scroll container"
+  defaultValue: false
+
 CSSSizeShorthandEnabled:
   type: bool
   status: stable
@@ -2459,6 +2467,14 @@ FasterClicksEnabled:
   condition: PLATFORM(IOS_FAMILY)
   excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: true
+
+FetchLaterAPIEnabled:
+  type: bool
+  status: preview
+  category: networking
+  humanReadableName: "fetchLater() API"
+  humanReadableDescription: "Enable the fetchLater() deferred fetch API"
+  defaultValue: false
 
 FetchUploadStreamsEnabled:
   type: bool
@@ -4343,7 +4359,7 @@ MediaVideoCodecIDsDecodedInContentProcess:
   type: String
   status: embedder
   excludeFrom: [ WebKitLegacy, WebCore ]
-  defaultValue: '"vp08"_str'
+  defaultValue: '"vp08,vp09,av01"_str'
 
 MetaViewportInteractiveWidgetEnabled:
   type: bool
@@ -6704,37 +6720,6 @@ UseAlternatePDFHUD:
   condition: ENABLE(PDF_HUD)
   excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: true
-
-UseAppKitGestures:
-  type: bool
-  status: internal
-  defaultsOverridable: true
-  humanReadableName: "AppKit Gestures"
-  humanReadableDescription: "Use AppKit Gestures"
-  condition: PLATFORM(MAC)
-  defaultValue:
-    default: false
-    WebKit: defaultUseAppKitGestures()
-
-UseAppKitGesturesForGestureEvents:
-  type: bool
-  status: internal
-  humanReadableName: "AppKit gestures for gesture events"
-  humanReadableDescription: "Use AppKit gestures to drive gesture event synthesis"
-  condition: PLATFORM(MAC)
-  defaultValue:
-    default: false
-    WebKit: defaultUseAppKitGestures()
-
-UseAppKitGesturesForPointerEvents:
-  type: bool
-  status: internal
-  humanReadableName: "AppKit gestures for pointer events"
-  humanReadableDescription: "Use AppKit gestures to drive DOM pointer events directly, rather than deriving them from synthesized mouse events"
-  condition: PLATFORM(MAC)
-  defaultValue:
-    default: false
-    WebKit: defaultUseAppKitGestures()
 
 UseAsyncUIKitInteractions:
   type: bool

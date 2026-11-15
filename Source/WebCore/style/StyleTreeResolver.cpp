@@ -480,6 +480,19 @@ static bool isViewTransitionPseudoElementInDisplayNoneTree(const PseudoElementId
     return false;
 }
 
+static bool boxRequiresGeneratedContent(PseudoElementType type, const Style::ComputedStyle& elementStyle)
+{
+    switch (type) {
+    case PseudoElementType::Before:
+    case PseudoElementType::After:
+        return true;
+    case PseudoElementType::Marker:
+        return elementStyle.listStyleType().isNone() && elementStyle.listStyleImage().isNone();
+    default:
+        return false;
+    }
+}
+
 std::optional<ElementUpdate> TreeResolver::resolvePseudoElement(Element& element, const PseudoElementIdentifier& pseudoElementIdentifier, const ElementUpdate& elementUpdate, IsInDisplayNoneTree isInDisplayNoneTree, const Style::ComputedStyle* existingStyle)
 {
     ASSERT(pseudoElementIdentifier.type != PseudoElementType::UserAgentPartFallback);
@@ -558,7 +571,7 @@ std::optional<ElementUpdate> TreeResolver::resolvePseudoElement(Element& element
         return resolveAncestorPseudoElement(element, pseudoElementIdentifier, elementUpdate);
 
     // No matching rule can generate a box. Animations still might (e.g. animating 'content'), and running ones need updating.
-    if ((pseudoElementIdentifier.type == PseudoElementType::Before || pseudoElementIdentifier.type == PseudoElementType::After) && elementUpdate.style->pseudoElementBoxGeneration() == PseudoElementBoxGeneration::NotForBeforeOrAfter && !element.hasKeyframeEffects(pseudoElementIdentifier))
+    if (elementUpdate.style->pseudoElementBoxGeneration() == PseudoElementBoxGeneration::NoGeneratedContent && boxRequiresGeneratedContent(pseudoElementIdentifier.type, *elementUpdate.style) && !element.hasKeyframeEffects(pseudoElementIdentifier))
         return { };
 
     if ((pseudoElementIdentifier.type == PseudoElementType::FirstLine || pseudoElementIdentifier.type == PseudoElementType::FirstLetter) && !supportsFirstLineAndLetterPseudoElement(*elementUpdate.style))
@@ -1692,7 +1705,7 @@ std::unique_ptr<Update> TreeResolver::resolve()
         return { };
 
     // Ensure we do at least one interleaved layout as any style change may affect existing anchor positions.
-    if (!m_didFirstInterleavedLayout && !m_document->styleScope().anchorPositionedToAnchorMap().isEmptyIgnoringNullReferences())
+    if (!m_didFirstInterleavedLayout && !m_document->styleScope().anchorPositionedToAnchorMap().computeIsEmpty())
         m_needsInterleavedLayout = true;
 
     Adjuster::propagateToDocumentElementAndInitialContainingBlock(*m_update, m_document);

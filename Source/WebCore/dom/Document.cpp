@@ -82,6 +82,7 @@
 #include "DateComponents.h"
 #include "DebugPageOverlays.h"
 #include "DebuggerSuspensionController.h"
+#include "DeferredFetchRegistry.h"
 #include "DeprecatedGlobalSettings.h"
 #include "DocumentFontLoader.h"
 #include "DocumentFragment.h"
@@ -859,7 +860,7 @@ Document::~Document()
     ASSERT(!m_disabledFieldsetElementsCount);
     ASSERT(!m_connectedDisabledFieldsetElementsCount);
     ASSERT(m_ranges.isEmpty());
-    ASSERT(m_inDocumentShadowRoots.isEmptyIgnoringNullReferences());
+    ASSERT(m_inDocumentShadowRoots.computeIsEmpty());
 
 #if ENABLE(DEVICE_ORIENTATION) && PLATFORM(IOS_FAMILY)
     m_deviceMotionClient->deviceMotionControllerDestroyed();
@@ -1268,6 +1269,13 @@ Editor& Document::ensureEditor()
     return *m_editor;
 }
 
+DeferredFetchRegistry& Document::ensureDeferredFetchRegistry()
+{
+    if (!m_deferredFetchRegistry)
+        m_deferredFetchRegistry = DeferredFetchRegistry::create(*this);
+    return *m_deferredFetchRegistry;
+}
+
 ReportingScope& Document::ensureReportingScope()
 {
     ASSERT(m_constructionDidFinish);
@@ -1434,7 +1442,7 @@ void Document::addResultForSelector(ContainerNode& context, const String& select
 
 void Document::invalidateQuerySelectorResults(Node& startingNode)
 {
-    if (m_querySelectorResults.isEmptyIgnoringNullReferences())
+    if (m_querySelectorResults.computeIsEmpty())
         return;
     for (RefPtr currentNode = startingNode; currentNode; currentNode = currentNode->parentNode()) {
         if (!currentNode->hasValidQuerySelectorResults())
@@ -1446,7 +1454,7 @@ void Document::invalidateQuerySelectorResults(Node& startingNode)
 
 void Document::invalidateQuerySelectorResultsForClassAttributeChange(Node& startingNode, const SpaceSplitString& oldClasses, const SpaceSplitString& newClasses)
 {
-    if (m_querySelectorResults.isEmptyIgnoringNullReferences())
+    if (m_querySelectorResults.computeIsEmpty())
         return;
     for (RefPtr currentNode = startingNode; currentNode; currentNode = currentNode->parentNode()) {
         if (!currentNode->hasValidQuerySelectorResults())
@@ -1882,36 +1890,6 @@ Ref<Element> Document::createElement(const QualifiedName& name, bool createdByPa
     return element.releaseNonNull();
 }
 
-// https://html.spec.whatwg.org/#valid-custom-element-name
-
-struct UnicodeCodePointRange {
-    char32_t minimum;
-    char32_t maximum;
-};
-
-#if ASSERT_ENABLED
-
-NODELETE static inline bool operator<(const UnicodeCodePointRange& a, const UnicodeCodePointRange& b)
-{
-    ASSERT(a.minimum <= a.maximum);
-    ASSERT(b.minimum <= b.maximum);
-    return a.maximum < b.minimum;
-}
-
-#endif // ASSERT_ENABLED
-
-NODELETE static inline bool operator<(const UnicodeCodePointRange& a, char32_t b)
-{
-    ASSERT(a.minimum <= a.maximum);
-    return a.maximum < b;
-}
-
-NODELETE static inline bool operator<(char32_t a, const UnicodeCodePointRange& b)
-{
-    ASSERT(b.minimum <= b.maximum);
-    return a < b.minimum;
-}
-
 CustomElementRegistry* Document::effectiveGlobalCustomElementRegistry()
 {
     if (!customElementRegistry() || customElementRegistry()->isScoped())
@@ -1919,31 +1897,7 @@ CustomElementRegistry* Document::effectiveGlobalCustomElementRegistry()
     return customElementRegistry();
 }
 
-NODELETE static inline bool isPotentialCustomElementNameCharacter(char32_t character)
-{
-    static constexpr auto ranges = WTF::toArray<UnicodeCodePointRange>({
-        { '-', '.' },
-        { '0', '9' },
-        { '_', '_' },
-        { 'a', 'z' },
-        { 0xB7, 0xB7 },
-        { 0xC0, 0xD6 },
-        { 0xD8, 0xF6 },
-        { 0xF8, 0x37D },
-        { 0x37F, 0x1FFF },
-        { 0x200C, 0x200D },
-        { 0x203F, 0x2040 },
-        { 0x2070, 0x218F },
-        { 0x2C00, 0x2FEF },
-        { 0x3001, 0xD7FF },
-        { 0xF900, 0xFDCF },
-        { 0xFDF0, 0xFFFD },
-        { 0x10000, 0xEFFFF },
-    });
-
-    ASSERT(std::is_sorted(std::begin(ranges), std::end(ranges)));
-    return std::binary_search(std::begin(ranges), std::end(ranges), character);
-}
+// https://html.spec.whatwg.org/#valid-custom-element-name
 
 enum class CustomElementNameCharacterKind : uint8_t {
     Invalid,
@@ -1952,43 +1906,24 @@ enum class CustomElementNameCharacterKind : uint8_t {
     Upper,
 };
 
-NODELETE static ALWAYS_INLINE CustomElementNameCharacterKind customElementNameCharacterKind(Latin1Character character)
+// FIXME: Remove SUPPRESS_NODELETE once NoDeleteChecker stops treating local lambdas as possibly deleting (rdar://178617685).
+NODELETE SUPPRESS_NODELETE static ALWAYS_INLINE CustomElementNameCharacterKind customElementNameCharacterKind(Latin1Character character)
 {
     using Kind = CustomElementNameCharacterKind;
-    static constexpr std::array<Kind, 256> table {
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Hyphen,  Kind::Valid,   Kind::Invalid, // -, .
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // 0-7
-        Kind::Valid,   Kind::Valid,   Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, // 8-9
-        Kind::Invalid, Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   // @, A-G
-        Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   // H-O
-        Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Upper,   // P-W
-        Kind::Upper,   Kind::Upper,   Kind::Upper,   Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Valid,   // X-Z, _
-        Kind::Invalid, Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // a-g
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // h-o
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // p-w
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, // x-z
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Valid,   // xB7
-        Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid, Kind::Invalid,
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xC0-xC7
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xC8-xCF
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Invalid, // xD0-xD6
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xD8-xDF
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xE0-xE7
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xE8-xEF
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Invalid, // xF0-xF6
-        Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   Kind::Valid,   // xF8-xFF
-    };
+    static constexpr auto table = [] {
+        std::array<Kind, 256> kinds { };
+        for (unsigned codeUnit = 0; codeUnit < kinds.size(); ++codeUnit) {
+            if (isASCIIUpper(codeUnit))
+                kinds[codeUnit] = Kind::Upper;
+            else if (codeUnit == '-')
+                kinds[codeUnit] = Kind::Hyphen;
+            else if (NameValidation::isInvalidElementNameCharacterAfterAlphaStart(codeUnit))
+                kinds[codeUnit] = Kind::Invalid;
+            else
+                kinds[codeUnit] = Kind::Valid;
+        }
+        return kinds;
+    }();
     return table[character];
 }
 
@@ -2013,10 +1948,10 @@ NODELETE static ALWAYS_INLINE CustomElementNameValidationStatus validateCustomEl
             }
         }
     } else {
-        for (auto character : StringView(localName).codePoints()) {
+        for (auto character : localName.string().span16()) {
             if (isASCIIUpper(character))
                 return CustomElementNameValidationStatus::ContainsUppercaseASCIILetter;
-            if (!isPotentialCustomElementNameCharacter(character))
+            if (NameValidation::isInvalidElementNameCharacterAfterAlphaStart(character))
                 return CustomElementNameValidationStatus::ContainsDisallowedCharacter;
             if (character == '-')
                 containsHyphen = true;
@@ -3756,6 +3691,12 @@ void Document::willBeRemovedFromFrame()
     if (m_hasPreparedForDestruction)
         return;
 
+    // Activate any pending fetchLater() requests before the document goes away.
+    // Must happen before we start tearing down subsystems the load path relies on
+    // (e.g. the CachedResourceLoader / DocumentLoader below).
+    if (RefPtr registry = m_deferredFetchRegistry)
+        registry->documentIsBeingDestroyed();
+
 #if ENABLE(WEB_RTC)
     if (RefPtr rtcNetworkManager = m_rtcNetworkManager)
         rtcNetworkManager->unregisterMDNSNames();
@@ -3813,11 +3754,11 @@ void Document::willBeRemovedFromFrame()
     commonTeardown();
 
 #if ENABLE(TOUCH_EVENTS) || ENABLE(TOUCH_EVENT_REGIONS)
-    if (!m_touchEventTargets.isEmptyIgnoringNullReferences() && parentDocument())
+    if (!m_touchEventTargets.computeIsEmpty() && parentDocument())
         protect(parentDocument())->didRemoveEventTargetNode(*this);
 #endif
 
-    if (!m_wheelEventTargets.isEmptyIgnoringNullReferences() && parentDocument())
+    if (!m_wheelEventTargets.computeIsEmpty() && parentDocument())
         protect(parentDocument())->didRemoveEventTargetNode(*this);
 
     if (RefPtr mediaQueryMatcher = m_mediaQueryMatcher)
@@ -3924,6 +3865,14 @@ void Document::platformSuspendOrStopActiveDOMObjects()
 
 void Document::suspendActiveDOMObjects(ReasonForSuspension why)
 {
+    // https://fetch.spec.whatwg.org/#deferred-fetching asks that deferred fetches be sent
+    // when the user agent expects to lose the chance to run script. A suspended page cannot
+    // run script again until it is resumed, which may never happen.
+    if (why == ReasonForSuspension::PageWillBeSuspended) {
+        if (RefPtr registry = deferredFetchRegistryIfExists())
+            registry->activateAllDeferredFetches();
+    }
+
     if (m_documentTaskGroup)
         m_documentTaskGroup->suspend();
     ScriptExecutionContext::suspendActiveDOMObjects(why);
@@ -7164,20 +7113,28 @@ void Document::unregisterCollection(HTMLCollection& collection)
     if (!collection.isRootedAtTreeScope())
         return;
 
+    ASSERT(m_collectionsInvalidatedAtDocument.contains(&collection));
     m_collectionsInvalidatedAtDocument.remove(&collection);
 }
 
-void Document::collectionCachedIdNameMap(const HTMLCollection& collection)
+SUPPRESS_NODELETE void Document::collectionCachedIdNameMap(const HTMLCollection& collection)
 {
-    ASSERT_UNUSED(collection, collection.hasNamedElementCache());
+    ASSERT(collection.hasNamedElementCache());
     m_nodeListAndCollectionCounts[static_cast<unsigned>(NodeListInvalidationType::InvalidateOnIdNameAttrChange)]++;
+    if (collection.isRootedAtTreeScope())
+        m_collectionsInvalidatedAtDocument.add(const_cast<HTMLCollection*>(&collection));
 }
 
-void Document::collectionWillClearIdNameMap(const HTMLCollection& collection)
+SUPPRESS_NODELETE void Document::collectionWillClearIdNameMap(const HTMLCollection& collection)
 {
-    ASSERT_UNUSED(collection, collection.hasNamedElementCache());
+    ASSERT(collection.hasNamedElementCache());
     ASSERT(m_nodeListAndCollectionCounts[static_cast<unsigned>(NodeListInvalidationType::InvalidateOnIdNameAttrChange)]);
     m_nodeListAndCollectionCounts[static_cast<unsigned>(NodeListInvalidationType::InvalidateOnIdNameAttrChange)]--;
+    if (!collection.isRootedAtTreeScope())
+        return;
+
+    ASSERT(m_collectionsInvalidatedAtDocument.contains(const_cast<HTMLCollection*>(&collection)));
+    m_collectionsInvalidatedAtDocument.remove(const_cast<HTMLCollection*>(&collection));
 }
 
 void Document::attachNodeIterator(NodeIterator& iterator)
@@ -7995,6 +7952,8 @@ void Document::setBackForwardCacheState(BackForwardCacheState state)
             idbConnectionProxy->setContextSuspended(*this, false);
         break;
     case AboutToEnterBackForwardCache:
+        if (RefPtr registry = m_deferredFetchRegistry)
+            registry->documentIsAboutToEnterBackForwardCache();
         break;
     }
 }
@@ -9750,7 +9709,7 @@ void Document::blockRenderingOn(Element& element, ImplicitRenderBlocking implici
 void Document::unblockRenderingOn(Element& element)
 {
     m_renderBlockingElements.remove(element);
-    if (m_renderBlockingElements.isEmptyIgnoringNullReferences())
+    if (m_renderBlockingElements.computeIsEmpty())
         removeVisualUpdatePreventedReasons(VisualUpdatesPreventedReason::RenderBlocking);
 }
 
@@ -9831,7 +9790,7 @@ void Document::wheelEventHandlersChanged(Node* node)
     UNUSED_PARAM(node);
 #endif
 
-    bool haveHandlers = !m_wheelEventTargets.isEmptyIgnoringNullReferences();
+    bool haveHandlers = !m_wheelEventTargets.computeIsEmpty();
     page->chrome().client().wheelEventHandlersChanged(haveHandlers);
 }
 
@@ -9928,13 +9887,13 @@ void Document::didRemoveEventTargetNode(Node& handler)
 {
 #if ENABLE(TOUCH_EVENTS) || ENABLE(TOUCH_EVENT_REGIONS)
     if (m_touchEventTargets.removeAll(handler)) {
-        if ((&handler == this || m_touchEventTargets.isEmptyIgnoringNullReferences()) && parentDocument())
+        if ((&handler == this || m_touchEventTargets.computeIsEmpty()) && parentDocument())
             protect(parentDocument())->didRemoveEventTargetNode(*this);
     }
 #endif
 
     if (m_wheelEventTargets.removeAll(handler)) {
-        if ((&handler == this || m_wheelEventTargets.isEmptyIgnoringNullReferences()) && parentDocument())
+        if ((&handler == this || m_wheelEventTargets.computeIsEmpty()) && parentDocument())
             protect(parentDocument())->didRemoveEventTargetNode(*this);
     }
 }
@@ -10098,10 +10057,10 @@ bool Document::hasTouchEventHandlers() const
     auto touchEventHandlerCountsIsEmpty = true;
 
 #if ENABLE(IOS_TOUCH_EVENTS) && ENABLE(TOUCH_EVENT_REGIONS)
-    touchEventHandlerCountsIsEmpty = !shouldUseTouchEventRegions() || m_touchEventHandlerCounts.isEmptyIgnoringNullReferences();
+    touchEventHandlerCountsIsEmpty = !shouldUseTouchEventRegions() || m_touchEventHandlerCounts.computeIsEmpty();
 #endif
 
-    return !m_touchEventTargets.isEmptyIgnoringNullReferences() || !touchEventHandlerCountsIsEmpty;
+    return !m_touchEventTargets.computeIsEmpty() || !touchEventHandlerCountsIsEmpty;
 }
 #endif
 
@@ -12422,7 +12381,7 @@ void Document::prepareCanvasesForDisplayOrFlushIfNeeded()
 void Document::addCanvasNeedingPreparationForDisplayOrFlush(CanvasRenderingContext& context)
 {
     if (context.hasDeferredOperations() || context.needsPreparationForDisplay()) {
-        bool shouldSchedule = m_canvasContextsToPrepare.isEmptyIgnoringNullReferences();
+        bool shouldSchedule = m_canvasContextsToPrepare.computeIsEmpty();
         m_canvasContextsToPrepare.add(context);
         context.setIsInPreparationForDisplayOrFlush(true);
         if (shouldSchedule)
@@ -12449,7 +12408,7 @@ void Document::serviceCanvasPaintEvents()
 
 void Document::requestCanvasPaintEvent(HTMLCanvasElement& canvas)
 {
-    bool shouldSchedule = m_canvasesNeedingPaintEvent.isEmptyIgnoringNullReferences();
+    bool shouldSchedule = m_canvasesNeedingPaintEvent.computeIsEmpty();
     m_canvasesNeedingPaintEvent.add(canvas);
     if (shouldSchedule)
         scheduleRenderingUpdate(RenderingUpdateStep::CanvasPaintEvent);
@@ -12825,7 +12784,7 @@ void Document::performPendingViewTransitions()
 String Document::mediaKeysStorageDirectory()
 {
     RefPtr currentPage = page();
-    return currentPage ? currentPage->ensureMediaKeysStorageDirectoryForOrigin(securityOrigin().data()) : emptyString();
+    return currentPage ? currentPage->ensureMediaKeysStorageDirectoryForOrigin(securityOrigin().data(), frameID()) : emptyString();
 }
 
 PermissionsPolicy Document::permissionsPolicy() const

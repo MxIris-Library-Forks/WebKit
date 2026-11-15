@@ -3299,6 +3299,10 @@
 		EBED255FFFE9021E3379DC48 /* QuirkBehaviorID.serialization.in in Headers */ = {isa = PBXBuildFile; fileRef = EB2729410F61177F71D60E23 /* QuirkBehaviorID.serialization.in */; settings = {ATTRIBUTES = (Private, ); }; };
 		32400DF4AA35A12EDCD8FB9F /* QuirksAccessors.h in Headers */ = {isa = PBXBuildFile; fileRef = EFCA134E7C78BB6FA88870FE /* QuirksAccessors.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		7CD58DFD1F9565A800112791 /* Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CEB57EA1F95651500097AEC /* Settings.cpp */; };
+		FE7CF1A501000000000000E8 /* DeferredFetchIdentifier.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7CF1A501000000000000E7 /* DeferredFetchIdentifier.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FE7CF1A501000000000000A3 /* DeferredFetchRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7CF1A501000000000000A2 /* DeferredFetchRegistry.h */; };
+		FE7CF1A501000000000000B2 /* DeferredRequestInit.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7CF1A501000000000000B1 /* DeferredRequestInit.h */; };
+		FE7CF1A501000000000000C2 /* FetchLaterResult.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7CF1A501000000000000C1 /* FetchLaterResult.h */; };
 		7CE1914A1F2A98B900272F78 /* FetchRequestInit.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CE191471F2A98AF00272F78 /* FetchRequestInit.h */; };
 		7CE1914D1F2A9AFB00272F78 /* FetchReferrerPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CE1914B1F2A9AFB00272F78 /* FetchReferrerPolicy.h */; };
 		7CE191511F2A9B0A00272F78 /* FetchRequestMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CE1914F1F2A9B0A00272F78 /* FetchRequestMode.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -6907,6 +6911,8 @@
 		E440FD5325A4AFDF00F7C849 /* StyledMarkedText.h in Headers */ = {isa = PBXBuildFile; fileRef = E440FD5125A4AFDF00F7C849 /* StyledMarkedText.h */; };
 		E44129A82C86E3D10047598D /* SVGTextBoxPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E44129A62C81E3B40047598D /* SVGTextBoxPainter.h */; };
 		E444B0A128C7437900CA560E /* BorderPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E444B0A028C7437900CA560E /* BorderPainter.h */; };
+		9E73BBA26303CDD5AC0FC2BD /* BoxDecorationPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9EFE3E593EFEB8A7D082769 /* BoxDecorationPainter.h */; };
+		DED455D86AFC6F27CAED7FD0 /* MaskPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = 67DCCCAC39DA40C5774677AC /* MaskPainter.h */; };
 		E444B0A928C8B19A00CA560E /* BackgroundPainter.h in Headers */ = {isa = PBXBuildFile; fileRef = E444B0A828C8B19900CA560E /* BackgroundPainter.h */; };
 		E44613A20CD6331000FADA75 /* HTMLAudioElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E44613900CD6331000FADA75 /* HTMLAudioElement.h */; };
 		E44613A50CD6331000FADA75 /* HTMLMediaElement.h in Headers */ = {isa = PBXBuildFile; fileRef = E44613930CD6331000FADA75 /* HTMLMediaElement.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -15363,6 +15369,14 @@
 		7CDA7912250E88F0007D1B36 /* InnerHTML.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = InnerHTML.idl; sourceTree = "<group>"; };
 		7CDA7919250E8C92007D1B36 /* Element+DOMParsing.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Element+DOMParsing.idl"; sourceTree = "<group>"; };
 		7CDE8EBC1F193BC500168FE7 /* CSSStyleDeclaration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSSStyleDeclaration.cpp; sourceTree = "<group>"; };
+		FE7CF1A501000000000000A1 /* DeferredFetchRegistry.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DeferredFetchRegistry.cpp; sourceTree = "<group>"; };
+		FE7CF1A501000000000000E7 /* DeferredFetchIdentifier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeferredFetchIdentifier.h; sourceTree = "<group>"; };
+		FE7CF1A501000000000000A2 /* DeferredFetchRegistry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeferredFetchRegistry.h; sourceTree = "<group>"; };
+		FE7CF1A501000000000000B1 /* DeferredRequestInit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeferredRequestInit.h; sourceTree = "<group>"; };
+		FE7CF1A501000000000000B3 /* DeferredRequestInit.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = DeferredRequestInit.idl; sourceTree = "<group>"; };
+		FE7CF1A501000000000000C1 /* FetchLaterResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FetchLaterResult.h; sourceTree = "<group>"; };
+		FE7CF1A501000000000000C3 /* FetchLaterResult.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = FetchLaterResult.idl; sourceTree = "<group>"; };
+		FE7CF1A501000000000000D1 /* DOMWindow+FetchLater.idl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "DOMWindow+FetchLater.idl"; sourceTree = "<group>"; };
 		7CE191471F2A98AF00272F78 /* FetchRequestInit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FetchRequestInit.h; sourceTree = "<group>"; };
 		7CE191491F2A98B000272F78 /* FetchRequestInit.idl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FetchRequestInit.idl; sourceTree = "<group>"; };
 		7CE1914B1F2A9AFB00272F78 /* FetchReferrerPolicy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FetchReferrerPolicy.h; sourceTree = "<group>"; };
@@ -22877,6 +22891,10 @@
 		E44129A72C81E3B40047598D /* SVGTextBoxPainter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGTextBoxPainter.cpp; sourceTree = "<group>"; };
 		E444B0A028C7437900CA560E /* BorderPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BorderPainter.h; sourceTree = "<group>"; };
 		E444B0A228C7438400CA560E /* BorderPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BorderPainter.cpp; sourceTree = "<group>"; };
+		8F270972C8C362869283E6B3 /* BoxDecorationPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BoxDecorationPainter.cpp; sourceTree = "<group>"; };
+		E9EFE3E593EFEB8A7D082769 /* BoxDecorationPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoxDecorationPainter.h; sourceTree = "<group>"; };
+		D14F6BB279C841B98039C41A /* MaskPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MaskPainter.cpp; sourceTree = "<group>"; };
+		67DCCCAC39DA40C5774677AC /* MaskPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MaskPainter.h; sourceTree = "<group>"; };
 		E444B0A828C8B19900CA560E /* BackgroundPainter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackgroundPainter.h; sourceTree = "<group>"; };
 		E444B0AA28C8B1A800CA560E /* BackgroundPainter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BackgroundPainter.cpp; sourceTree = "<group>"; };
 		E4451077202C7E0100657D33 /* CompiledSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CompiledSelector.h; sourceTree = "<group>"; };
@@ -27946,6 +27964,12 @@
 		41F54F7C1C50C4F600338488 /* fetch */ = {
 			isa = PBXGroup;
 			children = (
+				FE7CF1A501000000000000E7 /* DeferredFetchIdentifier.h */,
+				FE7CF1A501000000000000A1 /* DeferredFetchRegistry.cpp */,
+				FE7CF1A501000000000000A2 /* DeferredFetchRegistry.h */,
+				FE7CF1A501000000000000B1 /* DeferredRequestInit.h */,
+				FE7CF1A501000000000000B3 /* DeferredRequestInit.idl */,
+				FE7CF1A501000000000000D1 /* DOMWindow+FetchLater.idl */,
 				41F54F7D1C50C4F600338488 /* FetchBody.cpp */,
 				41F54F7E1C50C4F600338488 /* FetchBody.h */,
 				41F54F7F1C50C4F600338488 /* FetchBody.idl */,
@@ -27960,6 +27984,8 @@
 				41F54F841C50C4F600338488 /* FetchHeaders.idl */,
 				4191981729950763007576C8 /* FetchHeadersGuard.h */,
 				416E0B37209BC3C2004A95D9 /* FetchIdentifier.h */,
+				FE7CF1A501000000000000C1 /* FetchLaterResult.h */,
+				FE7CF1A501000000000000C3 /* FetchLaterResult.idl */,
 				4147E2B41C89912600A7E715 /* FetchLoader.cpp */,
 				4147E2B51C89912600A7E715 /* FetchLoader.h */,
 				4147E2B61C89912600A7E715 /* FetchLoaderClient.h */,
@@ -42413,6 +42439,8 @@
 				E444B0A028C7437900CA560E /* BorderPainter.h */,
 				0F29D8742C6EFE3C00CEA122 /* BorderShape.cpp */,
 				0F29D8732C6EFE3B00CEA122 /* BorderShape.h */,
+				8F270972C8C362869283E6B3 /* BoxDecorationPainter.cpp */,
+				E9EFE3E593EFEB8A7D082769 /* BoxDecorationPainter.h */,
 				BCEA4815097D93020094C9E4 /* BreakablePositions.cpp */,
 				BCEA4816097D93020094C9E4 /* BreakablePositions.h */,
 				E4F0BE3025710A76009E7431 /* CaretRectComputation.cpp */,
@@ -42481,6 +42509,8 @@
 				CD9E01762E860CCA002B5029 /* LogicalSelectionOffsetCachesInlines.h */,
 				CE1866421F72E5B400A0CAB6 /* MarkedText.cpp */,
 				CE1866431F72E5B400A0CAB6 /* MarkedText.h */,
+				D14F6BB279C841B98039C41A /* MaskPainter.cpp */,
+				67DCCCAC39DA40C5774677AC /* MaskPainter.h */,
 				1A897BC22A903B1D00C12DAA /* MotionPath.cpp */,
 				1A897BC12A903B1C00C12DAA /* MotionPath.h */,
 				424D1B489B71DA74BDCDF10C /* NinePieceGeometry.h */,
@@ -44766,6 +44796,7 @@
 				BC5EB5DB0E81B7EA00B25965 /* BorderValue.h in Headers */,
 				9316DE00240C64F9009340AA /* BoundaryPoint.h in Headers */,
 				27E7CA912D7572C600554A77 /* BoundaryPointInlines.h in Headers */,
+				9E73BBA26303CDD5AC0FC2BD /* BoxDecorationPainter.h in Headers */,
 				F42BDC022D54528000818A9A /* BoxExtents.h in Headers */,
 				6ED8C37A183BFF8C009E53BD /* BoxLayoutShape.h in Headers */,
 				DCA7EDF52C655235000F16C7 /* BoxSides.h in Headers */,
@@ -45505,6 +45536,9 @@
 				E4F38D1B2626F13B007B1064 /* DefaultResourceLoadPriority.h in Headers */,
 				716B2D0F546E3C09FA4108CA /* DefaultSizing.h in Headers */,
 				CD83D36221122A210076E11C /* DeferrableTask.h in Headers */,
+				FE7CF1A501000000000000E8 /* DeferredFetchIdentifier.h in Headers */,
+				FE7CF1A501000000000000A3 /* DeferredFetchRegistry.h in Headers */,
+				FE7CF1A501000000000000B2 /* DeferredRequestInit.h in Headers */,
 				FD31602C12B0267600C1A359 /* DelayDSPKernel.h in Headers */,
 				FD31602E12B0267600C1A359 /* DelayNode.h in Headers */,
 				83A2ABDB24D86DE000E2D73D /* DelayOptions.h in Headers */,
@@ -45851,6 +45885,7 @@
 				416E0B3A209BC3CB004A95D9 /* FetchIdentifier.h in Headers */,
 				CEBB8C3320786DCB00039547 /* FetchIdioms.h in Headers */,
 				EB83220A2D70DC7F009515DA /* FetchingWorkerIdentifier.h in Headers */,
+				FE7CF1A501000000000000C2 /* FetchLaterResult.h in Headers */,
 				4161E2D51FE48DC500EC2E96 /* FetchLoader.h in Headers */,
 				517A53581F5889E800DCDC0A /* FetchLoaderClient.h in Headers */,
 				41AD753A1CEF6BD100A31486 /* FetchOptions.h in Headers */,
@@ -47714,6 +47749,7 @@
 				9728C3141268E4390041E89B /* MarkupAccumulator.h in Headers */,
 				3A18A2ED2AFEAA7C00DB976C /* MarkupExclusionRule.h in Headers */,
 				00C60E3F13D76D7E0092A275 /* MarkupTokenizerInlines.h in Headers */,
+				DED455D86AFC6F27CAED7FD0 /* MaskPainter.h in Headers */,
 				E45BA6AA2374926C004DFC07 /* MatchedDeclarationsCache.h in Headers */,
 				E44A0256273AE0C000993A56 /* MatchResult.h in Headers */,
 				E4EF455E2D9D3E0500120306 /* MatchResultCache.h in Headers */,

@@ -342,7 +342,7 @@ void CSSStyleSheet::setDisabled(bool disabled)
 
 void CSSStyleSheet::setMediaQueries(MQ::MediaQueryList&& mediaQueries)
 {
-    m_mediaQueries = WTF::move(mediaQueries);
+    m_mediaQueries = MQ::makeShared(WTF::move(mediaQueries));
 }
 
 unsigned CSSStyleSheet::length() const
@@ -629,7 +629,7 @@ bool CSSStyleSheet::isDetached() const
     assertIsOwnerThread();
     return !m_ownerNode
         && !m_ownerRule
-        && m_adoptingTreeScopes.isEmptyIgnoringNullReferences();
+        && m_adoptingTreeScopes.computeIsEmpty();
 }
 
 Document* CSSStyleSheet::constructorDocument() const

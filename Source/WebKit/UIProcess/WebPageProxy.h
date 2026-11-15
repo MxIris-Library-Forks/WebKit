@@ -1969,6 +1969,7 @@ public:
     void resetStateAfterProcessTermination(ProcessTerminationReason);
     void provisionalProcessDidTerminate();
     void provisionalLoadWasCancelledBeforeStarting(WebCore::NavigationIdentifier);
+    void markProcessesIneligibleForWebProcessCache();
     void mainFrameProcessDidTerminate(WebProcessProxy&);
     void nonMainFrameProcessDidTerminate(WebProcessProxy&);
     void dispatchProcessDidTerminate(ProcessID, ProcessTerminationScope, ProcessTerminationReason);
@@ -3805,6 +3806,10 @@ private:
 #endif
 
     void clearStateForTerminatedProcess(WebProcessProxy&);
+    void coalesceSubframeProcessTerminationEvent(ProcessTerminationReason);
+    void notifyClientOfCoalescedSubframeTerminationEvent(unsigned terminationEventIdentifier);
+    void notifyClientOfMainFrameProcessTerminationEvent(ProcessTerminationReason);
+    void notifyClientOfProcessTermination(ProcessTerminationReason, ProcessTerminationScope);
     void tryReloadAfterProcessTermination();
     void maybeReloadAfterCrashWhenVisible();
     bool hasMainFrameNavigationInFlight() const;
@@ -3985,6 +3990,7 @@ private:
 
     void didCacheBackForwardItem(WebCore::BackForwardItemIdentifier, CompletionHandler<void(bool)>&&);
     void didEvictBackForwardItem(WebCore::BackForwardItemIdentifier);
+    void didEvictBackForwardFrameItem(WebCore::BackForwardFrameItemIdentifier);
     void didTakeBackForwardItemForRestoration(WebCore::BackForwardItemIdentifier);
     void restoreOrCancelPendingBackForwardIframes(const PendingBackForwardIframeRestore&, WebCore::RestoredFromBackForwardCache);
 

@@ -151,6 +151,7 @@ Modules/entriesapi/FileSystemEntriesCallback.cpp
 Modules/entriesapi/FileSystemEntry.cpp
 Modules/entriesapi/FileSystemFileEntry.cpp
 Modules/entriesapi/HTMLInputElementEntriesAPI.cpp
+Modules/fetch/DeferredFetchRegistry.cpp
 Modules/fetch/FetchBody.cpp @cost:3
 Modules/fetch/FetchBodyConsumer.cpp @cost:3
 Modules/fetch/FetchBodyOwner.cpp @cost:3
@@ -3026,6 +3027,7 @@ rendering/BlockStepSizing.cpp @header:RenderStyleGetters @cost:4
 rendering/BorderEdge.cpp @header:RenderStyleGetters @cost:4
 rendering/BorderPainter.cpp @header:RenderStyleGetters @cost:6
 rendering/BorderShape.cpp @header:RenderStyleGetters @cost:5
+rendering/BoxDecorationPainter.cpp @header:RenderStyleGetters @cost:5
 rendering/BreakablePositions.cpp
 rendering/CSSFilterRenderer.cpp @header:RenderStyleGetters @cost:6
 rendering/CaretRectComputation.cpp @header:RenderStyleGetters @cost:6
@@ -3061,6 +3063,7 @@ rendering/LayoutRepainter.cpp
 rendering/LegacyLineClampUpdater.cpp
 rendering/LineClampUpdater.cpp
 rendering/MarkedText.cpp @header:RenderStyleGetters @cost:6
+rendering/MaskPainter.cpp @header:RenderStyleGetters @cost:4
 rendering/MotionPath.cpp @header:RenderStyleGetters @cost:5
 rendering/NinePieceImagePainter.cpp @header:RenderStyleGetters @cost:5
 rendering/OrderIterator.cpp @header:RenderStyleGetters @cost:4
@@ -4258,6 +4261,7 @@ JSDatabaseCallback.cpp
 JSDecompressionStream.cpp
 JSDecompressionStreamDecoder.cpp
 JSDedicatedWorkerGlobalScope.cpp
+JSDeferredRequestInit.cpp
 JSDelayNode.cpp
 JSDelayOptions.cpp
 JSDeprecatedCSSOMCounter.cpp
@@ -4336,6 +4340,7 @@ JSFaceDetectorOptions.cpp
 JSFetchBody.cpp
 JSFetchEvent.cpp
 JSFetchHeaders.cpp
+JSFetchLaterResult.cpp
 JSFetchReferrerPolicy.cpp
 JSFetchRequest.cpp
 JSFetchRequestCache.cpp

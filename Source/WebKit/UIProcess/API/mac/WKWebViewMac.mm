@@ -262,12 +262,6 @@ ALLOW_DEPRECATED_IMPLEMENTATIONS_END
 #if HAVE(APPKIT_GESTURES_SUPPORT)
 - (_NSMouseEmulationGestureConfig)_gestureRecognizersViewConfigForMouseEmulation
 {
-    if (!_page)
-        return 0;
-
-    if (!protect(_page->preferences())->useAppKitGesturesForGestureEvents())
-        return _NSMouseEmulationViewHandlesMagnify | _NSMouseEmulationViewHandlesRotate;
-
     return 0;
 }
 
@@ -1703,8 +1697,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         if (!receiver)
             return;
 
-        // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
-        for (SUPPRESS_UNRETAINED_LOCAL NSString *typeIdentifier in [receiver fileTypes]) {
+        for (NSString *typeIdentifier in [receiver fileTypes]) {
             RetainPtr type = [UTType typeWithIdentifier:typeIdentifier];
             if (!type)
                 continue;
@@ -1719,8 +1712,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         if (!filenames)
             return { };
 
-        // FIXME: Remove the suppression once https://github.com/llvm/llvm-project/pull/230818 is deployed (rdar://189710680).
-        for (SUPPRESS_UNRETAINED_LOCAL id name in filenames.get()) {
+        for (id name in filenames.get()) {
             RetainPtr pathExtension = [dynamic_objc_cast<NSString>(name) pathExtension];
             if (![pathExtension length])
                 continue;

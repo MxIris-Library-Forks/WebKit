@@ -407,10 +407,13 @@ public:
     void didPostMessage(WebPageProxyIdentifier, UserContentControllerIdentifier, FrameInfoData&&, ScriptMessageHandlerIdentifier, JavaScriptEvaluationResult&&, CompletionHandler<void(std::expected<WebKit::JavaScriptEvaluationResult, String>&&)>&&);
     void didPostLegacySynchronousMessage(WebPageProxyIdentifier, UserContentControllerIdentifier, FrameInfoData&&, ScriptMessageHandlerIdentifier, JavaScriptEvaluationResult&&, CompletionHandler<void(std::expected<JavaScriptEvaluationResult, String>&&)>&&);
 
+    void ensureMediaKeysStorageDirectory(WebCore::FrameIdentifier);
+
     void enableSuddenTermination();
     void disableSuddenTermination();
     bool isSuddenTerminationEnabled() { return !m_numberOfTimesSuddenTerminationWasDisabled; }
 
+    bool detectAndHandleTermination();
     void requestTermination(ProcessTerminationReason, std::optional<IPC::MessageName> invalidMessageName = std::nullopt);
 
     RefPtr<API::Object> transformHandlesToObjects(API::Object*);
@@ -790,7 +793,7 @@ private:
 #if ENABLE(GPU_PROCESS)
     void createGPUProcessConnection(GPUProcessConnectionIdentifier, IPC::Connection::Handle&&);
     void gpuProcessConnectionDidBecomeUnresponsive(GPUProcessConnectionIdentifier);
-    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect& rectRelativeToVisibleContent, RemoteSnapshotIdentifier, WebCore::RenderingMode);
+    void drawFrameToSnapshot(WebCore::FrameIdentifier, const WebCore::IntRect& rectRelativeToVisibleContent, RemoteSnapshotIdentifier, WebCore::RenderingMode, const WebCore::FloatSize& scale);
 #endif
 
 #if HAVE(IOSURFACE)

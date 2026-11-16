@@ -955,10 +955,10 @@ WebPageProxy* WebPageProxy::fromIdentifier(std::optional<WebPageProxyIdentifier>
 static Ref<BrowsingContextGroup> getOrCreateBrowsingContextGroup(const API::PageConfiguration& configuration, const WebProcessProxy& process)
 {
     Ref websiteDataStore = configuration.websiteDataStore();
-    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->websiteDataStore() == websiteDataStore.ptr() && enhancedSecurityStatesAreConsistent(preferredBrowsingContextGroup->enhancedSecurity(), process.enhancedSecurity()))
+    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->websiteDataStore() == websiteDataStore.ptr() && preferredBrowsingContextGroup->lockdownMode() == process.lockdownMode() && preferredBrowsingContextGroup->canUseProcessForEnhancedSecurity(process, protect(configuration.preferences())))
         return *preferredBrowsingContextGroup;
 
-    return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, process.enhancedSecurity());
+    return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, process.lockdownMode(), process.enhancedSecurity());
 }
 
 WebPageProxy::WebPageProxy(PageClient& pageClient, WebProcessProxy& process, Ref<API::PageConfiguration>&& configuration)
@@ -1529,11 +1529,11 @@ void WebPageProxy::launchProcess(const Site& site, ProcessLaunchReason reason)
     if (RefPtr frameProcess = protect(browsingContextGroup())->processForSite(site)) {
         ASSERT(siteIsolationEnabled);
         m_legacyMainFrameProcess = frameProcess->process();
-    } else if (relatedPage && !relatedPage->isClosed() && reason == ProcessLaunchReason::InitialProcess && hasSameGPUAndNetworkProcessPreferencesAs(*relatedPage) && !siteIsolationEnabled && protect(relatedPage->browsingContextGroup())->crossOriginMode() == crossOriginMode) {
+    } else if (relatedPage && !relatedPage->isClosed() && reason == ProcessLaunchReason::InitialProcess && hasSameGPUAndNetworkProcessPreferencesAs(*relatedPage) && !siteIsolationEnabled && protect(relatedPage->browsingContextGroup())->crossOriginMode() == crossOriginMode && protect(relatedPage->browsingContextGroup())->lockdownMode() == protect(browsingContextGroup())->lockdownMode()) {
         m_legacyMainFrameProcess = relatedPage->ensureRunningProcess();
         WEBPAGEPROXY_RELEASE_LOG(Loading, "launchProcess: Using process (process=%p, PID=%i) from related page", m_legacyMainFrameProcess.ptr(), m_legacyMainFrameProcess->processID());
     } else
-        m_legacyMainFrameProcess = processPool->processForSite(protect(websiteDataStore()), WebProcessProxy::IsolatedProcessType::MainFrame, site, site, shouldEnableLockdownMode() ? WebProcessProxy::LockdownMode::Enabled : WebProcessProxy::LockdownMode::Disabled, protect(browsingContextGroup())->enhancedSecurity(), m_configuration, processCrossOriginIsolationForBrowsingContextGroup(crossOriginMode));
+        m_legacyMainFrameProcess = processPool->processForSite(protect(websiteDataStore()), WebProcessProxy::IsolatedProcessType::MainFrame, site, site, protect(browsingContextGroup())->lockdownMode(), protect(browsingContextGroup())->enhancedSecurity(), m_configuration, processCrossOriginIsolationForBrowsingContextGroup(crossOriginMode));
 
     m_shouldReloadDueToCrashWhenVisible = false;
     m_isLockdownModeExplicitlySet = m_configuration->isLockdownModeExplicitlySet();
@@ -1582,7 +1582,7 @@ bool WebPageProxy::suspendCurrentPageIfPossible(API::Navigation& navigation, con
     mainFrame->frameLoadState().didSuspend();
 
     // The page stays in its current process until swapToProvisionalPage().
-    Ref placeholderBrowsingContextGroup = BrowsingContextGroup::create(protect(m_browsingContextGroup)->crossOriginMode(), *protect(protect(m_browsingContextGroup)->websiteDataStore()), protect(m_browsingContextGroup)->enhancedSecurity());
+    Ref placeholderBrowsingContextGroup = BrowsingContextGroup::create(protect(m_browsingContextGroup)->crossOriginMode(), *protect(protect(m_browsingContextGroup)->websiteDataStore()), protect(m_browsingContextGroup)->lockdownMode(), protect(m_browsingContextGroup)->enhancedSecurity());
     Ref suspendedPage = SuspendedPageProxy::create(*this, protect(legacyMainFrameProcess()), mainFrame.releaseNonNull(), std::exchange(m_browsingContextGroup, WTF::move(placeholderBrowsingContextGroup)));
     std::optional<BackForwardFrameItemIdentifier> mainFrameItemID;
     Ref preferences = this->preferences();
@@ -3552,8 +3552,9 @@ RefPtr<WebAutomationSession> WebPageProxy::activeAutomationSession() const
     return m_configuration->processPool().automationSession();
 }
 
-void WebPageProxy::sendMessageToInspectorFrontend(const String& targetId, const String& message)
+void WebPageProxy::sendMessageToInspectorFrontend(IPC::Connection& connection, const String& targetId, const String& message)
 {
+    MESSAGE_CHECK_BASE(!targetId.isNull(), connection);
     m_inspectorController->sendMessageToInspectorFrontend(targetId, message);
 }
 
@@ -5529,7 +5530,7 @@ void WebPageProxy::continueWheelEventHandling(Ref<WebWheelEvent>&& wheelEvent, c
     LOG_WITH_STREAM(WheelEvents, stream << "WebPageProxy::continueWheelEventHandling - " << result);
 
 #if PLATFORM(COCOA)
-    if (m_mainFrame && wheelEvent->phase() == WebWheelEvent::Phase::Began && wheelEvent->inputSource() != WebEventInputSource::UserDriven) {
+    if (m_mainFrame && wheelEvent->phase() == WebWheelEvent::Phase::Began && wheelEvent->inputSource() == WebEventInputSource::Touch) {
         forEachWebContentProcess([](auto& process, auto pageID) {
             process.send(Messages::WebPage::MousePointerDidDisappear(), pageID);
         });
@@ -5539,7 +5540,7 @@ void WebPageProxy::continueWheelEventHandling(Ref<WebWheelEvent>&& wheelEvent, c
     if (!result.needsMainThreadProcessing()) {
         bool setLastKnownMousePosition = m_mainFrame && wheelEvent->phase() == WebWheelEvent::Phase::Began;
 #if PLATFORM(COCOA)
-        setLastKnownMousePosition = setLastKnownMousePosition && wheelEvent->inputSource() == WebEventInputSource::UserDriven;
+        setLastKnownMousePosition = setLastKnownMousePosition && wheelEvent->inputSource() != WebEventInputSource::Touch;
 #endif
         if (setLastKnownMousePosition) {
             // When wheel events are handled entirely in the UI process, we still need to tell the web process where the mouse is for cursor updates.
@@ -6487,7 +6488,7 @@ static BrowsingContextGroupSwitchDecision browsingContextGroupSwitchDecisionForE
     return responseCOOP.value == CrossOriginOpenerPolicyValue::SameOriginPlusCOEP ? BrowsingContextGroupSwitchDecision::NewIsolatedGroup : BrowsingContextGroupSwitchDecision::NewSharedGroup;
 }
 
-Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFrameProxy& frame, API::Navigation& navigation, WebsiteDataStore& websiteDataStore, EnhancedSecurity enhancedSecurity, IsEnhancedSecurityExplicitlySet isEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient processSwapRequestedByClient)
+Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFrameProxy& frame, API::Navigation& navigation, WebsiteDataStore& websiteDataStore, WebProcessProxy::LockdownMode lockdownMode, EnhancedSecurity enhancedSecurity, IsEnhancedSecurityExplicitlySet isEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient processSwapRequestedByClient)
 {
     // Browsing context group can only be changed for main frame navigation.
     if (!frame.isMainFrame())
@@ -6503,11 +6504,11 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
     bool isLoadedByURLSchemeHandler = requestedURL.protocolIsAbout() ? m_aboutSchemeHandler->canHandleURL(requestedURL) : !!urlSchemeHandlerForScheme(requestedURL.protocol());
     bool skipsCrossOriginOpenerPolicyEnforcement = navigation.substituteData() || isLoadedByURLSchemeHandler;
     auto carriedOverGroup = [&](Ref<BrowsingContextGroup>&& group) -> Ref<BrowsingContextGroup> {
-        if (skipsCrossOriginOpenerPolicyEnforcement && group->crossOriginMode() == CrossOriginMode::Isolated)
-            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+        if ((skipsCrossOriginOpenerPolicyEnforcement && group->crossOriginMode() == CrossOriginMode::Isolated) || group->lockdownMode() != lockdownMode)
+            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, lockdownMode, enhancedSecurity);
         // A heuristic Enhanced Security change doesn't leave a group with other pages, as that would cut this page off from them.
         if (!enhancedSecurityStatesAreConsistent(group->enhancedSecurity(), enhancedSecurity) && (isEnhancedSecurityExplicitlySet == IsEnhancedSecurityExplicitlySet::Yes || !group->hasPageOtherThan(*this)))
-            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+            return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, lockdownMode, enhancedSecurity);
         return WTF::move(group);
     };
 
@@ -6515,7 +6516,7 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
         return carriedOverGroup(Ref { *targetBackForwardItem->browsingContextGroup() });
 
     if (processSwapRequestedByClient == ProcessSwapRequestedByClient::Yes || !usesSameWebsiteDataStore || (navigation.isRequestFromClientOrUserInput() && !navigation.isFromLoadData() && mainFrameSiteChanges))
-        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, lockdownMode, enhancedSecurity);
 
     // Under Site Isolation, keeping the current group for a site-changing, non-back/forward main-frame
     // navigation would let the incoming document share a group with the outgoing page once that page enters
@@ -6525,10 +6526,10 @@ Ref<BrowsingContextGroup> WebPageProxy::browsingContextGroupForNavigation(WebFra
     // it should get a fresh group here too.
     Ref preferences = this->preferences();
     if (preferences->siteIsolationEnabled() && !preferences->siteIsolationInPlaceBackForwardCacheEnabled() && !navigation.targetItem() && m_mainFrame && mainFrameSiteChanges && !requestedSite.isEmpty() && !protect(m_browsingContextGroup)->hasMultiplePages())
-        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+        return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, lockdownMode, enhancedSecurity);
 
     if (auto decision = navigation.browsingContextGroupSwitchDecisionForEmptyDocument(); decision != BrowsingContextGroupSwitchDecision::StayInGroup)
-        return BrowsingContextGroup::create(decision == BrowsingContextGroupSwitchDecision::NewIsolatedGroup ? CrossOriginMode::Isolated : CrossOriginMode::Shared, websiteDataStore, enhancedSecurity);
+        return BrowsingContextGroup::create(decision == BrowsingContextGroupSwitchDecision::NewIsolatedGroup ? CrossOriginMode::Isolated : CrossOriginMode::Shared, websiteDataStore, lockdownMode, enhancedSecurity);
 
     return carriedOverGroup(m_browsingContextGroup.copyRef());
 }
@@ -6771,10 +6772,19 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
     if (preferences->enhancedSecurityForceDisabled())
         enhancedSecurity = EnhancedSecurity::Disabled;
 
-    Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, enhancedSecurity, enhancedSecurityExplicitlySet ? IsEnhancedSecurityExplicitlySet::Yes : IsEnhancedSecurityExplicitlySet::No, processSwapRequestedByClient);
+    Ref browsingContextGroup = browsingContextGroupForNavigation(frame, navigation, websiteDataStore, lockdownMode, enhancedSecurity, enhancedSecurityExplicitlySet ? IsEnhancedSecurityExplicitlySet::Yes : IsEnhancedSecurityExplicitlySet::No, processSwapRequestedByClient);
 
-    if (!enhancedSecurityExplicitlySet) {
-        if (RefPtr process = browsingContextGroup->processForSite(Site { navigation.currentRequest().url() }))
+    Site site { navigation.currentRequest().url() };
+    if (!frame.isMainFrame() && site.isEmpty() && preferences->siteIsolationSharedProcessEnhancedSecurityEnabled() && !preferences->enhancedSecurityForceDisabled()) {
+        // Empty sites share a process map key, so that entry can belong to an unrelated frame.
+        if (!isEnhancedSecurityEnabledForState(enhancedSecurity)) {
+            enhancedSecurity = frame.process().enhancedSecurity();
+            auto& url = navigation.currentRequest().url();
+            if (!isEnhancedSecurityEnabledForState(enhancedSecurity) && !url.isAboutBlank() && !url.isAboutSrcDoc())
+                enhancedSecurity = processInitiatingNavigation.enhancedSecurity();
+        }
+    } else if (!enhancedSecurityExplicitlySet) {
+        if (RefPtr process = site.isEmpty() && preferences->siteIsolationSharedProcessEnhancedSecurityEnabled() ? nullptr : browsingContextGroup->processForSite(site))
             enhancedSecurity = process->process().enhancedSecurity();
         else if (frame.isMainFrame() && !enhancedSecurityStatesAreConsistent(enhancedSecurity, browsingContextGroup->enhancedSecurity()))
             enhancedSecurity = browsingContextGroup->enhancedSecurity();
@@ -6783,7 +6793,6 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
     if (shouldUseEnhancedSecurityHeuristics(preferences) && enhancedSecurity != EnhancedSecurity::EnabledPolicy)
         protect(this->websiteDataStore())->trackEnhancedSecurityForDomain(RegistrableDomain { navigation.currentRequest().url() }, enhancedSecurity);
 
-    Site site { navigation.currentRequest().url() };
     // A subframe belongs to the committed main frame document, not to a pending main frame load. The decision for a
     // removed subframe can arrive after the web process exited, when there is no main frame.
     Site mainFrameSite = frame.isMainFrame() ? site : Site { m_mainFrame ? m_mainFrame->url() : pageLoadState().url() };
@@ -8350,7 +8359,7 @@ RectEdges<bool> WebPageProxy::rubberBandableEdgesRespectingHistorySwipe(const We
         return rubberBandableEdges;
 
 #if PLATFORM(MAC)
-    if (wheelEvent.inputSource() == WebEventInputSource::Automation) {
+    if (wheelEvent.inputSource() == WebEventInputSource::Touch) {
         RefPtr pageClient = this->pageClient();
         if (!pageClient || !pageClient->everMagnifiedDuringCurrentGesture()) {
             rubberBandableEdges.setLeft(false);
@@ -12754,7 +12763,7 @@ void WebPageProxy::triggerBrowsingContextGroupSwitchForNavigation(WebCore::Navig
     Ref dataStore = websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore()));
 
     // Adopted in swapToProvisionalPage(), so a navigation that does not commit leaves the page's group alone.
-    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(crossOriginMode, dataStore, processLoadingNavigation->enhancedSecurity());
+    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(crossOriginMode, dataStore, processLoadingNavigation->lockdownMode(), processLoadingNavigation->enhancedSecurity());
 
     m_openedMainFrameName = { };
     m_openedByScriptDomain = { };
@@ -12847,7 +12856,7 @@ void WebPageProxy::triggerProcessSwapForEnhancedSecurity(WebCore::NavigationIden
     internals().enhancedSecurityTracker.enableFor(EnhancedSecurityReason::InsecureProvisional, *navigation);
 
     Ref dataStore = websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore()));
-    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(committingBrowsingContextGroup->crossOriginMode(), dataStore, EnhancedSecurity::EnabledInsecure);
+    Ref browsingContextGroupForSwap = BrowsingContextGroup::create(committingBrowsingContextGroup->crossOriginMode(), dataStore, processLoadingNavigation->lockdownMode(), EnhancedSecurity::EnabledInsecure);
     Ref processForNavigation = protect(m_configuration->processPool())->processForSite(dataStore, WebProcessProxy::IsolatedProcessType::MainFrame, responseSite, responseSite, processLoadingNavigation->lockdownMode(), EnhancedSecurity::EnabledInsecure, m_configuration, processCrossOriginIsolationForBrowsingContextGroup(browsingContextGroupForSwap->crossOriginMode()));
 
     performProcessSwapForNavigationResponse(*navigation, WTF::move(browsingContextGroupForSwap), WTF::move(processForNavigation), loadingWebProcess, existingNetworkResourceLoadIdentifierToResume, originalNavigationStartTime, WTF::move(completionHandler));
@@ -16390,6 +16399,7 @@ NODELETE static bool shouldReloadAfterProcessTermination(ProcessTerminationReaso
     case ProcessTerminationReason::RequestedByGPUProcess:
     case ProcessTerminationReason::RequestedByModelProcess:
     case ProcessTerminationReason::Crash:
+    case ProcessTerminationReason::NonMainFrameWebContentProcessCrash:
     case ProcessTerminationReason::Unresponsive:
         return true;
     case ProcessTerminationReason::ExceededProcessCountLimit:
@@ -16398,7 +16408,6 @@ NODELETE static bool shouldReloadAfterProcessTermination(ProcessTerminationReaso
     case ProcessTerminationReason::RequestedByClient:
     case ProcessTerminationReason::GPUProcessCrashedTooManyTimes:
     case ProcessTerminationReason::ModelProcessCrashedTooManyTimes:
-    case ProcessTerminationReason::NonMainFrameWebContentProcessCrash:
         break;
     }
     return false;
@@ -16459,9 +16468,6 @@ bool WebPageProxy::hasCommittedFrameInProcess(const WebProcessProxy& process) co
 
 void WebPageProxy::dispatchProcessDidTerminate(ProcessID processID, ProcessTerminationScope scope, ProcessTerminationReason reason)
 {
-    // FIXME: Other reasons, e.g. ExceededMemoryLimit, still report a subframe process kill as a
-    // termination of the page's process, and reload the page if the client doesn't handle it. Tell
-    // the client the actual reason and whether the main frame was affected.
     if (scope != ProcessTerminationScope::MainFrame && reason == ProcessTerminationReason::Crash)
         reason = ProcessTerminationReason::NonMainFrameWebContentProcessCrash;
 

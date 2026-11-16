@@ -840,6 +840,14 @@ CSS3DTransformBackfaceVisibilityInteroperabilityEnabled:
   humanReadableDescription: "Enable 3D transform behavior for backface-visibility that is specification-compliant but backwards incompatible"
   defaultValue: false
 
+CSSAlignmentBaselineOnInlineBoxesEnabled:
+  type: bool
+  status: testable
+  category: css
+  humanReadableName: "CSS alignment-baseline on inline boxes"
+  humanReadableDescription: "Enable CSS alignment-baseline on inline boxes"
+  defaultValue: false
+
 CSSAppearanceBaseEnabled:
   type: bool
   status: testable
@@ -871,6 +879,14 @@ CSSBorderRadiusSideShorthandsEnabled:
   humanReadableName: "CSS border-*-radius side shorthands"
   humanReadableDescription: "Enable support for the border-radius side shorthand physical & logical properties"
   defaultValue: true
+
+CSSBorderShapeEnabled:
+  type: bool
+  category: css
+  status: testable
+  humanReadableName: "CSS border-shape property"
+  humanReadableDescription: "Enable support for CSS border-shape property"
+  defaultValue: false
 
 CSSCalcMixEnabled:
   type: bool
@@ -1011,6 +1027,14 @@ CSSFontVariantEmojiEnabled:
     WebKit:
       "PLATFORM(GTK) || PLATFORM(WPE)": true
       default: false
+
+CSSFreeformGradientsEnabled:
+  type: bool
+  status: unstable
+  category: css
+  humanReadableName: "CSS freeform gradients"
+  humanReadableDescription: "Enable support for CSS freeform gradients."
+  defaultValue: false
 
 CSSFunctionAtRuleEnabled:
   type: bool
@@ -6079,6 +6103,16 @@ SiteIsolationSharedProcessEnabled:
   humanReadableDescription: "Put cross-site frames in a shared Web process"
   defaultValue: true
   sharedPreferenceForWebProcess: true
+
+SiteIsolationSharedProcessEnhancedSecurityEnabled:
+  type: bool
+  status: internal
+  defaultsOverridable: true
+  category: security
+  humanReadableName: "Site Isolation: Enhanced Security for shared process"
+  humanReadableDescription: "Use Enhanced Security for the Site Isolation shared Web process"
+  excludeFrom: [ WebKitLegacy, WebCore ]
+  defaultValue: false
 
 SlowFrameIndicatorVisible:
   type: bool

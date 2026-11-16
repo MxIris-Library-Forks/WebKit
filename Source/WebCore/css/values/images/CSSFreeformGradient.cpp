@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Apple Inc. All rights reserved.
+ * Copyright (C) 2026 Samuel Weinig <sam@webkit.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,17 +20,39 @@
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "config.h"
-#include "RenderSVGTSpan.h"
+#include "CSSFreeformGradient.h"
 
-#include <wtf/TZoneMallocInlines.h>
+#include "CSSPrimitiveNumericTypes+Serialization.h"
+#include <wtf/text/StringBuilder.h>
 
 namespace WebCore {
+namespace CSS {
 
-WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderSVGTSpan);
+void Serialize<FreeformGradientColorStop>::operator()(StringBuilder& builder, const SerializationContext& context, const FreeformGradientColorStop& value)
+{
+    serializationForCSS(builder, context, value.color);
+    builder.append(' ');
+    serializationForCSS(builder, context, value.position);
 
+    if (value.weight) {
+        builder.append(" / "_s);
+        serializationForCSS(builder, context, *value.weight);
+    }
+}
+
+void Serialize<FreeformGradient>::operator()(StringBuilder& builder, const SerializationContext& context, const FreeformGradient& gradient)
+{
+    if (!gradient.colorInterpolationMethod.isDefault()) {
+        serializationForCSS(builder, context, gradient.colorInterpolationMethod);
+        builder.append(", "_s);
+    }
+
+    serializationForCSS(builder, context, gradient.stops);
+}
+
+} // namespace CSS
 } // namespace WebCore
-

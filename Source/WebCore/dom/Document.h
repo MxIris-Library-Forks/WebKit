@@ -423,15 +423,6 @@ enum class HttpEquivPolicy : uint8_t {
     DisabledByContentDispositionAttachmentSandbox
 };
 
-enum class CustomElementNameValidationStatus : uint8_t {
-    Valid,
-    FirstCharacterIsNotLowercaseASCIILetter,
-    ContainsNoHyphen,
-    ContainsUppercaseASCIILetter,
-    ContainsDisallowedCharacter,
-    ConflictsWithStandardElementName
-};
-
 enum class ClonedDocumentType : uint8_t { XMLDocument, XHTMLDocument, HTMLDocument, SVGDocument, Document };
 
 enum class TextScaleMeta : bool { Legacy, Scale };
@@ -481,7 +472,8 @@ public:
     inline static Ref<Document> create(const Settings&, const URL&);
     static Ref<Document> createNonRenderedPlaceholder(LocalFrame&, const URL&);
     static Ref<Document> create(Document&);
-    static Ref<Document> createCloned(ClonedDocumentType, const Settings&, const URL&, const URL& baseURL, const URL& aboutBaseURL, const Variant<String, URL>& documentURI, DocumentCompatibilityMode, OptionSet<ParserContentPolicy>, Document& contextDocument, SecurityOriginPolicy*, const String& contentType, TextResourceDecoder*);
+    static Ref<Document> create(Document& contextDocument, const URL&, RefPtr<SecurityOriginPolicy>&&);
+    static Ref<Document> createCloned(ClonedDocumentType, const URL&, const URL& baseURL, const URL& aboutBaseURL, const Variant<String, URL>& documentURI, DocumentCompatibilityMode, OptionSet<ParserContentPolicy>, Document& contextDocument, SecurityOriginPolicy*, const String& contentType, TextResourceDecoder*);
 
     virtual ~Document();
 
@@ -611,7 +603,6 @@ public:
     WEBCORE_EXPORT Ref<Element> createElement(const QualifiedName&, bool createdByParser, CustomElementRegistry* = nullptr);
 
     NODELETE CustomElementRegistry* effectiveGlobalCustomElementRegistry();
-    static CustomElementNameValidationStatus validateCustomElementName(const AtomString&);
     void addCustomElementUpgradeCandidateLocalName(const AtomString& localName) { m_customElementUpgradeCandidateLocalNames.add(localName); }
     void removeCustomElementUpgradeCandidateLocalName(const AtomString& localName) { m_customElementUpgradeCandidateLocalNames.remove(localName); }
     bool mayHaveCustomElementUpgradeCandidate(const AtomString& localName) const { return m_customElementUpgradeCandidateLocalNames.contains(localName); }
@@ -1136,7 +1127,6 @@ public:
     inline bool hasBrowsingContext() const; // Defined in DocumentInlines.h.
 
     NODELETE Document& contextDocument() const;
-    void setContextDocument(Ref<Document>&& document) { m_contextDocument = WTF::move(document); }
     
     OptionSet<ParserContentPolicy> parserContentPolicy() const { return m_parserContentPolicy; }
     void setParserContentPolicy(OptionSet<ParserContentPolicy> policy) { m_parserContentPolicy = policy; }
@@ -1493,7 +1483,7 @@ public:
     SVGDocumentExtensions* svgExtensionsIfExists() { return m_svgExtensions.get(); }
     WEBCORE_EXPORT SVGDocumentExtensions& svgExtensions();
 
-    void initSecurityContext();
+    void initSecurityContext(RefPtr<SecurityOriginPolicy>&& = nullptr);
     void initContentSecurityPolicy();
 
     void inheritPolicyContainerFrom(const PolicyContainer&) final;
@@ -2233,10 +2223,13 @@ protected:
         NonRenderedPlaceholder = 1 << 1
     };
     WEBCORE_EXPORT Document(LocalFrame*, const Settings&, const URL&, DocumentClasses = { }, OptionSet<ConstructionFlag> = { }, std::optional<ScriptExecutionContextIdentifier> = std::nullopt);
+    Document(Document& contextDocument, const URL&, RefPtr<SecurityOriginPolicy>&&, DocumentClasses = { });
 
     void clearXMLVersion() { m_xmlVersion = String(); }
 
 private:
+    Document(LocalFrame*, Document* contextDocument, RefPtr<SecurityOriginPolicy>&&, const Settings&, const URL&, DocumentClasses, OptionSet<ConstructionFlag>, std::optional<ScriptExecutionContextIdentifier>);
+
     enum class PopoverListType : bool { Auto, Hint };
     void addPopoverToList(PopoverListType, HTMLElement&);
     void removePopoverFromList(PopoverListType, HTMLElement&);

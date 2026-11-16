@@ -747,6 +747,7 @@ enum class GestureType : uint8_t;
 enum class HitTestAtPointError : uint8_t;
 enum class InputType : uint8_t;
 enum class LoadedWebArchive : bool;
+enum class LockdownMode : bool;
 enum class TextRecognitionUpdateResult : uint8_t;
 enum class MediaPlaybackState : uint8_t;
 enum class NavigatingToAppBoundDomain : bool;
@@ -944,7 +945,7 @@ public:
     void hideInspectorIndication();
 #endif
 
-    void sendMessageToInspectorFrontend(const String& targetId, const String& message);
+    void sendMessageToInspectorFrontend(IPC::Connection&, const String& targetId, const String& message);
     void frameDidPauseForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
     void frameDidContinueForDebugger(IPC::Connection&, WebCore::FrameIdentifier);
     void debuggerDidPause(IPC::Connection&);
@@ -4072,7 +4073,7 @@ private:
     void beginEnhancedSecurityLinkCheck(const URL&, API::Navigation&, WebFramePolicyListenerProxy&);
 
     enum class IsEnhancedSecurityExplicitlySet : bool { No, Yes };
-    Ref<BrowsingContextGroup> browsingContextGroupForNavigation(WebFrameProxy&, API::Navigation&, WebsiteDataStore&, EnhancedSecurity, IsEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient);
+    Ref<BrowsingContextGroup> browsingContextGroupForNavigation(WebFrameProxy&, API::Navigation&, WebsiteDataStore&, LockdownMode, EnhancedSecurity, IsEnhancedSecurityExplicitlySet, ProcessSwapRequestedByClient);
     Ref<BrowsingContextGroup> browsingContextGroupForCommittingNavigation(const API::Navigation*) const;
 
     WebProcessProxy& processForTheFrameItem(WebBackForwardListFrameItem&) const;

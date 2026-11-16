@@ -3804,6 +3804,25 @@
                 "url": "https://www.w3.org/TR/css3-background/#the-border-width"
             }
         },
+        "border-shape": {
+            "animation-type": "by computed value",
+            "initial": "none",
+            "values": [
+                "none"
+            ],
+            "codegen-properties": {
+                "settings-flag": "cssBorderShapeEnabled",
+                "disables-native-appearance": true,
+                "computed-style-storage-path": ["m_nonInheritedData", "rareData"],
+                "computed-style-storage-kind": "reference",
+                "computed-style-type": "Style::BorderShape",
+                "parser-grammar": "none | [ <basic-shape> <geometry-box>? ]{1,2}@(no-single-item-opt)"
+            },
+            "specification": {
+                "category": "css-borders",
+                "url": "https://drafts.csswg.org/css-borders-4/#border-shape-func"
+            }
+        },
         "border-spacing": {
             "animation-type": "discrete",
             "inherited": true,
@@ -4331,6 +4350,7 @@
                 "none",
                 "content-box",
                 "margin-box",
+                "half-border-box",
                 "stroke-box",
                 "border-box",
                 "fill-box",
@@ -15555,15 +15575,16 @@
                 "url": "https://www.w3.org/TR/compositing-1/#ltblendmodegt"
             }
         },
-        "<box>": {
-            "grammar": "border-box | padding-box | content-box",
-            "specification": {
-                "category": "css-backgrounds",
-                "url": "https://www.w3.org/TR/css-backgrounds-3/#typedef-box"
-            }
+        "<visual-box>": {
+          "grammar": "border-box | content-box | padding-box",
+          "exported": true,
+          "specification": {
+            "category": "css-box-4",
+            "url": "https://drafts.csswg.org/css-box-4/#typedef-visual-box"
+          }
         },
         "<shape-box>": {
-            "grammar": "<box> | margin-box",
+            "grammar": "<visual-box> | margin-box | half-border-box",
             "exported": true,
             "specification": {
                 "category": "css-shapes",
@@ -15577,14 +15598,6 @@
                 "category": "css-masking",
                 "url": "https://drafts.fxtf.org/css-masking-1/#typedef-geometry-box"
             }
-        },
-        "<visual-box>": {
-          "grammar": "border-box | content-box | padding-box",
-          "exported": true,
-          "specification": {
-            "category": "css-box-4",
-            "url": "https://drafts.csswg.org/css-box-4/#typedef-visual-box"
-          }
         },
         "<clip-source>": {
             "grammar": "<url>",
@@ -15636,7 +15649,7 @@
             }
         },
         "<-webkit-origin-box>": {
-            "grammar": "<box> | border | content | padding | -webkit-text",
+            "grammar": "<visual-box> | border | content | padding | -webkit-text",
             "status": "non-standard"
         },
         "<-webkit-clip-box>": {
@@ -15677,7 +15690,7 @@
             "comment": "-webkit-text is non-standard."
         },
         "<single-background-origin>": {
-            "grammar": "<box>",
+            "grammar": "<visual-box>",
             "exported": true,
             "specification": {
                 "category": "css-backgrounds",
@@ -15713,7 +15726,7 @@
             "comment": "Internally used to represent vertical part of standard <bg-position>"
         },
         "<single-mask-clip>": {
-            "grammar": "<box> | no-clip",
+            "grammar": "<visual-box> | no-clip",
             "exported": true,
             "specification": {
                 "category": "css-masking",
@@ -15722,7 +15735,7 @@
             "comment": "Out of spec. 'mask-clip' is currently defined to '[ <coord-box> | no-clip ]#'."
         },
         "<single-mask-origin>": {
-            "grammar": "<box> | border | content | padding | -webkit-text",
+            "grammar": "<visual-box> | border | content | padding | -webkit-text",
             "exported": true,
             "specification": {
                 "category": "css-masking",

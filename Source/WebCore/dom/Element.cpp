@@ -772,7 +772,7 @@ Ref<Element> Element::cloneElementWithoutChildren(Document& document, CustomElem
     RefPtr registry = CustomElementRegistry::registryForElement(*this);
     if (!registry)
         registry = fallbackRegistry;
-    if (registry && !registry->isScoped())
+    if (registry && !registry->isScoped() && registry != document.customElementRegistry())
         registry = document.effectiveGlobalCustomElementRegistry();
 
     Ref clone = cloneElementWithoutAttributesAndChildren(document, registry.get());
@@ -783,7 +783,7 @@ Ref<Element> Element::cloneElementWithoutChildren(Document& document, CustomElem
 
     clone->cloneDataFromElement(*this);
 
-    if (usesNullCustomElementRegistry() && !registry)
+    if (!registry && document.customElementRegistry())
         clone->setUsesNullCustomElementRegistry();
 
     return clone;
@@ -3253,11 +3253,17 @@ static void preserveCustomElementRegistryAfterEnteringTreeScope(Element& element
             CustomElementRegistry::removeFromScopedCustomElementRegistryMap(element);
     } else if (!element.usesNullCustomElementRegistry()) {
         if (element.treeScope().customElementRegistry() != element.document().customElementRegistry()) [[unlikely]] {
-            // This element was moved into a shadow tree with a scoped custom element registry.
-            // Keep using the document's non-scoped custom element registry.
-            if (element.document().window())
+            // This element was moved into a shadow tree with a different custom element registry.
+            // Keep using the document's custom element registry.
+            RefPtr registry = element.document().customElementRegistry();
+            if (!registry)
+                element.setUsesNullCustomElementRegistry();
+            else if (registry->isScoped()) [[unlikely]] {
+                // This happens when initialize() was called on a document without a browsing context.
+                CustomElementRegistry::addToScopedCustomElementRegistryMap(element, *registry);
+            } else
                 element.setUsesGlobalCustomElementRegistry();
-        } else
+        } else if (element.usesGlobalCustomElementRegistry())
             element.resetCustomElementRegistryType();
     }
 }
@@ -6416,7 +6422,7 @@ static ExceptionOr<Ref<Element>> contextElementForInsertion(const String& where,
     RefPtr contextElement = dynamicDowncast<Element>(contextNode.get());
     if (!contextElement || (contextNode->document().isHTMLDocument() && is<HTMLHtmlElement>(contextNode.get()))) {
         Ref bodyElement = HTMLBodyElement::create(protect(contextNode->document()));
-        if (contextNode->usesNullCustomElementRegistry())
+        if (contextNode->usesNullCustomElementRegistry() && contextNode->document().customElementRegistry())
             bodyElement->setUsesNullCustomElementRegistry();
         return Ref<Element> { WTF::move(bodyElement) };
     }

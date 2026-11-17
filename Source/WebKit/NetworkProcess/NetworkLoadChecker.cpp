@@ -60,11 +60,6 @@ using namespace WebCore;
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(NetworkLoadChecker);
 
-NetworkProcess& NetworkLoadChecker::networkProcess()
-{
-    return NetworkProcess::singleton();
-}
-
 NetworkLoadChecker::NetworkLoadChecker(NetworkResourceLoader* networkResourceLoader, NetworkSchemeRegistry* schemeRegistry, FetchOptions&& options, PAL::SessionID sessionID, std::optional<WebPageProxyIdentifier> webPageProxyID, HTTPHeaderMap&& originalRequestHeaders, URL&& url, DocumentURL&& documentURL, RefPtr<SecurityOrigin>&& sourceOrigin, RefPtr<SecurityOrigin>&& topOrigin, RefPtr<SecurityOrigin>&& parentOrigin, PreflightPolicy preflightPolicy, String&& referrer, bool allowPrivacyProxy, OptionSet<AdvancedPrivacyProtections> advancedPrivacyProtections, bool shouldCaptureExtraNetworkLoadMetrics, LoadType requestLoadType)
     : m_options(WTF::move(options))
     , m_allowPrivacyProxy(allowPrivacyProxy)
@@ -241,7 +236,7 @@ ResourceError NetworkLoadChecker::validateResponse(const ResourceRequest& reques
     if (m_redirectCount)
         response.setRedirected(true);
 
-    response.setRequestIncludesCredentials(m_storedCredentialsPolicy == StoredCredentialsPolicy::Use ? IncludesCredentials::Yes : IncludesCredentials::No);
+    response.setRequestIncludesCredentials(storedCredentialsPolicy() == StoredCredentialsPolicy::Use ? IncludesCredentials::Yes : IncludesCredentials::No);
 
     if (response.type() == ResourceResponse::Type::Opaqueredirect) {
         response.setTainting(ResourceResponse::Tainting::Opaqueredirect);
@@ -535,6 +530,9 @@ void NetworkLoadChecker::continueCheckingRequest(ResourceRequest&& request, Vali
 
     m_isSameOriginRequest = m_isSameOriginRequest && isSameOrigin(request.url(), protect(m_origin));
 
+    if (!crossOriginEmbedderPolicyAllowsCredentials())
+        request.setAllowCookies(false);
+
     if (doesNotNeedCORSCheck(request.url())) {
         handler(WTF::move(request));
         return;
@@ -652,6 +650,22 @@ void NetworkLoadChecker::checkCORSRequestWithPreflight(ResourceRequest&& request
         handler(WTF::move(request));
     });
     protect(m_corsPreflightChecker)->startPreflight();
+}
+
+// https://fetch.spec.whatwg.org/#cross-origin-embedder-policy-allows-credentials
+// https://wicg.github.io/document-isolation-policy/#document-isolation-policy-allows-credentials
+bool NetworkLoadChecker::crossOriginEmbedderPolicyAllowsCredentials() const
+{
+    if (m_options.mode != FetchOptions::Mode::NoCors)
+        return true;
+    if (m_crossOriginEmbedderPolicy.value != CrossOriginEmbedderPolicyValue::Credentialless && m_documentIsolationPolicy.value != DocumentIsolationPolicyValue::IsolateAndCredentialless)
+        return true;
+    return m_isSameOriginRequest;
+}
+
+StoredCredentialsPolicy NetworkLoadChecker::storedCredentialsPolicy() const
+{
+    return crossOriginEmbedderPolicyAllowsCredentials() ? m_storedCredentialsPolicy : StoredCredentialsPolicy::DoNotUse;
 }
 
 bool NetworkLoadChecker::doesNotNeedCORSCheck(const URL& url) const

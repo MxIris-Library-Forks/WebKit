@@ -476,7 +476,7 @@ void WebPageProxy::handleAutocorrectionContext(const WebAutocorrectionContext& c
 void WebPageProxy::clearSelectionAfterTappingSelectionHighlightIfNeeded(WebCore::FloatPoint location)
 {
     if (hasRunningProcess())
-        protect(legacyMainFrameProcess())->send(Messages::WebPage::ClearSelectionAfterTappingSelectionHighlightIfNeeded(location), webPageIDInMainFrameProcess());
+        sendToFocusedOrMainFrameProcess(Messages::WebPage::ClearSelectionAfterTappingSelectionHighlightIfNeeded(location));
 }
 
 void WebPageProxy::getSelectionContext(CompletionHandler<void(const String&, const String&, const String&)>&& callbackFunction)
@@ -488,7 +488,25 @@ void WebPageProxy::getSelectionContext(CompletionHandler<void(const String&, con
 
 void WebPageProxy::handleTwoFingerTapAtPoint(const WebCore::IntPoint& point, OptionSet<WebEventModifier> modifiers, WebKit::TapIdentifier requestID)
 {
-    protect(legacyMainFrameProcess())->send(Messages::WebPage::HandleTwoFingerTapAtPoint(point, modifiers, requestID), webPageIDInMainFrameProcess());
+    handleTwoFingerTapAtPointInFrame(std::nullopt, point, modifiers, requestID);
+}
+
+void WebPageProxy::handleTwoFingerTapAtPointInFrame(std::optional<FrameIdentifier> frameID, const WebCore::IntPoint& point, OptionSet<WebEventModifier> modifiers, WebKit::TapIdentifier requestID)
+{
+    RefPtr frame = frameID ? WebFrameProxy::webFrame(*frameID) : m_mainFrame.get();
+    if (!frame || frame->page() != this)
+        return;
+
+    frame->notifyActivated(MonotonicTime::now());
+
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::HandleTwoFingerTapAtPoint(frameID, point, modifiers, requestID), Messages::WebPage::HandleTwoFingerTapAtPoint::Reply { [weakThis = WeakPtr { *this }, modifiers, requestID](auto remoteUserInputEventData) {
+        if (!remoteUserInputEventData)
+            return;
+        RefPtr protectedThis = weakThis;
+        if (!protectedThis)
+            return;
+        protectedThis->handleTwoFingerTapAtPointInFrame(remoteUserInputEventData->targetFrameID, roundedIntPoint(FloatPoint { remoteUserInputEventData->transformedPoint }), modifiers, requestID);
+    } });
 }
 
 void WebPageProxy::selectWithTwoTouches(std::optional<WebCore::FrameIdentifier> frameID, const WebCore::IntPoint from, const WebCore::IntPoint to, GestureType gestureType, GestureRecognizerState gestureState, CompletionHandler<void(const WebCore::IntPoint&, GestureType, GestureRecognizerState, OptionSet<SelectionFlags>)>&& callback)
@@ -580,14 +598,18 @@ void WebPageProxy::applicationDidEnterBackground()
             navigationState->releaseNetworkActivity(NavigationState::NetworkActivityReleaseReason::ScreenLocked);
     }
 #endif
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationDidEnterBackground(isSuspendedUnderLock), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationDidEnterBackground(isSuspendedUnderLock), pageID);
+    });
 }
 
 void WebPageProxy::applicationDidFinishSnapshottingAfterEnteringBackground()
 {
     if (m_drawingArea)
         protect(m_drawingArea)->hideContentUntilPendingUpdate();
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationDidFinishSnapshottingAfterEnteringBackground(), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationDidFinishSnapshottingAfterEnteringBackground(), pageID);
+    });
 }
 
 void WebPageProxy::applicationWillEnterForeground()
@@ -597,14 +619,18 @@ void WebPageProxy::applicationWillEnterForeground()
     bool isSuspendedUnderLock = UIApplication.sharedApplication.isSuspendedUnderLock;
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "applicationWillEnterForeground: isSuspendedUnderLock? %d", isSuspendedUnderLock);
 
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationWillEnterForeground(isSuspendedUnderLock), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationWillEnterForeground(isSuspendedUnderLock), pageID);
+    });
 
     hardwareKeyboardAvailabilityChanged(protect(m_configuration->processPool())->cachedHardwareKeyboardState());
 }
 
 void WebPageProxy::applicationWillResignActive()
 {
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationWillResignActive(), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationWillResignActive(), pageID);
+    });
 }
 
 void WebPageProxy::applicationDidEnterBackgroundForMedia()
@@ -612,7 +638,9 @@ void WebPageProxy::applicationDidEnterBackgroundForMedia()
     bool isSuspendedUnderLock = UIApplication.sharedApplication.isSuspendedUnderLock;
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "applicationWillEnterForegroundForMedia: isSuspendedUnderLock? %d", isSuspendedUnderLock);
 
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationDidEnterBackgroundForMedia(isSuspendedUnderLock), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationDidEnterBackgroundForMedia(isSuspendedUnderLock), pageID);
+    });
 }
 
 void WebPageProxy::applicationWillEnterForegroundForMedia()
@@ -620,7 +648,9 @@ void WebPageProxy::applicationWillEnterForegroundForMedia()
     bool isSuspendedUnderLock = UIApplication.sharedApplication.isSuspendedUnderLock;
     WEBPAGEPROXY_RELEASE_LOG(ViewState, "applicationWillEnterForegroundForMedia: isSuspendedUnderLock? %d", isSuspendedUnderLock);
 
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationWillEnterForegroundForMedia(isSuspendedUnderLock), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationWillEnterForegroundForMedia(isSuspendedUnderLock), pageID);
+    });
 }
 
 void WebPageProxy::applicationDidBecomeActive()
@@ -629,7 +659,9 @@ void WebPageProxy::applicationDidBecomeActive()
     if (m_videoPresentationManager)
         protect(m_videoPresentationManager)->applicationDidBecomeActive();
 #endif
-    protect(m_legacyMainFrameProcess)->send(Messages::WebPage::ApplicationDidBecomeActive(), webPageIDInMainFrameProcess());
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::ApplicationDidBecomeActive(), pageID);
+    });
 }
 
 void WebPageProxy::extendSelection(WebCore::TextGranularity granularity, CompletionHandler<void()>&& completionHandler)
@@ -794,7 +826,23 @@ void WebPageProxy::didEndUserTriggeredZooming()
 
 void WebPageProxy::tapHighlightAtPosition(const WebCore::FloatPoint& position, WebKit::TapIdentifier requestID)
 {
-    protect(legacyMainFrameProcess())->send(Messages::WebPage::TapHighlightAtPosition(requestID, position), webPageIDInMainFrameProcess());
+    tapHighlightAtPositionInFrame(std::nullopt, position, requestID);
+}
+
+void WebPageProxy::tapHighlightAtPositionInFrame(std::optional<FrameIdentifier> frameID, const WebCore::FloatPoint& position, WebKit::TapIdentifier requestID)
+{
+    RefPtr frame = frameID ? WebFrameProxy::webFrame(*frameID) : m_mainFrame.get();
+    if (!frame || frame->page() != this)
+        return;
+
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::TapHighlightAtPosition(frameID, requestID, position), Messages::WebPage::TapHighlightAtPosition::Reply { [weakThis = WeakPtr { *this }, requestID](auto remoteUserInputEventData) {
+        if (!remoteUserInputEventData)
+            return;
+        RefPtr protectedThis = weakThis;
+        if (!protectedThis)
+            return;
+        protectedThis->tapHighlightAtPositionInFrame(remoteUserInputEventData->targetFrameID, FloatPoint { remoteUserInputEventData->transformedPoint }, requestID);
+    } });
 }
 
 void WebPageProxy::attemptSyntheticClick(const FloatPoint& location, OptionSet<WebEventModifier> modifiers, TransactionID layerTreeTransactionIdAtLastTouchStart)

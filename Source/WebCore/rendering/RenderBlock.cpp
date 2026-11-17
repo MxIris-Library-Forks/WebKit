@@ -778,11 +778,6 @@ bool RenderBlock::simplifiedLayout()
     if (needsSimplifiedNormalFlowLayout())
         simplifiedNormalFlowLayout();
 
-    // Make sure a forced break is applied after the content if we are a flow thread in a simplified layout.
-    // This ensures the size information is correctly computed for the last auto-height fragment receiving content.
-    if (CheckedPtr fragmentedFlow = dynamicDowncast<RenderFragmentedFlow>(*this))
-        fragmentedFlow->applyBreakAfterContent(paddingBoxLogicalBottom());
-
     // Recompute our overflow information.
     // FIXME: Skip recalculation if we didn't actually relayout our in-flow boxes and don't have cached overflow.
     auto contentArea = hasRenderOverflow() ? m_overflow->contentArea() : blockStartRelativeContentBoxRect();
@@ -1487,7 +1482,7 @@ static void clipOutOutOfFlowBoxes(const PaintInfo* paintInfo, const LayoutPoint&
         return;
     
     for (auto& renderer : *outOfFlowBoxes)
-        paintInfo->context().clipOut(IntRect(offset.x() + renderer.x(), offset.y() + renderer.y(), renderer.borderBoxWidth(), renderer.borderBoxHeight()));
+        paintInfo->context().clipOut(snapRectToDevicePixels(LayoutRect(offset.x() + renderer.x(), offset.y() + renderer.y(), renderer.borderBoxWidth(), renderer.borderBoxHeight()), renderer.document().deviceScaleFactor()));
 }
 
 LayoutUnit blockDirectionOffset(RenderBlock& rootBlock, const LayoutSize& offsetFromRootBlock)
@@ -1500,7 +1495,7 @@ LayoutUnit inlineDirectionOffset(RenderBlock& rootBlock, const LayoutSize& offse
     return rootBlock.isHorizontalWritingMode() ? offsetFromRootBlock.width() : offsetFromRootBlock.height();
 }
 
-LayoutRect RenderBlock::logicalRectToPhysicalRect(const LayoutPoint& rootBlockPhysicalPosition, const LayoutRect& logicalRect)
+LayoutRect RenderBlock::logicalRectToPhysicalRect(const LayoutPoint& rootBlockPhysicalPosition, const LayoutRect& logicalRect) const
 {
     LayoutRect result;
     if (isHorizontalWritingMode())
@@ -1551,6 +1546,15 @@ GapRects RenderBlock::selectionGaps(RenderBlock& rootBlock, const LayoutPoint& r
         return { };
     }
 
+    // Intrinsic padding counts as padding, so a short cell in a tall row stops at its content.
+    bool isTableCell = isRenderTableCell();
+    if (isTableCell) {
+        auto contentLogicalTop = borderAndPaddingBefore();
+        lastLogicalTop = blockDirectionOffset(rootBlock, offsetFromRootBlock) + contentLogicalTop;
+        lastLogicalLeft = logicalLeftSelectionOffset(rootBlock, contentLogicalTop, cache);
+        lastLogicalRight = logicalRightSelectionOffset(rootBlock, contentLogicalTop, cache);
+    }
+
     GapRects result;
     if (childrenInline())
         result = inlineSelectionGaps(rootBlock, rootBlockPhysicalPosition, offsetFromRootBlock, lastLogicalTop, lastLogicalLeft, lastLogicalRight, cache, paintInfo);
@@ -1559,8 +1563,9 @@ GapRects RenderBlock::selectionGaps(RenderBlock& rootBlock, const LayoutPoint& r
 
     // Fill the vertical gap all the way to the bottom of our block if the selection extends past our block.
     if (&rootBlock == this && (selectionState() != HighlightState::Both && selectionState() != HighlightState::End)) {
+        auto logicalBottom = isTableCell ? logicalHeight() - borderAndPaddingAfter() : logicalHeight();
         result.uniteCenter(blockSelectionGap(rootBlock, rootBlockPhysicalPosition, offsetFromRootBlock,
-            lastLogicalTop, lastLogicalLeft, lastLogicalRight, logicalHeight(), cache, paintInfo));
+            lastLogicalTop, lastLogicalLeft, lastLogicalRight, logicalBottom, cache, paintInfo));
     }
 
     return result;
@@ -2287,9 +2292,10 @@ std::pair<LayoutUnit, LayoutUnit> RenderBlock::computeBlockIntrinsicLogicalWidth
     auto nowrap = style().textWrapMode() == TextWrapMode::NoWrap && style().whiteSpaceCollapse() == WhiteSpaceCollapse::Collapse;
     for (auto& childBox : childrenOfType<RenderBox>(*this)) {
         // Positioned children don't affect the min/max width. Legends in fieldsets are skipped here
-        // since they compute outside of any one layout system. Other children excluded from
-        // normal layout are only used with block flows, so it's ok to calculate them here.
-        if (childBox.isOutOfFlowPositioned() || childBox.isExcludedAndPlacedInBorder())
+        // since they compute outside of any one layout system, and an outside list marker hangs outside
+        // the content box. Other children excluded from normal layout are only used with block flows,
+        // so it's ok to calculate them here.
+        if (childBox.isOutOfFlowPositioned() || childBox.isExcludedAndPlacedInBorder() || childBox.isExcludedMarker())
             continue;
 
         // Either the box itself of its content avoids floats.

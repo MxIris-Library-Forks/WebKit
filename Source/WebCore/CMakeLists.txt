@@ -32,6 +32,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/Modules/cookie-store"
     "${WEBCORE_DIR}/Modules/credentialmanagement"
     "${WEBCORE_DIR}/Modules/device-posture"
+    "${WEBCORE_DIR}/Modules/documentpip"
     "${WEBCORE_DIR}/Modules/encryptedmedia"
     "${WEBCORE_DIR}/Modules/encryptedmedia/legacy"
     "${WEBCORE_DIR}/Modules/entriesapi"
@@ -208,6 +209,7 @@ set(WebCore_PRIVATE_INCLUDE_DIRECTORIES
     "${WEBCORE_DIR}/plugins"
     "${WEBCORE_DIR}/rendering"
     "${WEBCORE_DIR}/rendering/mathml"
+    "${WEBCORE_DIR}/rendering/paint"
     "${WEBCORE_DIR}/rendering/shapes"
     "${WEBCORE_DIR}/rendering/style"
     "${WEBCORE_DIR}/rendering/svg"
@@ -405,6 +407,9 @@ set(WebCore_NON_SVG_IDL_FILES
     Modules/device-posture/DevicePosture.idl
     Modules/device-posture/DevicePostureType.idl
     Modules/device-posture/Navigator+DevicePosture.idl
+
+    Modules/documentpip/DocumentPictureInPicture.idl
+    Modules/documentpip/DocumentPictureInPictureEvent.idl
 
     Modules/encryptedmedia/MediaKeyEncryptionScheme.idl
     Modules/encryptedmedia/MediaKeyMessageEvent.idl
@@ -1986,6 +1991,8 @@ set(WebCore_SUPPLEMENTAL_IDL_FILES
 
     Modules/credentialmanagement/Navigator+Credentials.idl
 
+    Modules/documentpip/DOMWindow+DocumentPictureInPicture.idl
+
     Modules/encryptedmedia/Navigator+EME.idl
 
     Modules/entriesapi/HTMLInputElement+EntriesAPI.idl
@@ -2143,6 +2150,7 @@ set(WebCore_SUPPLEMENTAL_IDL_FILES
     html/canvas/CanvasPath.idl
     html/canvas/CanvasPathDrawingStyles.idl
     html/canvas/CanvasRect.idl
+    html/canvas/CanvasSettings.idl
     html/canvas/CanvasShadowStyles.idl
     html/canvas/CanvasState.idl
     html/canvas/CanvasText.idl

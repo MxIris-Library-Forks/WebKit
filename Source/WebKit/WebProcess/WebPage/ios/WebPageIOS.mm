@@ -964,7 +964,6 @@ void WebPage::attemptSyntheticClick(std::optional<FrameIdentifier> frameID, cons
     completionHandler(std::nullopt);
 
     RefPtr frameRespondingToClick = nodeRespondingToClick ? nodeRespondingToClick->document().frame() : nullptr;
-    IntPoint adjustedIntPoint = roundedIntPoint(adjustedPoint);
 
     bool didNotHandleTapAsClick = !frameRespondingToClick;
     if (frameRespondingToClick) {
@@ -976,7 +975,7 @@ void WebPage::attemptSyntheticClick(std::optional<FrameIdentifier> frameID, cons
     }
 
     if (didNotHandleTapAsClick)
-        send(Messages::WebPageProxy::DidNotHandleTapAsClick(adjustedIntPoint));
+        sendDidNotHandleTapAsClick(localRootFrame.get(), adjustedPoint);
     else if (m_interactionNode == nodeRespondingToClick)
         completeSyntheticClick(frameID, *nodeRespondingToClick, adjustedPoint, modifiers, WebCore::SyntheticClickType::OneFingerTap);
     else
@@ -1152,17 +1151,24 @@ void WebPage::computeAndSendEditDragSnapshot()
 
 #endif
 
-void WebPage::handleTwoFingerTapAtPoint(const WebCore::IntPoint& point, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TapIdentifier requestID)
+void WebPage::handleTwoFingerTapAtPoint(std::optional<WebCore::FrameIdentifier> frameID, const WebCore::IntPoint& point, OptionSet<WebKit::WebEventModifier> modifiers, WebKit::TapIdentifier requestID, CompletionHandler<void(std::optional<RemoteUserInputEventData>)>&& completionHandler)
 {
+    if (frameID && !WebProcess::singleton().webFrame(*frameID))
+        return completionHandler(std::nullopt);
+
     FloatPoint adjustedPoint;
-    RefPtr localMainFrame = protect(*m_page)->localMainFrame();
-    RefPtr nodeRespondingToClick = localMainFrame ? localMainFrame->nodeRespondingToClickEvents(point, adjustedPoint) : nullptr;
+    RefPtr localRootFrame = this->localRootFrame(frameID);
+    RefPtr nodeRespondingToClick = localRootFrame ? localRootFrame->nodeRespondingToClickEvents(point, adjustedPoint) : nullptr;
+    if (auto remoteUserInputEventData = remoteUserInputEventDataForTapTarget(localRootFrame.get(), nodeRespondingToClick.get(), adjustedPoint))
+        return completionHandler(WTF::move(remoteUserInputEventData));
+    completionHandler(std::nullopt);
+
     if (!nodeRespondingToClick || !nodeRespondingToClick->renderer()) {
-        send(Messages::WebPageProxy::DidNotHandleTapAsClick(roundedIntPoint(adjustedPoint)));
+        sendDidNotHandleTapAsClick(localRootFrame.get(), adjustedPoint);
         return;
     }
     sendTapHighlightForNodeIfNecessary(requestID, nodeRespondingToClick, point);
-    completeSyntheticClick(std::nullopt, *nodeRespondingToClick, adjustedPoint, modifiers, WebCore::SyntheticClickType::TwoFingerTap);
+    completeSyntheticClick(frameID, *nodeRespondingToClick, adjustedPoint, modifiers, WebCore::SyntheticClickType::TwoFingerTap);
 }
 
 void WebPage::clearSelectionAfterTapIfNeeded()
@@ -1190,13 +1196,22 @@ void WebPage::didRecognizeLongPress()
         ContentChangeObserver::didRecognizeLongPress(*localMainFrame);
 }
 
-void WebPage::tapHighlightAtPosition(WebKit::TapIdentifier requestID, const FloatPoint& position)
+void WebPage::tapHighlightAtPosition(std::optional<WebCore::FrameIdentifier> frameID, WebKit::TapIdentifier requestID, const FloatPoint& position, CompletionHandler<void(std::optional<RemoteUserInputEventData>)>&& completionHandler)
 {
-    RefPtr localMainFrame = protect(*m_page)->localMainFrame();
-    if (!localMainFrame)
-        return;
+    if (frameID && !WebProcess::singleton().webFrame(*frameID))
+        return completionHandler(std::nullopt);
+
+    RefPtr localRootFrame = this->localRootFrame(frameID);
+    if (!localRootFrame)
+        return completionHandler(std::nullopt);
+
     FloatPoint adjustedPoint;
-    sendTapHighlightForNodeIfNecessary(requestID, localMainFrame->nodeRespondingToClickEvents(position, adjustedPoint), position);
+    RefPtr nodeRespondingToClick = localRootFrame->nodeRespondingToClickEvents(position, adjustedPoint);
+    if (auto remoteUserInputEventData = remoteUserInputEventDataForTapTarget(localRootFrame.get(), nodeRespondingToClick.get(), adjustedPoint))
+        return completionHandler(WTF::move(remoteUserInputEventData));
+    completionHandler(std::nullopt);
+
+    sendTapHighlightForNodeIfNecessary(requestID, nodeRespondingToClick.get(), position);
 }
 
 void WebPage::inspectorNodeSearchMovedToPosition(const FloatPoint& position)
@@ -1574,11 +1589,17 @@ void WebPage::dispatchSyntheticMouseEventsForSelectionGesture(SelectionTouch tou
 
 void WebPage::clearSelectionAfterTappingSelectionHighlightIfNeeded(WebCore::FloatPoint location)
 {
-    RefPtr localMainFrame = protect(m_page)->localMainFrame();
-    if (!localMainFrame)
+    RefPtr focusedOrMainFrame = protect(m_page)->focusController().focusedOrMainFrame();
+    if (!focusedOrMainFrame)
         return;
 
-    auto result = localMainFrame->eventHandler().hitTestResultAtPoint(LayoutPoint { location }, {
+    Ref localRootFrame = focusedOrMainFrame->rootFrame();
+    RefPtr localRootView = localRootFrame->view();
+    if (!localRootView)
+        return;
+
+    auto pointInLocalRootView = localRootView->convertFromRootViewAcrossIsolatedFrames(location);
+    auto result = localRootFrame->eventHandler().hitTestResultAtPoint(LayoutPoint { localRootView->rootViewToContents(pointInLocalRootView) }, {
         HitTestRequest::Type::ReadOnly,
         HitTestRequest::Type::AllowVisibleChildFrameContentOnly,
         HitTestRequest::Type::IncludeAllElementsUnderPoint,

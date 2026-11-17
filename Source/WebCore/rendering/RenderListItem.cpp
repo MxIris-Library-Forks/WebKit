@@ -403,7 +403,7 @@ void RenderListItem::updateValue()
 void RenderListItem::updateMarkerContent()
 {
     if (CheckedPtr markerBox = this->markerBox()) {
-        markerBox->updateInlineMarginsAndContent();
+        markerBox->updateContent();
         return;
     }
 
@@ -458,15 +458,6 @@ void RenderListItem::styleDidChange(Style::Difference diff, const Style::Compute
     }
 }
 
-std::pair<LayoutUnit, LayoutUnit> RenderListItem::computeIntrinsicLogicalWidthContributions()
-{
-    // FIXME: RenderListOutsideMarker::updateInlineMargins() mutates margin style which affects preferred widths.
-    if (CheckedPtr marker = markerBox(); marker && marker->hasInvalidContentLogicalWidths())
-        marker->updateInlineMarginsAndContent();
-
-    return RenderBlockFlow::computeIntrinsicLogicalWidthContributions();
-}
-
 std::pair<LayoutUnit, LayoutUnit> RenderListItem::computeIntrinsicLogicalWidths() const
 {
     if (CheckedPtr excludedMarker = this->excludedMarker(); excludedMarker && !excludedMarker->nextSibling())
@@ -501,12 +492,10 @@ void RenderListItem::layoutExcludedChildren(RelayoutChildren relayoutChildren)
 
     auto markerNeedsOwnLine = [&] {
         // Quirks mode puts the marker of a list item that starts with a nested list on a line of its own above that list, rather than on the line its first item makes.
-        if (!document().inQuirksMode())
-            return false;
         for (CheckedPtr child = firstChild(); child; child = child->nextSibling()) {
-            if (child.get() == m_marker.get() || child->isFloatingOrOutOfFlowPositioned() || is<RenderMenuList>(*child))
-                continue;
-            return child->node() && isHTMLListElement(*child->node());
+            auto boxType = markerSearchBoxType(*child);
+            if (boxType != MarkerSearchBoxType::Opaque)
+                return boxType == MarkerSearchBoxType::NestedListInQuirksMode;
         }
         return false;
     };
@@ -743,20 +732,6 @@ RenderListItem::FirstFormattedLineCandidate RenderListItem::firstFormattedLineRo
         }
     }
     return { { }, fallbackParent };
-}
-
-CheckedPtr<RenderListOutsideMarker> RenderListItem::excludedMarkerAnchoredTo(const RenderBlockFlow& firstFormattedLineRoot)
-{
-    for (CheckedPtr<const RenderBoxModelObject> ancestor = &firstFormattedLineRoot; ancestor; ancestor = ancestor->containingBlock()) {
-        auto* listItem = dynamicDowncast<RenderListItem>(ancestor);
-        CheckedPtr marker = listItem ? listItem->markerBox() : nullptr;
-        if (!marker || !marker->isExcludedMarker())
-            continue;
-        auto excludedPosition = marker->excludedPosition();
-        if (excludedPosition && excludedPosition->firstFormattedLineRoot.get() == &firstFormattedLineRoot)
-            return marker;
-    }
-    return { };
 }
 
 Vector<CheckedPtr<RenderListOutsideMarker>> RenderListItem::excludedMarkersForContainer(const RenderBlockFlow& inlineRoot, const Vector<SingleThreadWeakPtr<RenderListOutsideMarker>>& allExcludedMarkers)

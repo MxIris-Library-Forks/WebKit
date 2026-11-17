@@ -456,6 +456,9 @@ $(PROJECT_DIR)/Modules/credentialmanagement/OTPCredentialRequestOptions.idl
 $(PROJECT_DIR)/Modules/device-posture/DevicePosture.idl
 $(PROJECT_DIR)/Modules/device-posture/DevicePostureType.idl
 $(PROJECT_DIR)/Modules/device-posture/Navigator+DevicePosture.idl
+$(PROJECT_DIR)/Modules/documentpip/DOMWindow+DocumentPictureInPicture.idl
+$(PROJECT_DIR)/Modules/documentpip/DocumentPictureInPicture.idl
+$(PROJECT_DIR)/Modules/documentpip/DocumentPictureInPictureEvent.idl
 $(PROJECT_DIR)/Modules/encryptedmedia/MediaKeyEncryptionScheme.idl
 $(PROJECT_DIR)/Modules/encryptedmedia/MediaKeyMessageEvent.idl
 $(PROJECT_DIR)/Modules/encryptedmedia/MediaKeyMessageEventInit.idl
@@ -1818,6 +1821,7 @@ $(PROJECT_DIR)/html/canvas/CanvasPattern.idl
 $(PROJECT_DIR)/html/canvas/CanvasRect.idl
 $(PROJECT_DIR)/html/canvas/CanvasRenderingContext2D.idl
 $(PROJECT_DIR)/html/canvas/CanvasRenderingContext2DSettings.idl
+$(PROJECT_DIR)/html/canvas/CanvasSettings.idl
 $(PROJECT_DIR)/html/canvas/CanvasShadowStyles.idl
 $(PROJECT_DIR)/html/canvas/CanvasState.idl
 $(PROJECT_DIR)/html/canvas/CanvasText.idl

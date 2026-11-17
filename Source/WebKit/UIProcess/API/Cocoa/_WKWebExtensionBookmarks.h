@@ -144,6 +144,36 @@ WK_API_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA)) NS_S
 - (BOOL)isManagedForWebExtensionContext:(WKWebExtensionContext *)context NS_SWIFT_NAME(isManaged(for:));
 
 /*!
+ @abstract Called when the synced state of the bookmark or folder is needed.
+ @param context The context in which the web extension is running.
+ @return `YES` if the bookmark or folder syncs to the user's account, `NO` otherwise.
+ @discussion Defaults to `NO` if not implemented. Managed bookmarks and folders always report `NO`.
+ */
+- (BOOL)isSyncedForWebExtensionContext:(WKWebExtensionContext *)context NS_SWIFT_NAME(isSynced(for:));
+
+/*!
+ @abstract Called when the read-only state of the bookmark or folder is needed.
+ @param context The context in which the web extension is running.
+ @return `YES` if extensions cannot change the title or URL of the bookmark or folder, move it, or remove it, `NO` otherwise.
+ @discussion Defaults to `YES` for built-in folders if not implemented. Managed bookmarks and folders are always read-only.
+ @seealso isContentsReadOnlyForWebExtensionContext:
+ @seealso isManagedForWebExtensionContext:
+ @seealso folderTypeForWebExtensionContext:
+ */
+- (BOOL)isReadOnlyForWebExtensionContext:(WKWebExtensionContext *)context NS_SWIFT_NAME(isReadOnly(for:));
+
+/*!
+ @abstract Called when the read-only state of the contents of the folder is needed.
+ @param context The context in which the web extension is running.
+ @return `YES` if extensions cannot add bookmarks or folders to the folder, `NO` otherwise.
+ @discussion Defaults to the result of ``isReadOnlyForWebExtensionContext:`` if that method is implemented, otherwise `NO`,
+ so extensions can add to built-in folders. Managed folders are always content read-only. Removing or changing a bookmark
+ or folder in the folder depends on its own read-only state.
+ @seealso isReadOnlyForWebExtensionContext:
+ */
+- (BOOL)isContentsReadOnlyForWebExtensionContext:(WKWebExtensionContext *)context NS_SWIFT_NAME(isContentsReadOnly(for:));
+
+/*!
  @abstract Called when the children of the folder are needed.
  @param context The context in which the web extension is running.
  @return The bookmarks and folders in the folder, in order, or `nil` for a bookmark.
@@ -179,8 +209,9 @@ WK_API_AVAILABLE(macos(WK_MAC_TBA), ios(WK_IOS_TBA), visionos(WK_XROS_TBA)) NS_S
  @param context The context in which the web extension is running.
  @param completionHandler A block that must be called upon completion. It takes a single error argument,
  which should be provided if any errors occurred.
- @discussion If the node is a folder, the bookmarks and folders in it are removed too. No action is performed if not
- implemented.
+ @discussion If the node is a folder, the bookmarks and folders in it are removed too. When an extension removes
+ several bookmarks in one call, this is called for each one in order after WebKit has checked its own rules, and
+ stops at the first error, so the bookmarks before it stay removed. No action is performed if not implemented.
  */
 - (void)removeForWebExtensionContext:(WKWebExtensionContext *)context completionHandler:(void (^)(NSError * _Nullable error))completionHandler NS_SWIFT_NAME(remove(for:completionHandler:));
 

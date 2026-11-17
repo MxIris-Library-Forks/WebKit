@@ -1388,7 +1388,7 @@ static const RenderFragmentedFlow* enclosingFragmentedFlowFromRenderer(const Ren
     return nullptr;
 }
 
-void RenderObject::outputRegionsInformation(TextStream& stream) const
+void RenderObject::outputFragmentInformation(TextStream& stream) const
 {
     if (CheckedPtr renderFlagmentedFlow = dynamicDowncast<RenderFragmentedFlow>(*this)) {
         auto fragmentContainers = renderFlagmentedFlow->renderFragmentContainerList();
@@ -1407,7 +1407,7 @@ void RenderObject::outputRegionsInformation(TextStream& stream) const
     CheckedPtr fragmentedFlow = enclosingFragmentedFlowFromRenderer(this);
 
     if (!fragmentedFlow) {
-        // Only the boxes have region range information.
+        // Only boxes have fragment range information.
         // Try to get the flow thread containing block information
         // from the containing block of this box.
         if (is<RenderBox>(*this))
@@ -1570,7 +1570,7 @@ void RenderObject::outputRenderObject(TextStream& stream, bool mark, int depth) 
     if (auto* multicolSet = dynamicDowncast<RenderMultiColumnSet>(*this))
         stream << " (column count " << multicolSet->computedColumnCount() << ", size " << multicolSet->computedColumnWidth() << "x" << multicolSet->computedColumnHeight() << ", gap " << multicolSet->columnGap() << ")";
 
-    outputRegionsInformation(stream);
+    outputFragmentInformation(stream);
 
     if (needsLayout()) {
         stream << " layout->";
@@ -3268,8 +3268,6 @@ bool RenderObject::isExcludedMarker() const
     // An excluded list marker is the direct child of its list item, never wrapped in an anonymous block, and no part of in-flow layout.
     auto* marker = dynamicDowncast<RenderListOutsideMarker>(*this);
     if (!marker)
-        return false;
-    if (!document().settings().listMarkerPositionedPostLayoutEnabled())
         return false;
     return parent() && parent() == marker->listItem();
 }

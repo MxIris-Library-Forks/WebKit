@@ -55,6 +55,7 @@
 #include <WebCore/CookieJar.h>
 #include <WebCore/DOMRect.h>
 #include <WebCore/DOMRectList.h>
+#include <WebCore/Document.h>
 #include <WebCore/DocumentPage.h>
 #include <WebCore/DocumentView.h>
 #include <WebCore/ElementAncestorIteratorInlines.h>
@@ -610,6 +611,33 @@ std::expected<Ref<WebCore::Element>, String> WebAutomationSessionProxy::elementF
     return Ref { elementWrapper->wrapped() };
 }
 
+RefPtr<WebCore::Node> WebAutomationSessionProxy::nodeForNodeHandle(WebFrame& frame, const String& nodeHandle)
+{
+    JSGlobalContextRef context = frame.jsContext();
+    auto* scriptObject = this->scriptObject(context);
+    if (!scriptObject)
+        return nullptr;
+
+    JSValueRef functionArguments[] = {
+        toJSValue(context, nodeHandle)
+    };
+    JSValueRef exception = nullptr;
+
+    JSValueRef result = callPropertyFunction(context, scriptObject, "nodeForSharedId"_s, std::size(functionArguments), functionArguments, &exception);
+    if (exception)
+        return nullptr;
+
+    JSObjectRef object = JSValueToObject(context, result, nullptr);
+    if (!object)
+        return nullptr;
+
+    auto nodeWrapper = dynamicDowncast<WebCore::JSNode>(toJS(object));
+    if (!nodeWrapper)
+        return nullptr;
+
+    return &nodeWrapper->wrapped();
+}
+
 WebCore::AccessibilityObject* WebAutomationSessionProxy::getAccessibilityObjectForNode(WebCore::PageIdentifier pageID, std::optional<WebCore::FrameIdentifier> frameID, String nodeHandle, String& errorType)
 {
     RefPtr page = WebProcess::singleton().webPage(pageID);
@@ -1049,7 +1077,7 @@ static WebCore::FloatPoint convertPointFromFrameClientToMainFrameView(WebCore::L
     return frameView->convertToRootViewAcrossIsolatedFrames(clientPoint);
 }
 
-void WebAutomationSessionProxy::computeElementLayout(WebCore::PageIdentifier pageID, std::optional<WebCore::FrameIdentifier> frameID, String nodeHandle, bool scrollIntoViewIfNeeded, CoordinateSystem coordinateSystem, CompletionHandler<void(std::optional<String>, WebCore::FloatRect, std::optional<WebCore::IntPoint>, bool)>&& completionHandler)
+void WebAutomationSessionProxy::computeElementLayout(WebCore::PageIdentifier pageID, std::optional<WebCore::FrameIdentifier> frameID, String nodeHandle, bool scrollIntoViewIfNeeded, CoordinateSystem coordinateSystem, bool isSharedReference, CompletionHandler<void(std::optional<String>, WebCore::FloatRect, std::optional<WebCore::IntPoint>, bool)>&& completionHandler)
 {
     RefPtr page = WebProcess::singleton().webPage(pageID);
     if (!page) {
@@ -1067,18 +1095,33 @@ void WebAutomationSessionProxy::computeElementLayout(WebCore::PageIdentifier pag
         return;
     }
 
-    if (!isValidNodeHandle(nodeHandle)) {
-        String invalidNodeIdentifierErrorType = Inspector::Protocol::AutomationHelpers::getEnumConstantValue(Inspector::Protocol::Automation::ErrorMessage::InvalidNodeIdentifier);
-        completionHandler(invalidNodeIdentifierErrorType, { }, std::nullopt, false);
-        return;
-    }
+    RefPtr<WebCore::Element> resolvedElement;
+    if (isSharedReference) {
+        RefPtr node = nodeForNodeHandle(*frame, nodeHandle);
+        if (!node) {
+            completionHandler(Inspector::Protocol::AutomationHelpers::getEnumConstantValue(Inspector::Protocol::Automation::ErrorMessage::NodeNotFound), { }, std::nullopt, false);
+            return;
+        }
+        resolvedElement = dynamicDowncast<WebCore::Element>(*node);
+        if (!resolvedElement) {
+            completionHandler(Inspector::Protocol::AutomationHelpers::getEnumConstantValue(Inspector::Protocol::Automation::ErrorMessage::NodeIsNotAnElement), { }, std::nullopt, false);
+            return;
+        }
+    } else {
+        if (!isValidNodeHandle(nodeHandle)) {
+            String invalidNodeIdentifierErrorType = Inspector::Protocol::AutomationHelpers::getEnumConstantValue(Inspector::Protocol::Automation::ErrorMessage::InvalidNodeIdentifier);
+            completionHandler(invalidNodeIdentifierErrorType, { }, std::nullopt, false);
+            return;
+        }
 
-    auto coreElementOrError = elementForNodeHandle(*frame, nodeHandle);
-    if (!coreElementOrError) {
-        completionHandler(coreElementOrError.error(), { }, std::nullopt, false);
-        return;
+        auto coreElementOrError = elementForNodeHandle(*frame, nodeHandle);
+        if (!coreElementOrError) {
+            completionHandler(coreElementOrError.error(), { }, std::nullopt, false);
+            return;
+        }
+        resolvedElement = WTF::move(*coreElementOrError);
     }
-    Ref coreElement = WTF::move(*coreElementOrError);
+    Ref coreElement = resolvedElement.releaseNonNull();
 
     RefPtr containerElement = containerElementForElement(coreElement.get());
     if (scrollIntoViewIfNeeded && containerElement) {
@@ -1501,6 +1544,45 @@ void WebAutomationSessionProxy::deleteCookie(WebCore::PageIdentifier pageID, std
 }
 
 #if ENABLE(WEBDRIVER_BIDI)
+std::optional<RealmIdentifier> WebAutomationSessionProxy::realmIdentifierForFrame(WebCore::FrameIdentifier frameIdentifier) const
+{
+    auto realmIterator = m_frameToRealmIdentifier.find(frameIdentifier);
+    if (realmIterator == m_frameToRealmIdentifier.end())
+        return std::nullopt;
+
+    return realmIterator->value;
+}
+
+void WebAutomationSessionProxy::getBidiRealmInfo(WebCore::PageIdentifier pageID, std::optional<WebCore::FrameIdentifier> optionalFrameID, CompletionHandler<void(std::optional<RealmIdentifier>&&)>&& completionHandler)
+{
+    RefPtr page = WebProcess::singleton().webPage(pageID);
+    if (!page)
+        return completionHandler(std::nullopt);
+
+    RefPtr frame = optionalFrameID ? WebProcess::singleton().webFrame(*optionalFrameID) : &page->mainWebFrame();
+    RefPtr coreLocalFrame = frame ? frame->coreLocalFrame() : nullptr;
+    RefPtr document = coreLocalFrame ? coreLocalFrame->document() : nullptr;
+    if (!document)
+        return completionHandler(std::nullopt);
+
+    // A scriptless subframe might not have a normal-world realm yet. Create it so
+    // getRealms returns the realm identifier used by later script commands and events.
+    // FIXME: Avoid eagerly creating a JSWindowProxy during realm enumeration.
+    // https://bugs.webkit.org/show_bug.cgi?id=310506
+    protect(coreLocalFrame->windowProxy())->jsWindowProxy(mainThreadNormalWorldSingleton());
+
+    auto realmIdentifier = realmIdentifierForFrame(frame->frameID());
+    if (!realmIdentifier) {
+        scriptRealmCreated(frame->frameID(), document->securityOrigin().data());
+        realmIdentifier = realmIdentifierForFrame(frame->frameID());
+    }
+
+    if (!realmIdentifier)
+        return completionHandler(std::nullopt);
+
+    completionHandler(WTF::move(realmIdentifier));
+}
+
 void WebAutomationSessionProxy::addMessageToConsole(WebCore::FrameIdentifier frameID, const JSC::MessageSource& source, const JSC::MessageLevel& level, const String& messageText, const JSC::MessageType& type, const WallTime& timestamp)
 {
     protect(WebProcess::singleton().parentProcessConnection())->send(Messages::WebAutomationSession::LogEntryAdded(frameID, source, level, messageText, type, timestamp), 0);
@@ -1546,11 +1628,11 @@ void WebAutomationSessionProxy::scriptDedicatedWorkerRealmCreated(const String& 
     if (!document || document->identifier() != ownerDocumentIdentifier || !page || !page->isControlledByAutomation())
         return;
 
-    auto ownerRealmIterator = m_frameToRealmIdentifier.find(ownerFrameIdentifier);
-    if (ownerRealmIterator == m_frameToRealmIdentifier.end()) {
+    auto ownerRealmIdentifier = realmIdentifierForFrame(ownerFrameIdentifier);
+    if (!ownerRealmIdentifier) {
         scriptRealmCreated(ownerFrameIdentifier, document->securityOrigin().data());
-        ownerRealmIterator = m_frameToRealmIdentifier.find(ownerFrameIdentifier);
-        if (ownerRealmIterator == m_frameToRealmIdentifier.end())
+        ownerRealmIdentifier = realmIdentifierForFrame(ownerFrameIdentifier);
+        if (!ownerRealmIdentifier)
             return;
     }
 
@@ -1558,8 +1640,8 @@ void WebAutomationSessionProxy::scriptDedicatedWorkerRealmCreated(const String& 
     auto workerRealmIterator = m_dedicatedWorkerRealmInfo.find(key);
     if (workerRealmIterator == m_dedicatedWorkerRealmInfo.end()) {
         auto realmIdentifier = RealmIdentifier::generate();
-        workerRealmIterator = m_dedicatedWorkerRealmInfo.add(key, DedicatedWorkerRealmInfo { realmIdentifier, ownerRealmIterator->value, ownerDocumentIdentifier }).iterator;
-    } else if (workerRealmIterator->value.ownerRealmIdentifier != ownerRealmIterator->value
+        workerRealmIterator = m_dedicatedWorkerRealmInfo.add(key, DedicatedWorkerRealmInfo { realmIdentifier, *ownerRealmIdentifier, ownerDocumentIdentifier }).iterator;
+    } else if (workerRealmIterator->value.ownerRealmIdentifier != *ownerRealmIdentifier
         || workerRealmIterator->value.ownerDocumentIdentifier != ownerDocumentIdentifier)
         return;
 

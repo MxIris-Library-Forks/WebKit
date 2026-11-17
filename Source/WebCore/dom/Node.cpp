@@ -2204,16 +2204,25 @@ static ALWAYS_INLINE void adoptCustomElementRegistryIfNotKeptNull(ShadowRoot& sh
     shadowRoot.setCustomElementRegistry(newDocument.effectiveGlobalCustomElementRegistry());
 }
 
+static ALWAYS_INLINE RefPtr<CustomElementRegistry> scopedCustomElementRegistry(TreeScope& treeScope)
+{
+    RefPtr registry = treeScope.customElementRegistry();
+    if (!registry || !registry->isScoped())
+        return nullptr;
+    return registry;
+}
+
 inline unsigned Node::moveShadowTreeToNewDocumentFastCase(ShadowRoot& shadowRoot, Document& oldDocument, Document& newDocument)
 {
     ASSERT_WITH_SECURITY_IMPLICATION(isDocumentEligibleForFastAdoption(oldDocument, newDocument));
     adoptCustomElementRegistryIfNotKeptNull(shadowRoot, newDocument);
+    RefPtr scopedRegistry = scopedCustomElementRegistry(shadowRoot);
     return traverseSubtreeToUpdateTreeScope(shadowRoot, [&](Node& node) -> unsigned {
         if (&node.treeScope() != static_cast<TreeScope*>(&shadowRoot)) {
             RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&node.document() == &newDocument);
             return 0;
         }
-        node.moveNodeToNewDocumentFastCase(oldDocument, newDocument);
+        node.moveNodeToNewDocumentFastCase(oldDocument, newDocument, scopedRegistry.get());
         return 1;
     }, [&oldDocument, &newDocument](ShadowRoot& innerShadowRoot) {
         RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&innerShadowRoot.document() == &oldDocument);
@@ -2225,12 +2234,13 @@ inline unsigned Node::moveShadowTreeToNewDocumentFastCase(ShadowRoot& shadowRoot
 inline void Node::moveShadowTreeToNewDocumentSlowCase(ShadowRoot& shadowRoot, Document& oldDocument, Document& newDocument)
 {
     adoptCustomElementRegistryIfNotKeptNull(shadowRoot, newDocument);
+    RefPtr scopedRegistry = scopedCustomElementRegistry(shadowRoot);
     traverseSubtreeToUpdateTreeScope(shadowRoot, [&](Node& node) -> unsigned {
         if (&node.treeScope() != static_cast<TreeScope*>(&shadowRoot)) {
             RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&node.document() == &newDocument);
             return 0;
         }
-        node.moveNodeToNewDocumentSlowCase(oldDocument, newDocument);
+        node.moveNodeToNewDocumentSlowCase(oldDocument, newDocument, scopedRegistry.get());
         return 1;
     }, [&oldDocument, &newDocument](ShadowRoot& innerShadowRoot) {
         RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&innerShadowRoot.document() == &oldDocument);
@@ -2249,13 +2259,14 @@ void Node::moveTreeToNewScope(Node& root, TreeScope& oldScope, TreeScope& newSco
     bool newScopeIsUAShadowTree = newScope.rootNode().hasBeenInUserAgentShadowTree();
     if (&oldDocument.get() != &newDocument.get()) {
         oldDocument->incrementReferencingNodeCount();
+        RefPtr oldScopeScopedRegistry = scopedCustomElementRegistry(oldScope);
         bool isFastCase = isDocumentEligibleForFastAdoption(oldDocument, newDocument) && !newScopeIsUAShadowTree;
         if (isFastCase) {
             unsigned nodeCount = traverseSubtreeToUpdateTreeScope(root, [&](Node& node) -> unsigned {
                 ASSERT(!node.isTreeScope());
                 RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&node.treeScope() == &oldScope);
                 node.setTreeScope(newScope);
-                node.moveNodeToNewDocumentFastCase(oldDocument, newDocument);
+                node.moveNodeToNewDocumentFastCase(oldDocument, newDocument, oldScopeScopedRegistry.get());
                 return 1;
             }, [&](ShadowRoot& shadowRoot) {
                 ASSERT_WITH_SECURITY_IMPLICATION(&shadowRoot.document() == oldDocument.ptr());
@@ -2271,7 +2282,7 @@ void Node::moveTreeToNewScope(Node& root, TreeScope& oldScope, TreeScope& newSco
                 if (newScopeIsUAShadowTree)
                     node.setEventTargetFlag(EventTargetFlag::HasBeenInUserAgentShadowTree);
                 node.setTreeScope(newScope);
-                node.moveNodeToNewDocumentSlowCase(oldDocument, newDocument);
+                node.moveNodeToNewDocumentSlowCase(oldDocument, newDocument, oldScopeScopedRegistry.get());
                 return 1;
             }, [&](ShadowRoot& shadowRoot) {
                 ASSERT_WITH_SECURITY_IMPLICATION(&shadowRoot.document() == oldDocument.ptr());
@@ -2301,15 +2312,15 @@ void Node::moveTreeToNewScope(Node& root, TreeScope& oldScope, TreeScope& newSco
     }
 }
 
-inline void Node::adoptCustomElementRegistryIntoScopedRegistryDocument()
+NODELETE static inline void adoptCustomElementRegistryIntoScopedRegistryDocument(Node& node)
 {
     // Called during adoption only when the destination document's custom element registry is scoped.
     // An element that inherits the global custom element registry (neither uses the null registry
     // nor an explicit scoped registry) has no global registry to inherit in such a document, so it
     // ends up with a null custom element registry.
-    if (is<Element>(*this) && !usesNullCustomElementRegistry() && !usesScopedCustomElementRegistryMap()) {
-        resetCustomElementRegistryType();
-        setUsesNullCustomElementRegistry();
+    if (is<Element>(node) && !node.usesNullCustomElementRegistry() && !node.usesScopedCustomElementRegistryMap()) {
+        node.resetCustomElementRegistryType();
+        node.setUsesNullCustomElementRegistry();
     }
 }
 
@@ -2334,7 +2345,29 @@ static void clearNullCustomElementRegistryOnAdoption(Node& node, Document& newDo
         node.setUsesGlobalCustomElementRegistry();
 }
 
-void Node::moveNodeToNewDocumentFastCase(Document& oldDocument, Document& newDocument)
+static ALWAYS_INLINE void adoptCustomElementRegistry(Node& node, CustomElementRegistry* scopedRegistryOfOldTreeScope, Document& newDocument)
+{
+    // An element keeps a scoped registry it got from its old tree scope.
+    if (scopedRegistryOfOldTreeScope && is<Element>(node) && !node.usesNullCustomElementRegistry()
+        && !node.usesScopedCustomElementRegistryMap() && !node.usesGlobalCustomElementRegistry()) [[unlikely]] {
+        if (node.treeScope().customElementRegistry() != scopedRegistryOfOldTreeScope)
+            CustomElementRegistry::addToScopedCustomElementRegistryMap(downcast<Element>(node), *scopedRegistryOfOldTreeScope);
+        return;
+    }
+
+    if (node.usesNullCustomElementRegistry() && shouldClearNullCustomElementRegistryOnAdoption(node, newDocument)) [[unlikely]]
+        clearNullCustomElementRegistryOnAdoption(node, newDocument);
+
+    if (auto* newRegistry = newDocument.customElementRegistry()) {
+        if (newRegistry->isScoped()) [[unlikely]]
+            adoptCustomElementRegistryIntoScopedRegistryDocument(node);
+    } else if (node.usesGlobalCustomElementRegistry()) [[unlikely]] {
+        node.resetCustomElementRegistryType();
+        node.setUsesNullCustomElementRegistry();
+    }
+}
+
+void Node::moveNodeToNewDocumentFastCase(Document& oldDocument, Document& newDocument, CustomElementRegistry* scopedRegistryOfOldTreeScope)
 {
     ASSERT_WITH_SECURITY_IMPLICATION(!oldDocument.shouldInvalidateNodeListAndCollectionCaches());
     ASSERT(!oldDocument.hasNodeIterators());
@@ -2352,11 +2385,7 @@ void Node::moveNodeToNewDocumentFastCase(Document& oldDocument, Document& newDoc
 
     ensureWrapperForAdoptedNodeWithForeignGlobalObjectIfNeeded(*this, oldDocument, newDocument);
 
-    if (usesNullCustomElementRegistry() && shouldClearNullCustomElementRegistryOnAdoption(*this, newDocument)) [[unlikely]]
-        clearNullCustomElementRegistryOnAdoption(*this, newDocument);
-
-    if (auto* newRegistry = newDocument.customElementRegistry(); newRegistry && newRegistry->isScoped()) [[unlikely]]
-        adoptCustomElementRegistryIntoScopedRegistryDocument();
+    adoptCustomElementRegistry(*this, scopedRegistryOfOldTreeScope, newDocument);
 
     if (!hasTypeFlag(TypeFlag::HasDidMoveToNewDocument) && !hasEventTargetFlag(EventTargetFlag::HasLangAttr) && !hasEventTargetFlag(EventTargetFlag::HasXMLLangAttr)
         && !isDefinedCustomElement() && !isCustomElementUpgradeCandidate())
@@ -2366,7 +2395,7 @@ void Node::moveNodeToNewDocumentFastCase(Document& oldDocument, Document& newDoc
         element->didMoveToNewDocument(oldDocument, newDocument);
 }
 
-void Node::moveNodeToNewDocumentSlowCase(Document& oldDocument, Document& newDocument)
+void Node::moveNodeToNewDocumentSlowCase(Document& oldDocument, Document& newDocument, CustomElementRegistry* scopedRegistryOfOldTreeScope)
 {
     if (hasValidQuerySelectorResults()) [[unlikely]]
         oldDocument.removeQuerySelectorResults(*this);
@@ -2376,11 +2405,7 @@ void Node::moveNodeToNewDocumentSlowCase(Document& oldDocument, Document& newDoc
     newDocument.incrementReferencingNodeCount();
     oldDocument.decrementReferencingNodeCount();
 
-    if (usesNullCustomElementRegistry() && shouldClearNullCustomElementRegistryOnAdoption(*this, newDocument)) [[unlikely]]
-        clearNullCustomElementRegistryOnAdoption(*this, newDocument);
-
-    if (auto* newRegistry = newDocument.customElementRegistry(); newRegistry && newRegistry->isScoped()) [[unlikely]]
-        adoptCustomElementRegistryIntoScopedRegistryDocument();
+    adoptCustomElementRegistry(*this, scopedRegistryOfOldTreeScope, newDocument);
 
     if (hasRareData()) {
         if (auto* nodeLists = rareData()->nodeLists())

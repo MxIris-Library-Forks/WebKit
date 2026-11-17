@@ -54,8 +54,7 @@ private:
     std::pair<UsedInlineSizes, UsedBlockSizes> layoutGridItems(const PlacedGridItems&, const GridAreaSizes&,
         const TrackSizingFunctionsList& columnTrackSizingFunctions, const TrackSizingFunctionsList& rowTrackSizingFunctions) const;
 
-    static Vector<UsedMargins> computeInlineMargins(const PlacedGridItems&);
-    static Vector<UsedMargins> computeBlockMargins(const PlacedGridItems&);
+    static Vector<UsedMargins> computeMarginsForAlignment(const PlacedGridItems&, LogicalBoxAxis alignmentAxis, const Vector<LayoutUnit>& borderBoxSizes, const Vector<LayoutUnit>& gridAreaSizes);
 
     BorderBoxPositions performSelfAlignment(const PlacedGridItems&, LogicalBoxAxis alignmentAxis, const Vector<UsedMargins>&, const Vector<LayoutUnit>& borderBoxSizes, const Vector<LayoutUnit>& gridAreaSizes, const Vector<std::optional<LayoutUnit>>& baselineAlignedMarginBoxPositions);
 

@@ -74,6 +74,7 @@ compositing/background-color/background-color-clamping.html [ Pass ]
 media/media-webm-av1.html [ Skip ]
 media/track/track-description-cue.html [ Pass ]
 media/track/track-extended-descriptions.html [ Pass ]
+media/video-controls-deferral-presentation-modes.html [ Pass ]
 media/media-source/remoteplayback-from-source-element.html [ Pass ]
 # Prior Tahoe, attempting to paint stereo MV-HEVC either errors or crashes.
 [ Sonoma Sequoia ] media/media-source/media-source-paint-stereo-to-canvas.html [ Skip ]
@@ -87,6 +88,25 @@ media/mediacapabilities/mediacapabilities-decodingInfo-spatialRendering.html [ F
 
 compositing/geometry/frame-clipping-layer-with-bottom-right-inset.html [ Pass ]
 compositing/geometry/frame-clipping-layer-with-top-left-inset.html [ Pass ]
+
+# Document Picture-in-Picture is only supported on macOS.
+imported/w3c/web-platform-tests/document-picture-in-picture [ Pass ]
+
+# User activation does not yet propagate between the opener and the PiP window.
+webkit.org/b/330943 imported/w3c/web-platform-tests/document-picture-in-picture/pip-receives-focus.https.html [ Failure ]
+webkit.org/b/330943 imported/w3c/web-platform-tests/document-picture-in-picture/pip-resize.https.html [ Failure ]
+webkit.org/b/330943 imported/w3c/web-platform-tests/document-picture-in-picture/pip-size.optional.https.html [ Failure ]
+webkit.org/b/330943 imported/w3c/web-platform-tests/document-picture-in-picture/propagate-user-activation-from-opener.https.html [ Failure ]
+# Also needs WebKitTestRunner to deliver input events to the PiP window.
+webkit.org/b/330944 imported/w3c/web-platform-tests/document-picture-in-picture/pip-fullscreen.https.html [ Failure ]
+# The following tests time out in the test harness, so skip them rather than let them block the test runner.
+# Navigating the PiP window by name from a window other than its opener needs FrameTree's
+# isFrameFamiliarWith() to follow opener chains and same-origin windows.
+webkit.org/b/330945 imported/w3c/web-platform-tests/document-picture-in-picture/closes-on-navigation-or-destroy.https.html [ Skip ]
+# Needs user activation to propagate to the opener, and WebKitTestRunner to deliver input events to the PiP window.
+webkit.org/b/330943 imported/w3c/web-platform-tests/document-picture-in-picture/propagate-user-activation-to-opener.https.html [ Skip ]
+# Needs scheduler.postTask(), which WebKit does not implement.
+webkit.org/b/330806 imported/w3c/web-platform-tests/document-picture-in-picture/clears-session-on-close.https.html [ Skip ]
 
 #//////////////////////////////////////////////////////////////////////////////////////////
 # End platform-specific directories.
@@ -1791,6 +1811,9 @@ webkit.org/b/235660 [ Debug ] fast/replaced/encrypted-pdf-as-object-and-embed.ht
 # This test is specific to Core Text.
 fast/text/font-lookup-dot-prefix-case-sensitive.html [ Pass ]
 
+# This test depends on the kerning of Hoefler Text, a macOS system font.
+fast/text/selection-gap-text-edge-rtl-remeasured-run.html [ Pass ]
+
 # Was in LayoutTests/Expectations, now only happening on Mac
 imported/w3c/web-platform-tests/xhr/event-timeout-order.any.worker.html [ Failure ]
 
@@ -2267,7 +2290,6 @@ webkit.org/b/314491 [ x86_64 ] imported/w3c/web-platform-tests/html/infrastructu
 # webkit.org/b/300715
 media/media-source/media-managedmse-video-with-poster.html [ Pass ImageOnlyFailure ]
 media/media-hevc-video-as-img.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html [ Pass ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-scrollbars/textarea-scrollbar-width-none.html [ Pass ImageOnlyFailure ]
 fast/scrolling/mac/scrollbars/scrollbar-width-dynamic-none-to-auto.html [ Pass ImageOnlyFailure ]
 webkit.org/b/288642 [ x86_64 ] webgl/1.0.x/conformance/glsl/bugs/sampler-array-using-loop-index.html [ Pass Failure ]

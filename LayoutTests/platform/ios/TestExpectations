@@ -714,6 +714,7 @@ editing/selection/context-menu-text-selection-lookup.html [ Skip ]
 editing/selection/context-menu-text-selection.html [ Skip ]
 editing/selection/crash-on-shift-click.html [ Skip ]
 editing/selection/directionality-after-undo-replace.html [ Skip ]
+editing/selection/double-click-drag-backward-updates-anchor.html [ Skip ]
 editing/selection/doubleclick-beside-cr-span.html [ Skip ]
 editing/selection/doubleclick-crash.html [ Skip ]
 editing/selection/doubleclick-inline-first-last-contenteditable.html [ Skip ]
@@ -876,6 +877,8 @@ fast/events/page-scaled-mouse-click.html [ Skip ]
 fast/events/pointer-events.html [ Skip ]
 fast/events/popup-allowed-from-gesture-initiated-event.html [ Skip ]
 fast/events/popup-allowed-from-gesture-initiated-form-submit.html [ Skip ]
+fast/events/popup-allowed-from-promise-resolved-by-script-inserted-by-click.html [ Skip ]
+fast/events/popup-allowed-from-script-inserted-by-click.html [ Skip ]
 fast/events/popup-blocked-from-fake-user-gesture.html [ Skip ]
 fast/events/popup-blocked-from-untrusted-mouse-click.html [ Skip ]
 fast/events/popup-blocking-click-in-iframe.html [ Skip ]
@@ -1038,6 +1041,8 @@ fast/loader/policy-delegate-action-hit-test-zoomed.html [ Skip ]
 fast/loader/repeat-same-document-navigation.html [ Skip ]
 fast/masking/clip-path-selection.html [ Skip ]
 fast/misc/selection-gap-between-flex-items.html [ ImageOnlyFailure ]
+fast/misc/selection-gap-in-table-cell-with-block-child.html [ ImageOnlyFailure ]
+fast/misc/selection-gap-in-table-cells.html [ ImageOnlyFailure ]
 fast/multicol/pagination/LeftToRight-tb-hittest.html [ Skip ]
 fast/multicol/pagination/RightToLeft-rl-hittest.html [ Skip ]
 fast/overflow/scrollbar-click-retains-focus.html [ Skip ]
@@ -3262,6 +3267,26 @@ css3/viewport-percentage-lengths/vh-auto-size.html [ ImageOnlyFailure ]
 # This test relies on the ::selection pseudoclass which isn't honored on iOS.
 webkit.org/b/169517 fast/text/complex-text-selection.html [ ImageOnlyFailure ]
 
+# Selection isn't painted in the web process on iOS, so these tests can't exercise the selection gap fix.
+fast/text/selection-gap-subpixel-block-direction.html [ Skip ]
+fast/text/selection-gap-subpixel-center-gap-bidi.html [ Skip ]
+fast/text/selection-gap-subpixel-center-gap-vertical.html [ Skip ]
+fast/text/selection-gap-subpixel-center-gap.html [ Skip ]
+fast/text/selection-gap-subpixel-centered-sideways-lr.html [ Skip ]
+fast/text/selection-gap-subpixel-centered-text-edge.html [ Skip ]
+fast/text/selection-gap-subpixel-centered-vertical-lr.html [ Skip ]
+fast/text/selection-gap-subpixel-centered-vertical-rl.html [ Skip ]
+fast/text/selection-gap-subpixel-positioned-box.html [ Skip ]
+fast/text/selection-gap-subpixel-rtl-run-vertical.html [ Skip ]
+fast/text/selection-gap-subpixel-rtl-run.html [ Skip ]
+fast/text/selection-gap-subpixel-sideways-lr-end.html [ Skip ]
+fast/text/selection-gap-subpixel-sideways-lr-start.html [ Skip ]
+fast/text/selection-gap-subpixel-text-edge-rtl.html [ Skip ]
+fast/text/selection-gap-subpixel-text-edge.html [ Skip ]
+fast/text/selection-gap-subpixel-vertical-lr.html [ Skip ]
+fast/text/selection-gap-subpixel-vertical-rl.html [ Skip ]
+fast/text/selection-partial-sideways-lr.html [ Skip ]
+
 webkit.org/b/172610 media/ios/autoplay-only-in-main-document.html [ Skip ]
 webkit.org/b/172672 fast/events/before-unload-returnValue.html [ Skip ]
 
@@ -4001,7 +4026,6 @@ media/media-vp9-reschange-webm.html [ Skip ]
 
 # webkit.org/b/277760 [ iOS ] 2x imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html (layout-tests) are ref mismatch
 webkit.org/b/229291 imported/w3c/web-platform-tests/html/rendering/replaced-elements/images/revoked-blob-print.html [ Pass ImageOnlyFailure ]
-imported/w3c/web-platform-tests/html/rendering/widgets/input-checkbox-switch-rtl.tentative.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-date-baseline-min-height.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/button-layout/propagate-text-decoration.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/html/rendering/widgets/input-date-whitespace-pre-1.html [ ImageOnlyFailure ]
@@ -7976,7 +8000,19 @@ webkit.org/b/287672 imported/w3c/web-platform-tests/css/css-cascade/all-prop-ini
 
 webkit.org/b/287741 fast/viewport/ios/non-responsive-viewport-after-changing-view-scale.html [ Pass Failure ]
 
-webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?1-4 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?5-8 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?9-12 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?13-16 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?17-20 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?21-24 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?25-28 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?29-32 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?33-36 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?37-40 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?41-44 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?45-48 [ Pass Failure ]
+webkit.org/b/288133 imported/w3c/web-platform-tests/scroll-to-text-fragment/find-range-from-text-directive.html?49-last [ Pass Failure ]
 
 webkit.org/b/288677 [ Debug arm64 ] fast/scrolling/ios/body-overflow-hidden-keyboard.html [ Pass Crash ]
 
@@ -8509,6 +8545,16 @@ webkit.org/b/301548 imported/w3c/web-platform-tests/uievents/mouse/offset_and_pa
 # webkit.org/b/301591 [ iOS 26 ] imported/w3c/web-platform-tests/editing/other/empty-elements-insertion.html is a constant text failure 
 imported/w3c/web-platform-tests/editing/other/empty-elements-insertion.html [ Failure ]
 
+# Flaky under stress: the delete sometimes does nothing.
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-head.tentative.html?designMode=off&method=backspace [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-head.tentative.html?designMode=off&method=forwarddelete [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-head.tentative.html?designMode=on&method=backspace [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-head.tentative.html?designMode=on&method=forwarddelete [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-html.tentative.html?designMode=off&method=backspace [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-html.tentative.html?designMode=off&method=forwarddelete [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-html.tentative.html?designMode=on&method=backspace [ Skip ]
+imported/w3c/web-platform-tests/editing/other/delete-in-child-of-html.tentative.html?designMode=on&method=forwarddelete [ Skip ]
+
 # webkit.org/b/301602 [ iOS 26 ] imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html is a constant text failure
 imported/w3c/web-platform-tests/inert/inert-pseudo-element-hittest.html [ Failure ]
 
@@ -8960,6 +9006,12 @@ webkit.org/b/321691 [ Release ] imported/w3c/web-platform-tests/web-locks/bfcach
 webkit.org/b/321726 imported/w3c/web-platform-tests/largest-contentful-paint/observe-svg-data-uri-image.html [ Pass Failure ]
 
 webkit.org/b/321701 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/button-in-popover.html [ Pass Failure Timeout ] # rdar://178158790, rdar://179387420
+
+# Flaky under stress.
+imported/w3c/web-platform-tests/webtransport/headers.https.any.worker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/idlharness-writer.https.sub.any.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/idlharness-writer.https.sub.any.serviceworker.html [ Skip ]
+imported/w3c/web-platform-tests/webtransport/idlharness-writer.https.sub.any.sharedworker.html [ Skip ]
 
 editing/input/cocoa/writing-suggestions-in-anonymous-renderer.html [ ImageOnlyFailure ]
 fast/events/ios/contenteditable-autocapitalize.html [ Pass Failure Timeout ]

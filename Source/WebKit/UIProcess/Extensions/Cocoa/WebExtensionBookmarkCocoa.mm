@@ -63,6 +63,9 @@ WebExtensionBookmark::WebExtensionBookmark(const WebExtensionContext& context, N
     , m_respondsToDateAdded([delegate respondsToSelector:@selector(dateAddedForWebExtensionContext:)])
     , m_respondsToFolderType([delegate respondsToSelector:@selector(folderTypeForWebExtensionContext:)])
     , m_respondsToIsManaged([delegate respondsToSelector:@selector(isManagedForWebExtensionContext:)])
+    , m_respondsToIsSynced([delegate respondsToSelector:@selector(isSyncedForWebExtensionContext:)])
+    , m_respondsToIsReadOnly([delegate respondsToSelector:@selector(isReadOnlyForWebExtensionContext:)])
+    , m_respondsToIsContentsReadOnly([delegate respondsToSelector:@selector(isContentsReadOnlyForWebExtensionContext:)])
     , m_respondsToCreateChild([delegate respondsToSelector:@selector(createChildUsingConfiguration:forWebExtensionContext:completionHandler:)])
     , m_respondsToSetTitle([delegate respondsToSelector:@selector(setTitle:forWebExtensionContext:completionHandler:)])
     , m_respondsToSetURL([delegate respondsToSelector:@selector(setURL:forWebExtensionContext:completionHandler:)])
@@ -171,6 +174,41 @@ bool WebExtensionBookmark::isManaged() const
     return [(id<_WKWebExtensionBookmark>)m_delegate isManagedForWebExtensionContext:m_extensionContext->wrapper()];
 }
 
+bool WebExtensionBookmark::isSynced() const
+{
+    // Managed nodes are never synced to the account.
+    if (m_isRoot || !isValid() || !m_respondsToIsSynced || isManaged())
+        return false;
+
+    return [(id<_WKWebExtensionBookmark>)m_delegate isSyncedForWebExtensionContext:m_extensionContext->wrapper()];
+}
+
+bool WebExtensionBookmark::isReadOnly() const
+{
+    if (m_isRoot || isManaged())
+        return true;
+
+    if (isValid() && m_respondsToIsReadOnly)
+        return [(id<_WKWebExtensionBookmark>)m_delegate isReadOnlyForWebExtensionContext:m_extensionContext->wrapper()];
+
+    return folderType() != FolderType::None;
+}
+
+bool WebExtensionBookmark::isContentsReadOnly() const
+{
+    if (m_isRoot || isManaged())
+        return true;
+
+    if (isValid() && m_respondsToIsContentsReadOnly)
+        return [(id<_WKWebExtensionBookmark>)m_delegate isContentsReadOnlyForWebExtensionContext:m_extensionContext->wrapper()];
+
+    // Only an answer from the app counts, so built-in folders still accept additions by default.
+    if (isValid() && m_respondsToIsReadOnly)
+        return [(id<_WKWebExtensionBookmark>)m_delegate isReadOnlyForWebExtensionContext:m_extensionContext->wrapper()];
+
+    return false;
+}
+
 RefPtr<WebExtensionBookmark> WebExtensionBookmark::parent() const
 {
     return m_parent.get();
@@ -271,9 +309,30 @@ std::optional<WebExtensionError> WebExtensionBookmark::modificationError(const S
     return std::nullopt;
 }
 
+std::optional<WebExtensionError> WebExtensionBookmark::readOnlyError(const String& apiName) const
+{
+    if (!isReadOnly())
+        return std::nullopt;
+
+    return toWebExtensionError(apiName, nullString(), @"read-only bookmarks cannot be modified").error();
+}
+
+std::optional<WebExtensionError> WebExtensionBookmark::contentsReadOnlyError(const String& apiName) const
+{
+    if (!isContentsReadOnly())
+        return std::nullopt;
+
+    return toWebExtensionError(apiName, nullString(), @"read-only folders cannot be added to").error();
+}
+
 void WebExtensionBookmark::createChild(const String& apiName, std::optional<URL> url, const String& title, std::optional<size_t> index, CompletionHandler<void(std::expected<Ref<WebExtensionBookmark>, WebExtensionError>&&)>&& completionHandler)
 {
     if (auto error = modificationError(apiName)) {
+        completionHandler(std::unexpected(WTF::move(*error)));
+        return;
+    }
+
+    if (auto error = contentsReadOnlyError(apiName)) {
         completionHandler(std::unexpected(WTF::move(*error)));
         return;
     }
@@ -323,6 +382,11 @@ void WebExtensionBookmark::setTitle(const String& apiName, const String& title, 
         return;
     }
 
+    if (auto error = readOnlyError(apiName)) {
+        completionHandler(std::unexpected(WTF::move(*error)));
+        return;
+    }
+
     if (!m_respondsToSetTitle) {
         completionHandler(toWebExtensionError(apiName, nullString(), @"it is not implemented for 'title'"));
         return;
@@ -341,6 +405,11 @@ void WebExtensionBookmark::setTitle(const String& apiName, const String& title, 
 void WebExtensionBookmark::setURL(const String& apiName, const URL& url, CompletionHandler<void(std::expected<void, WebExtensionError>&&)>&& completionHandler)
 {
     if (auto error = modificationError(apiName)) {
+        completionHandler(std::unexpected(WTF::move(*error)));
+        return;
+    }
+
+    if (auto error = readOnlyError(apiName)) {
         completionHandler(std::unexpected(WTF::move(*error)));
         return;
     }
@@ -372,7 +441,17 @@ void WebExtensionBookmark::moveTo(const String& apiName, WebExtensionBookmark& n
         return;
     }
 
+    if (auto error = readOnlyError(apiName)) {
+        completionHandler(std::unexpected(WTF::move(*error)));
+        return;
+    }
+
     if (auto error = newParent.modificationError(apiName)) {
+        completionHandler(std::unexpected(WTF::move(*error)));
+        return;
+    }
+
+    if (auto error = newParent.contentsReadOnlyError(apiName)) {
         completionHandler(std::unexpected(WTF::move(*error)));
         return;
     }
@@ -408,20 +487,27 @@ void WebExtensionBookmark::moveTo(const String& apiName, WebExtensionBookmark& n
     }).get()];
 }
 
+std::optional<WebExtensionError> WebExtensionBookmark::removalError(const String& apiName, Recursively recursively) const
+{
+    if (auto error = modificationError(apiName))
+        return error;
+
+    if (auto error = readOnlyError(apiName))
+        return error;
+
+    if (recursively == Recursively::No && isFolder() && !children().isEmpty())
+        return toWebExtensionError(apiName, nullString(), @"the folder is not empty, use removeTree() to remove it").error();
+
+    if (!m_respondsToRemove)
+        return toWebExtensionError(apiName, nullString(), @"it is not implemented").error();
+
+    return std::nullopt;
+}
+
 void WebExtensionBookmark::remove(const String& apiName, Recursively recursively, CompletionHandler<void(std::expected<void, WebExtensionError>&&)>&& completionHandler)
 {
-    if (auto error = modificationError(apiName)) {
+    if (auto error = removalError(apiName, recursively)) {
         completionHandler(std::unexpected(WTF::move(*error)));
-        return;
-    }
-
-    if (recursively == Recursively::No && isFolder() && !children().isEmpty()) {
-        completionHandler(toWebExtensionError(apiName, nullString(), @"the folder is not empty, use removeTree() to remove it"));
-        return;
-    }
-
-    if (!m_respondsToRemove) {
-        completionHandler(toWebExtensionError(apiName, nullString(), @"it is not implemented"));
         return;
     }
 
@@ -442,12 +528,16 @@ WebExtensionBookmarkParameters WebExtensionBookmark::parameters(IncludeChildren 
     parameters.title = title();
     parameters.url = url();
     parameters.dateAdded = dateAdded();
+    parameters.managed = isManaged();
+    parameters.synced = isSynced();
 
     if (RefPtr parent = this->parent())
         parameters.parentIdentifier = parent->identifier();
 
     if (auto index = this->index())
         parameters.index = *index;
+
+    parameters.folderType = folderType();
 
     if (includeChildren == IncludeChildren::Yes && isFolder()) {
         Vector<WebExtensionBookmarkParameters> childrenParameters;

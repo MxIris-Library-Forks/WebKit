@@ -112,6 +112,8 @@ class WebDriverBidiProcessor;
 enum class ForceSoftwareCapturingViewportSnapshot : bool;
 enum class SameDocumentNavigationType : uint8_t;
 
+enum class NodeHandleKind : bool { WebElementReference, SharedReference };
+
 class AutomationCommandError {
 public:
     Inspector::Protocol::Automation::ErrorMessage type;
@@ -257,7 +259,7 @@ public:
 #if ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
     void simulateWheelInteraction(WebPageProxy&, const WebCore::IntPoint& locationInView, const WebCore::IntSize& delta, AutomationCompletionHandler&&) override;
 #endif
-    void viewportInViewCenterPointOfElement(WebPageProxy&, std::optional<WebCore::FrameIdentifier>, const Inspector::Protocol::Automation::NodeHandle&, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&&) override;
+    void viewportInViewCenterPointOfElement(WebPageProxy&, std::optional<WebCore::FrameIdentifier>, const Inspector::Protocol::Automation::NodeHandle&, NodeHandleKind, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&&) override;
 
 #endif // ENABLE(WEBDRIVER_ACTIONS_API)
 
@@ -287,6 +289,9 @@ public:
     // Unlike the classic command, a user prompt does not end the evaluation: it completes when the script does.
     void evaluateJavaScriptFunctionForBidi(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, const String& function, Ref<JSON::Array>&& arguments, std::optional<bool>&& forceUserGesture, Inspector::CommandCallback<String>&&);
     void evaluateBidiScript(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, const String& expression, bool awaitPromise, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, std::optional<double>&& callbackTimeout, Inspector::CommandCallback<String>&&);
+#if ENABLE(WEBDRIVER_BIDI)
+    void getBidiRealmInfo(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, CompletionHandler<void(std::optional<RealmIdentifier>&&)>&&);
+#endif
     void performMouseInteraction(const Inspector::Protocol::Automation::BrowsingContextHandle&, Ref<JSON::Object>&& requestedPosition, Inspector::Protocol::Automation::MouseButton, Inspector::Protocol::Automation::MouseInteraction, Ref<JSON::Array>&& keyModifiers, Inspector::CommandCallback<Ref<Inspector::Protocol::Automation::Point>>&&) override;
     void performKeyboardInteractions(const Inspector::Protocol::Automation::BrowsingContextHandle&, Ref<JSON::Array>&& interactions, Inspector::CommandCallback<void>&&) override;
     void performInteractionSequence(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, Ref<JSON::Array>&& sources, Ref<JSON::Array>&& steps, Inspector::CommandCallback<void>&&) override;
@@ -355,6 +360,9 @@ public:
 #if ENABLE(WEBDRIVER_BIDI)
     void runBidiInteractionSequence(WebPageProxy&, std::optional<WebCore::FrameIdentifier>, Vector<SimulatedInputKeyFrame>&&, const HashMap<String, Ref<SimulatedInputSource>>& inputSources, AutomationCompletionHandler&&);
 #endif
+#endif
+#if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
+    void forgetPressedMouseButton(MouseButton);
 #endif
 
 #if PLATFORM(MAC)

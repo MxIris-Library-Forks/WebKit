@@ -1498,11 +1498,14 @@ CanvasColorSpaceEnabled:
 
 CanvasColorTypeEnabled:
   type: bool
-  status: testable
+  status: Supporthdr2dcanvas_feature_status
   category: dom
   humanReadableName: "Canvas Color Types and ImageData Pixel Formats"
   humanReadableDescription: "Allow different color types and pixel formats in 2D canvas"
-  defaultValue: false
+  defaultValue:
+    "ENABLE(HDR_2D_CANVAS_BY_DEFAULT)": true
+    default: false
+    WebKitLegacy: false
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
 
@@ -1814,7 +1817,7 @@ CoreMathMLEnabled:
 # FIXME: This has to require Local Network Access or Opaque Response Blocking before it can become stable.
 CrossOriginEmbedderPolicyCredentiallessEnabled:
   type: bool
-  status: unstable
+  status: testable
   category: security
   humanReadableName: "Cross-Origin-Embedder-Policy: credentialless"
   humanReadableDescription: "Support for credentialless Cross-Origin-Embedder-Policy and Document-Isolation-Policy values"
@@ -2133,6 +2136,16 @@ DocumentIsolationPolicyEnabled:
   category: security
   humanReadableName: "Document-Isolation-Policy header"
   humanReadableDescription: "Support for the Document-Isolation-Policy header"
+  defaultValue: false
+  sharedPreferenceForWebProcess: true
+
+DocumentPictureInPictureAPIEnabled:
+  type: bool
+  status: testable
+  category: media
+  humanReadableName: "Document Picture-in-Picture API"
+  humanReadableDescription: "Enable the Document Picture-in-Picture API"
+  condition: ENABLE(DOCUMENT_PIP)
   defaultValue: false
   sharedPreferenceForWebProcess: true
 
@@ -2494,11 +2507,11 @@ FasterClicksEnabled:
 
 FetchLaterAPIEnabled:
   type: bool
-  status: preview
+  status: stable
   category: networking
   humanReadableName: "fetchLater() API"
   humanReadableDescription: "Enable the fetchLater() deferred fetch API"
-  defaultValue: false
+  defaultValue: true
 
 FetchUploadStreamsEnabled:
   type: bool
@@ -3068,6 +3081,15 @@ IPCTestingAPIEnabled:
   condition: ENABLE(IPC_TESTING_API)
   excludeFrom: [ WebKitLegacy, WebCore ]
   defaultValue: false
+
+IgnoreAudioDecodingErrors:
+  type: bool
+  status: stable
+  category: media
+  humanReadableName: "Ignore audio decoding errors"
+  humanReadableDescription: "Keep playing when audio fails to decode"
+  defaultValue: true
+  sharedPreferenceForWebProcess: true
 
 IgnoreIframeEmbeddingProtectionsEnabled:
   type: bool
@@ -3831,14 +3853,6 @@ LinkSanitizerEnabled:
   humanReadableName: "Link Sanitizer"
   humanReadableDescription: "Enable link sanitizer"
   defaultValue: false
-
-ListMarkerPositionedPostLayoutEnabled:
-  type: bool
-  status: stable
-  category: css
-  humanReadableName: "Position outside list markers after layout"
-  humanReadableDescription: "Keep an outside list marker as the list item's first child and position it after layout, instead of reparenting it into the descendant that holds the first line box"
-  defaultValue: true
 
 LoadDeferringEnabled:
   type: bool

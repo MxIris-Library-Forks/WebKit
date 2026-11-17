@@ -308,21 +308,21 @@ void WebAutomationSession::terminate()
 #if ENABLE(WEBDRIVER_KEYBOARD_INTERACTIONS)
     for (auto& identifier : copyToVector(m_pendingKeyboardEventsFlushedCallbacksPerPage.keys())) {
         auto callback = m_pendingKeyboardEventsFlushedCallbacksPerPage.take(identifier);
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(InternalError);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(InternalError)));
     }
 #endif // ENABLE(WEBDRIVER_KEYBOARD_INTERACTIONS)
 
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
     for (auto& identifier : copyToVector(m_pendingMouseEventsFlushedCallbacksPerPage.keys())) {
         auto callback = m_pendingMouseEventsFlushedCallbacksPerPage.take(identifier);
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(InternalError);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(InternalError)));
     }
 #endif // ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
 
 #if ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
     for (auto& identifier : copyToVector(m_pendingWheelEventsFlushedCallbacksPerPage.keys())) {
         auto callback = m_pendingWheelEventsFlushedCallbacksPerPage.take(identifier);
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(InternalError);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(InternalError)));
     }
 #endif // ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
 
@@ -1960,21 +1960,21 @@ void WebAutomationSession::willClosePage(const WebPageProxy& page)
     // actions to be aborted and the SimulatedInputDispatcher::run() call will unwind and fail.
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
     if (auto callback = m_pendingMouseEventsFlushedCallbacksPerPage.take(page.identifier()))
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(WindowNotFound);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(WindowNotFound)));
 #endif
 #if ENABLE(WEBDRIVER_KEYBOARD_INTERACTIONS)
     if (auto callback = m_pendingKeyboardEventsFlushedCallbacksPerPage.take(page.identifier()))
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(WindowNotFound);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(WindowNotFound)));
 #endif
 #if ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
     if (auto callback = m_pendingWheelEventsFlushedCallbacksPerPage.take(page.identifier()))
-        ASYNC_FAIL_WITH_PREDEFINED_ERROR(WindowNotFound);
+        callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(WindowNotFound)));
 #endif
 
 #if ENABLE(WEBDRIVER_ACTIONS_API)
     // Then tell the input dispatcher to cancel so timers are stopped, and let it go out of scope.
     if (auto inputDispatcher = m_inputDispatchersByPage.take(page.identifier()))
-        inputDispatcher->cancel();
+        inputDispatcher->cancel(AUTOMATION_COMMAND_ERROR_WITH_NAME(WindowNotFound));
 #endif
 
 #if ENABLE(WEBDRIVER_BIDI)
@@ -2191,10 +2191,10 @@ NODELETE static std::optional<CoordinateSystem> protocolStringToCoordinateSystem
 // frame's process hit tests when the click is dispatched. Force a presentation update in every
 // process first. Each one broadcasts its geometry before acknowledging the update, so the frame's
 // process receives it ahead of ComputeElementLayout.
-static void sendComputeElementLayout(WebPageProxy& page, std::optional<WebCore::FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, bool scrollIntoViewIfNeeded, CoordinateSystem coordinateSystem, WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)>&& completionHandler)
+static void sendComputeElementLayout(WebPageProxy& page, std::optional<WebCore::FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, bool scrollIntoViewIfNeeded, CoordinateSystem coordinateSystem, NodeHandleKind nodeHandleKind, WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)>&& completionHandler)
 {
-    auto send = [page = protect(page), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem, completionHandler = WTF::move(completionHandler)] mutable {
-        page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ComputeElementLayout(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem), WTF::move(completionHandler));
+    auto send = [page = protect(page), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem, nodeHandleKind, completionHandler = WTF::move(completionHandler)] mutable {
+        page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::ComputeElementLayout(page->webPageIDInProcessForFrame(frameID), frameID, nodeHandle, scrollIntoViewIfNeeded, coordinateSystem, nodeHandleKind == NodeHandleKind::SharedReference), WTF::move(completionHandler));
     };
 
     RefPtr frame = WebFrameProxy::webFrame(frameID);
@@ -2248,7 +2248,7 @@ void WebAutomationSession::computeElementLayout(const Inspector::Protocol::Autom
     };
 
     bool scrollIntoViewIfNeeded = optionalScrollIntoViewIfNeeded && *optionalScrollIntoViewIfNeeded;
-    sendComputeElementLayout(*page, frameID, nodeHandle, scrollIntoViewIfNeeded, *coordinateSystem, WTF::move(completionHandler));
+    sendComputeElementLayout(*page, frameID, nodeHandle, scrollIntoViewIfNeeded, *coordinateSystem, NodeHandleKind::WebElementReference, WTF::move(completionHandler));
 }
 
 void WebAutomationSession::getComputedRole(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, CommandCallback<String>&& callback)
@@ -3010,7 +3010,7 @@ void WebAutomationSession::runBidiInteractionSequence(WebPageProxy& page, std::o
         }
 
         // FIXME: Refresh the viewport when an earlier action in the sequence scrolls or re-lays out the page. <https://webkit.org/b/329451>
-        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { SimulatedInputViewport { viewport->location(), viewport->size() }, true }, WTF::move(completionHandler));
+        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { .viewport = SimulatedInputViewport { viewport->location(), viewport->size() }, .interpolatePointerMoves = true, .elementOriginHandleKind = NodeHandleKind::SharedReference }, WTF::move(completionHandler));
     };
 
     auto send = [page = protect(page), frameID, didGetFrameViewportHandler = WTF::move(didGetFrameViewportHandler)] mutable {
@@ -3027,7 +3027,7 @@ void WebAutomationSession::runBidiInteractionSequence(WebPageProxy& page, std::o
 #endif // ENABLE(WEBDRIVER_BIDI)
 
 // MARK: SimulatedInputDispatcher::Client API
-void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page, std::optional<FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&& completionHandler)
+void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page, std::optional<FrameIdentifier> frameID, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, NodeHandleKind nodeHandleKind, Function<void(std::optional<WebCore::IntPoint>, std::optional<AutomationCommandError>)>&& completionHandler)
 {
     WTF::CompletionHandler<void(std::optional<String>&&, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&&, bool)> didComputeElementLayoutHandler = [completionHandler = WTF::move(completionHandler)](std::optional<String>&& optionalError, WebCore::FloatRect&&, std::optional<WebCore::IntPoint>&& inViewCenterPoint, bool) mutable {
         if (optionalError) {
@@ -3046,7 +3046,7 @@ void WebAutomationSession::viewportInViewCenterPointOfElement(WebPageProxy& page
         completionHandler(inViewCenterPoint, std::nullopt);
     };
 
-    sendComputeElementLayout(page, frameID, nodeHandle, false, CoordinateSystem::LayoutViewport, WTF::move(didComputeElementLayoutHandler));
+    sendComputeElementLayout(page, frameID, nodeHandle, false, CoordinateSystem::LayoutViewport, nodeHandleKind, WTF::move(didComputeElementLayoutHandler));
 }
 
 #if ENABLE(WEBDRIVER_MOUSE_INTERACTIONS)
@@ -3090,6 +3090,11 @@ void WebAutomationSession::clearDoubleClicks()
 {
     m_clickCount = 1;
     m_lastClickPosition.reset();
+}
+
+void WebAutomationSession::forgetPressedMouseButton(MouseButton button)
+{
+    m_mouseButtonsCurrentlyDown.set(button, false);
 }
 
 void WebAutomationSession::simulateMouseInteraction(WebPageProxy& page, MouseInteraction interaction, MouseButton mouseButton, const WebCore::IntPoint& locationInViewport, const String& pointerType, CompletionHandler<void(std::optional<AutomationCommandError>)>&& completionHandler)
@@ -3280,6 +3285,22 @@ void WebAutomationSession::evaluateBidiScript(const Inspector::Protocol::Automat
         callback(WTF::move(result));
     } });
 }
+
+#if ENABLE(WEBDRIVER_BIDI)
+void WebAutomationSession::getBidiRealmInfo(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, CompletionHandler<void(std::optional<RealmIdentifier>&&)>&& completionHandler)
+{
+    RefPtr page = webPageProxyForHandle(browsingContextHandle);
+    if (!page)
+        return completionHandler(std::nullopt);
+
+    bool frameNotFound = false;
+    auto frameID = webFrameIDForHandle(frameHandle, frameNotFound);
+    if (frameNotFound)
+        return completionHandler(std::nullopt);
+
+    page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::GetBidiRealmInfo(page->webPageIDInProcessForFrame(frameID), frameID), WTF::move(completionHandler));
+}
+#endif
 
 void WebAutomationSession::performMouseInteraction(const Inspector::Protocol::Automation::BrowsingContextHandle& handle, Ref<JSON::Object>&& requestedPosition, Inspector::Protocol::Automation::MouseButton mouseButton, Inspector::Protocol::Automation::MouseInteraction mouseInteraction, Ref<JSON::Array>&& keyModifierStrings, CommandCallback<Ref<Inspector::Protocol::Automation::Point>>&& callback)
 {
@@ -3653,7 +3674,7 @@ void WebAutomationSession::cancelInteractionSequence(const Inspector::Protocol::
 
     Vector<SimulatedInputKeyFrame> keyFrames({ SimulatedInputKeyFrame::keyFrameToResetInputSources(m_inputSources) });
     Ref inputDispatcher = inputDispatcherForPage(*page);
-    inputDispatcher->cancel();
+    inputDispatcher->cancel(AUTOMATION_COMMAND_ERROR_WITH_NAME(InternalError));
     
     inputDispatcher->run(frameID, WTF::move(keyFrames), m_inputSources, SimulatedInputRunOptions { }, [this, protectedThis = Ref { *this }, callback = WTF::move(callback)](std::optional<AutomationCommandError> error) {
         if (error)

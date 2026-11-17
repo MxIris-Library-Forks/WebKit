@@ -143,6 +143,8 @@ Modules/credentialmanagement/CredentialsContainer.cpp @cost:3
 Modules/credentialmanagement/NavigatorCredentials.cpp @cost:3
 Modules/device-posture/DevicePosture.cpp
 Modules/device-posture/NavigatorDevicePosture.cpp
+Modules/documentpip/DocumentPictureInPicture.cpp
+Modules/documentpip/DocumentPictureInPictureEvent.cpp
 Modules/entriesapi/DOMFileSystem.cpp
 Modules/entriesapi/ErrorCallback.cpp
 Modules/entriesapi/FileSystemDirectoryEntry.cpp
@@ -1277,6 +1279,7 @@ css/values/images/CSSGradient.cpp
 css/values/images/CSSGradientColorInterpolationMethod.cpp
 css/values/images/CSSImageWrapper.cpp
 css/values/images/CSSMeshGradient.cpp
+css/values/link-params/CSSLinkParameter.cpp
 css/values/masking/CSSClip.cpp
 css/values/masking/CSSMaskBorderOutset.cpp
 css/values/masking/CSSMaskBorderRepeat.cpp
@@ -1648,7 +1651,8 @@ html/BaseTextInputType.cpp
 html/ButtonInputType.cpp
 html/CanvasBase.cpp @header:RenderStyleGetters @cost:8
 html/CanvasNoiseInjection.cpp
-html/CheckboxInputType.cpp @header:RenderStyleGetters @cost:6
+html/CheckboxInputType.cpp
+html/CheckboxSwitch.cpp
 html/ColorInputType.cpp @header:RenderStyleGetters @cost:9
 html/CustomPaintCanvas.cpp
 html/DOMFormData.cpp
@@ -2027,6 +2031,7 @@ inspector/agents/InspectorDOMDebuggerAgent.cpp
 inspector/agents/InspectorDOMStorageAgent.cpp
 inspector/agents/InspectorIndexedDBAgent.cpp
 inspector/agents/InspectorLayerTreeAgent.cpp @header:RenderStyleGetters
+inspector/agents/InspectorMediaEventTracker.cpp
 inspector/agents/InspectorMemoryAgent.cpp
 inspector/agents/InspectorNetworkAgent.cpp @header:RenderStyleGetters
 inspector/agents/InspectorPageAgent.cpp @header:RenderStyleGetters
@@ -3023,21 +3028,15 @@ plugins/PluginInfoProvider.cpp
 rendering/AccessibilityRegionContext.cpp @header:RenderStyleGetters @cost:6
 rendering/AncestorSubgridIterator.cpp @header:RenderStyleGetters @cost:5
 rendering/AutoTableLayout.cpp @header:RenderStyleGetters @cost:6
-rendering/BackgroundPainter.cpp @header:RenderStyleGetters @cost:7
 rendering/BaselineAlignment.cpp @header:RenderStyleGetters @cost:4
 rendering/BlockStepSizing.cpp @header:RenderStyleGetters @cost:4
 rendering/BorderEdge.cpp @header:RenderStyleGetters @cost:4
-rendering/BorderPainter.cpp @header:RenderStyleGetters @cost:6
 rendering/BorderShape.cpp @header:RenderStyleGetters @cost:5
-rendering/BoxDecorationPainter.cpp @header:RenderStyleGetters @cost:5
 rendering/BreakablePositions.cpp
 rendering/CSSFilterRenderer.cpp @header:RenderStyleGetters @cost:6
 rendering/CaretRectComputation.cpp @header:RenderStyleGetters @cost:6
-rendering/ClipPathPaintScope.cpp
 rendering/ClipRect.cpp
-rendering/ContentfulPaintChecker.cpp
 rendering/CounterNode.cpp
-rendering/EllipsisBoxPainter.cpp @header:RenderStyleGetters @cost:5
 rendering/EventRegion.cpp @header:RenderStyleGetters @cost:5
 rendering/FixedTableLayout.cpp @header:RenderStyleGetters @cost:5
 rendering/FloatingObjects.cpp @header:RenderStyleGetters @cost:5
@@ -3054,7 +3053,6 @@ rendering/HitTestRequest.cpp @header:RenderStyleGetters @cost:4
 rendering/HitTestResult.cpp @header:RenderStyleGetters @cost:7
 rendering/HitTestingTransformState.cpp
 rendering/ImageQualityController.cpp @header:RenderStyleGetters @cost:5
-rendering/InlineBoxPainter.cpp @header:RenderStyleGetters @cost:6
 rendering/LayerAncestorClippingStack.cpp
 rendering/LayerOverlapMap.cpp
 rendering/LayoutScope.cpp
@@ -3065,11 +3063,8 @@ rendering/LayoutRepainter.cpp
 rendering/LegacyLineClampUpdater.cpp
 rendering/LineClampUpdater.cpp
 rendering/MarkedText.cpp @header:RenderStyleGetters @cost:6
-rendering/MaskPainter.cpp @header:RenderStyleGetters @cost:4
 rendering/MotionPath.cpp @header:RenderStyleGetters @cost:5
-rendering/NinePieceImagePainter.cpp @header:RenderStyleGetters @cost:5
 rendering/OrderIterator.cpp @header:RenderStyleGetters @cost:4
-rendering/OutlinePainter.cpp @header:RenderStyleGetters @cost:6
 rendering/PathOperation.cpp
 rendering/PointerEventsHitRules.cpp
 rendering/PositionedLayoutConstraints.cpp @header:RenderStyleGetters @cost:6
@@ -3156,11 +3151,7 @@ rendering/SubtreeScrollbarChangesState.cpp
 rendering/StyledMarkedText.cpp @header:RenderStyleGetters
 rendering/TableLayout.cpp @header:RenderStyleGetters
 rendering/TextAutoSizing.cpp @header:RenderStyleGetters
-rendering/TextBoxPainter.cpp @header:RenderStyleGetters
 rendering/TextBoxTrimmer.cpp @header:RenderStyleGetters
-rendering/TextDecorationPainter.cpp @header:RenderStyleGetters
-rendering/TextPaintStyle.cpp @header:RenderStyleGetters
-rendering/TextPainter.cpp @header:RenderStyleGetters
 rendering/TransformOperationData.cpp
 rendering/mathml/MathMLStyle.cpp @header:RenderStyleGetters
 rendering/mathml/MathOperator.cpp @header:RenderStyleGetters
@@ -3179,6 +3170,20 @@ rendering/mathml/RenderMathMLSpace.cpp @header:RenderStyleGetters
 rendering/mathml/RenderMathMLToken.cpp @header:RenderStyleGetters
 rendering/mathml/RenderMathMLUnderOver.cpp @header:RenderStyleGetters
 rendering/mathml/MathVariant.cpp
+rendering/paint/BackgroundPainter.cpp @header:RenderStyleGetters @cost:7
+rendering/paint/BorderPainter.cpp @header:RenderStyleGetters @cost:6
+rendering/paint/BoxDecorationPainter.cpp @header:RenderStyleGetters @cost:5
+rendering/paint/ClipPathPaintScope.cpp
+rendering/paint/ContentfulPaintChecker.cpp
+rendering/paint/EllipsisBoxPainter.cpp @header:RenderStyleGetters @cost:5
+rendering/paint/InlineBoxPainter.cpp @header:RenderStyleGetters @cost:6
+rendering/paint/MaskPainter.cpp @header:RenderStyleGetters @cost:4
+rendering/paint/NinePieceImagePainter.cpp @header:RenderStyleGetters @cost:5
+rendering/paint/OutlinePainter.cpp @header:RenderStyleGetters @cost:6
+rendering/paint/TextBoxPainter.cpp @header:RenderStyleGetters
+rendering/paint/TextDecorationPainter.cpp @header:RenderStyleGetters
+rendering/paint/TextPaintStyle.cpp @header:RenderStyleGetters
+rendering/paint/TextPainter.cpp @header:RenderStyleGetters
 rendering/shapes/BoxLayoutShape.cpp @header:RenderStyleGetters
 rendering/shapes/LayoutShape.cpp
 rendering/shapes/PathLayoutShape.cpp
@@ -3502,6 +3507,7 @@ style/values/images/kinds/StyleCanvasImage.cpp @header:RenderStyleGetters @cost:
 style/values/images/kinds/StyleCrossfadeImage.cpp
 style/values/images/kinds/StyleCursorImage.cpp
 style/values/images/kinds/StyleFilterImage.cpp @header:RenderStyleGetters @cost:6
+style/values/images/kinds/StyleFreeformGradientImage.cpp
 style/values/images/kinds/StyleGeneratedImage.cpp @header:RenderStyleGetters @cost:6
 style/values/images/kinds/StyleGradientImage.cpp @header:RenderStyleGetters @cost:6
 style/values/images/kinds/StyleImage.cpp
@@ -3512,6 +3518,7 @@ style/values/images/kinds/StyleMultiImage.cpp
 style/values/images/kinds/StyleColorImage.cpp
 style/values/images/kinds/StyleNamedImage.cpp
 style/values/images/kinds/StylePaintImage.cpp @header:RenderStyleGetters @cost:6
+style/values/images/StyleFreeformGradient.cpp
 style/values/images/StyleGradient.cpp @header:RenderStyleGetters @cost:6
 style/values/images/StyleImageOrNone.cpp
 style/values/images/StyleImageOrientation.cpp
@@ -4132,6 +4139,7 @@ JSCanvasPattern.cpp
 JSCanvasRect.cpp
 JSCanvasRenderingContext2D.cpp
 JSCanvasRenderingContext2DSettings.cpp
+JSCanvasSettings.cpp
 JSCanvasShadowStyles.cpp
 JSCanvasState.cpp
 JSCanvasText.cpp
@@ -4287,6 +4295,8 @@ JSDocument.cpp
 JSDocumentAndElementEventHandlers.cpp
 JSDocumentFragment.cpp
 JSDocumentOrShadowRoot.cpp
+JSDocumentPictureInPicture.cpp
+JSDocumentPictureInPictureEvent.cpp
 JSDocumentTimeline.cpp
 JSDocumentTimelineOptions.cpp
 JSDocumentType.cpp

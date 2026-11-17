@@ -27,6 +27,7 @@
 #include "config.h"
 #include "LayoutIntegrationBoxGeometryUpdater.h"
 
+#include "BaselineAlignment.h"
 #include "FontCascadeInlines.h"
 #include "FormattingConstraints.h"
 #include "InlineWalker.h"
@@ -54,8 +55,6 @@
 #include "RenderLayerScrollableArea.h"
 #include "RenderLayoutState.h"
 #include "RenderLineBreak.h"
-#include "RenderListItem.h"
-#include "RenderListOutsideMarker.h"
 #include "RenderMathMLBlock.h"
 #include "RenderMenuList.h"
 #include "RenderModel.h"
@@ -108,58 +107,6 @@ BoxGeometryUpdater::BoxGeometryUpdater(Layout::LayoutState& layoutState, const L
 void BoxGeometryUpdater::clear()
 {
     m_rootLayoutBox = nullptr;
-    m_nestedListMarkerOffsets.clear();
-}
-
-void BoxGeometryUpdater::setListMarkerOffsetForMarkerOutside(const RenderListOutsideMarker& listMarker)
-{
-    CheckedRef layoutBox = listMarker.layoutBox();
-    ASSERT(layoutBox->isListMarkerBox());
-    CheckedPtr ancestor = listMarker.containingBlock();
-
-    auto offsetFromParentListItem = [&] {
-        auto hasAccountedForBorderAndPadding = false;
-        auto offset = LayoutUnit { };
-        for (; ancestor; ancestor = ancestor->containingBlock()) {
-            if (!hasAccountedForBorderAndPadding)
-                offset -= (ancestor->borderStart() + ancestor->paddingStart());
-            if (is<RenderListItem>(*ancestor))
-                break;
-            offset -= (ancestor->marginStart(ancestor->writingMode()));
-            if (ancestor->isFlexItem()) {
-                offset -= ancestor->logicalLeft();
-                hasAccountedForBorderAndPadding = true;
-                continue;
-            }
-            hasAccountedForBorderAndPadding = false;
-        }
-        return offset;
-    }();
-
-    auto offsetFromAssociatedListItem = [&] {
-        CheckedPtr associatedListItem = listMarker.listItem();
-        if (ancestor == associatedListItem || !ancestor) {
-            // FIXME: Handle column spanner case when ancestor is null_ptr here.
-            return offsetFromParentListItem;
-        }
-        auto offset = offsetFromParentListItem;
-        for (ancestor = ancestor->containingBlock(); ancestor; ancestor = ancestor->containingBlock()) {
-            offset -= (ancestor->marginStart(ancestor->writingMode()) + ancestor->borderStart() + ancestor->paddingStart());
-            if (ancestor == associatedListItem)
-                break;
-        }
-        return offset;
-    }();
-
-    if (offsetFromAssociatedListItem) {
-        CheckedRef layoutState = this->layoutState();
-        auto& listMarkerGeometry = layoutState->ensureGeometryForBox(layoutBox);
-        // Make sure that the line content does not get pulled in to logical left direction due to
-        // the large negative margin (i.e. this ensures that logical left of the list content stays at the line start)
-        listMarkerGeometry.setHorizontalMargin({ listMarkerGeometry.marginStart() + offsetFromParentListItem, listMarkerGeometry.marginEnd() - offsetFromParentListItem });
-        if (auto nestedOffset = offsetFromAssociatedListItem - offsetFromParentListItem)
-            m_nestedListMarkerOffsets.set(WTF::move(layoutBox), nestedOffset);
-    }
 }
 
 static inline LayoutUnit contentLogicalWidthForRenderer(const RenderBox& renderer, LayoutUnit logicalSpaceAroundContent)
@@ -504,12 +451,6 @@ static std::optional<LayoutUnit> baselineForBox(const RenderBox& renderBox)
         return { };
     }
 
-    if (CheckedPtr listMarker = dynamicDowncast<RenderListOutsideMarker>(renderBox)) {
-        if (CheckedPtr listItem = listMarker->listItem(); listItem && !listMarker->isImage())
-            return fontMetricsBasedBaseline(*listMarker);
-        return { };
-    }
-
     if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(renderBox)) {
         if (shouldUseMarginBoxAsBaseline(*blockFlow) || (blockFlow->style().overflowY() != Overflow::Visible && usesLegacyScrollContainerBaseline(*blockFlow)))
             return marginBoxBottom;
@@ -548,9 +489,6 @@ static inline void setIntegrationBaseline(const RenderBox& renderBox, Layout::Bo
         return;
 
     auto hasNonSyntheticBaseline = [&] {
-        if (auto* renderListMarker = dynamicDowncast<RenderListOutsideMarker>(renderBox))
-            return !renderListMarker->isImage();
-
         if (is<RenderReplaced>(renderBox) && renderBox.style().display() == Style::DisplayType::InlineFlow)
             return true;
 
@@ -582,31 +520,33 @@ static inline void setIntegrationBaseline(const RenderBox& renderBox, Layout::Bo
         return hasAppearance || !blockFlow->childrenInline() || blockFlow->hasContentfulInlineOrBlockLine() || blockFlow->hasLineIfEmpty();
     };
 
-    if (hasNonSyntheticBaseline()) {
-        auto baselinePosition = [&]() -> LayoutUnit {
-            auto rootWritingMode = renderBox.containingBlock()->writingMode();
-            auto marginBefore = renderBox.writingMode().isHorizontal() ? renderBox.marginTop() : renderBox.marginRight();
+    if (!hasNonSyntheticBaseline())
+        return;
 
-            if (auto baseline = baselineForBox(renderBox)) {
-                *baseline = rootWritingMode.isLineInverted() ? renderBox.logicalHeight() - *baseline : *baseline;
-                return marginBefore + *baseline;
-            }
+    auto rootWritingMode = renderBox.containingBlock()->writingMode();
+    auto marginBefore = renderBox.writingMode().isHorizontal() ? renderBox.marginTop() : renderBox.marginRight();
 
-            auto marginBoxLogicalHeight = renderBox.marginBoxLogicalHeight(rootWritingMode);
-            auto isWritingModeRoot = rootWritingMode.computedWritingMode() != renderBox.writingMode().computedWritingMode();
-
-            if (renderBox.isFieldset())
-                return marginBoxLogicalHeight;
-
-            if (is<RenderButton>(renderBox)) {
-                auto contentBoxBottom = rootWritingMode.isHorizontal() ? renderBox.borderTop() + renderBox.paddingTop() + renderBox.contentBoxHeight() : renderBox.borderRight() + renderBox.paddingRight() + renderBox.contentBoxWidth();
-                return marginBefore + contentBoxBottom;
-            }
-
-            return rootWritingMode.prefersCentralBaseline() && !isWritingModeRoot ? marginBoxLogicalHeight / 2 : marginBoxLogicalHeight;
-        };
-        boxGeometry.setBaseline(baselinePosition());
+    if (auto baseline = baselineForBox(renderBox)) {
+        *baseline = rootWritingMode.isLineInverted() ? renderBox.logicalHeight() - *baseline : *baseline;
+        boxGeometry.setBaseline(marginBefore + *baseline);
+        return;
     }
+
+    if (is<RenderButton>(renderBox)) {
+        auto contentBoxBottom = rootWritingMode.isHorizontal() ? renderBox.borderTop() + renderBox.paddingTop() + renderBox.contentBoxHeight() : renderBox.borderRight() + renderBox.paddingRight() + renderBox.contentBoxWidth();
+        boxGeometry.setBaseline(marginBefore + contentBoxBottom);
+        return;
+    }
+
+    auto marginBoxLogicalHeight = renderBox.marginBoxLogicalHeight(rootWritingMode);
+    if (renderBox.isFieldset()) {
+        boxGeometry.setSynthesizedBaseline(marginBoxLogicalHeight);
+        return;
+    }
+
+    auto isWritingModeRoot = rootWritingMode.computedWritingMode() != renderBox.writingMode().computedWritingMode();
+    auto baseline = rootWritingMode.prefersCentralBaseline() && !isWritingModeRoot ? AlignmentBaseline::Central : AlignmentBaseline::Alphabetic;
+    boxGeometry.setSynthesizedBaseline(BaselineAlignment::synthesizedBaselineOffsetFromLineOverEdge(baseline, marginBoxLogicalHeight));
 }
 
 void BoxGeometryUpdater::updateLayoutBoxDimensions(const RenderBox& renderBox, std::optional<LayoutUnit> availableWidth, std::optional<Layout::IntrinsicWidthMode> intrinsicWidthMode)
@@ -785,12 +725,6 @@ void BoxGeometryUpdater::updateBoxGeometryAfterIntegrationLayout(const Layout::E
         // FIXME: These should eventually be all absorbed by LFC layout.
         setIntegrationBaseline(*renderBox, boxGeometry);
 
-        if (CheckedPtr renderListMarker = dynamicDowncast<RenderListOutsideMarker>(*renderBox)) {
-            CheckedRef style = layoutBox.parent().style();
-            boxGeometry.setHorizontalMargin(horizontalLogicalMargin(*renderListMarker, { }, style->writingMode()));
-            setListMarkerOffsetForMarkerOutside(*renderListMarker);
-        }
-
         if (is<RenderTable>(*renderBox)) {
             // Tables have their special collapsed border values (updated at layout).
             CheckedRef style = layoutBox.parent().style();
@@ -839,8 +773,6 @@ void BoxGeometryUpdater::updateBoxGeometry(const RenderElement& renderer, std::o
 
     if (auto* renderBox = dynamicDowncast<RenderBox>(renderer)) {
         updateLayoutBoxDimensions(*renderBox, availableWidth, intrinsicWidthMode);
-        if (auto* renderListMarker = dynamicDowncast<RenderListOutsideMarker>(renderer))
-            setListMarkerOffsetForMarkerOutside(*renderListMarker);
         return;
     }
 

@@ -64,7 +64,6 @@ public:
     };
     static FirstFormattedLineCandidate firstFormattedLineRootFor(RenderBlock& blockContainer, const RenderBoxModelObject& marker);
     static Vector<CheckedPtr<RenderListOutsideMarker>> excludedMarkersForContainer(const RenderBlockFlow& lineContainer, const Vector<SingleThreadWeakPtr<RenderListOutsideMarker>>&);
-    static CheckedPtr<RenderListOutsideMarker> excludedMarkerAnchoredTo(const RenderBlockFlow& firstFormattedLineRoot);
 
 private:
     ASCIILiteral renderName() const final { return "RenderListItem"_s; }
@@ -82,7 +81,6 @@ private:
 
     void styleDidChange(Style::Difference, const Style::ComputedStyle* oldStyle) final;
 
-    std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidthContributions() final;
     std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidths() const final;
 
     void updateValueAndMarkerContent();

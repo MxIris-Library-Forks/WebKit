@@ -65,6 +65,25 @@ static inline NSDictionary *toWebAPI(const WebExtensionBookmarkParameters& bookm
     } else
         result[typeKey] = folderKey;
 
+    switch (bookmark.folderType) {
+    case WebExtensionBookmarkFolderType::None:
+        break;
+    case WebExtensionBookmarkFolderType::BookmarksBar:
+        result[folderTypeKey] = @"bookmarks-bar";
+        break;
+    case WebExtensionBookmarkFolderType::Managed:
+        result[folderTypeKey] = @"managed";
+        break;
+    case WebExtensionBookmarkFolderType::Other:
+        result[folderTypeKey] = @"other";
+        break;
+    }
+
+    if (bookmark.managed)
+        result[unmodifiableKey] = @"managed";
+
+    result[syncingKey] = @(bookmark.synced);
+
     if (bookmark.children) {
         result[childrenKey] = createNSArray(*bookmark.children, [](const auto& child) {
             return toWebAPI(child);
@@ -270,11 +289,28 @@ void WebExtensionAPIBookmarks::move(NSString *bookmarkIdentifier, NSDictionary *
     }, extensionContext().identifier());
 }
 
-void WebExtensionAPIBookmarks::remove(NSString *bookmarkIdentifier, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)
+void WebExtensionAPIBookmarks::remove(NSObject *idOrIdList, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)
 {
     // Documentation: https://developer.mozilla.org/docs/Mozilla/Add-ons/WebExtensions/API/bookmarks/remove
 
-    WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::BookmarksRemove(bookmarkIdentifier), [protectedThis = Ref { *this }, callback = WTF::move(callback)](std::expected<void, WebExtensionError>&& result) {
+    if (!validateObject(idOrIdList, idOrIdListKey, [NSOrderedSet orderedSetWithObjects:NSString.class, @[ NSString.class ], nil], outExceptionString))
+        return;
+
+    Vector<String> bookmarkIdentifiers;
+
+    if (auto *bookmarkIdentifier = dynamic_objc_cast<NSString>(idOrIdList))
+        bookmarkIdentifiers.append(bookmarkIdentifier);
+    else if (auto *identifierList = dynamic_objc_cast<NSArray>(idOrIdList)) {
+        for (NSString *bookmarkIdentifier in identifierList)
+            bookmarkIdentifiers.append(bookmarkIdentifier);
+    }
+
+    if (bookmarkIdentifiers.isEmpty()) {
+        *outExceptionString = toErrorString(nullString(), idOrIdListKey, @"it must contain at least one identifier").createNSString().autorelease();
+        return;
+    }
+
+    WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::BookmarksRemove(bookmarkIdentifiers), [protectedThis = Ref { *this }, callback = WTF::move(callback)](std::expected<void, WebExtensionError>&& result) {
         if (!result) {
             callback->reportError(result.error().createNSString().get());
             return;

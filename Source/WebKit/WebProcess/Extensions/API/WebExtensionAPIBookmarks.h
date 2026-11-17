@@ -29,6 +29,7 @@
 
 #include "JSWebExtensionAPIBookmarks.h"
 #include "WebExtensionAPIObject.h"
+#include "WebExtensionBookmarkParameters.h"
 
 namespace WebKit {
 
@@ -36,6 +37,8 @@ class WebExtensionAPIBookmarks : public WebExtensionAPIObject, public JSWebExten
     WEB_EXTENSION_DECLARE_JS_WRAPPER_CLASS(WebExtensionAPIBookmarks, bookmarks, bookmarks);
 
 public:
+    String rootNodeIdentifier() const { return webExtensionBookmarkRootIdentifier; }
+
 #if PLATFORM(COCOA)
     void createBookmark(NSDictionary *bookmark, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
 
@@ -45,7 +48,7 @@ public:
     void getTree(Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
     void get(NSObject *idOrIdList, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
 
-    void remove(NSString *bookmarkIdentifier, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
+    void remove(NSObject *idOrIdList, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
     void removeTree(NSString *bookmarkIdentifier, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);
 
     void search(NSObject *query, Ref<WebExtensionCallbackHandler>&&, NSString **outExceptionString);

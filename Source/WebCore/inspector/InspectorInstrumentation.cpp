@@ -180,6 +180,10 @@ void InspectorInstrumentation::addEventListenersToNodeImpl(InstrumentingAgents& 
 {
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         domAgent->addEventListenersToNode(node);
+    if (RefPtr frame = node.document().frame()) {
+        if (CheckedPtr frameDOMAgent = frame->inspectorController().instrumentingAgents().persistentFrameDOMAgent())
+            frameDOMAgent->addEventListenersToNode(node);
+    }
 }
 
 void InspectorInstrumentation::willInsertDOMNodeImpl(InstrumentingAgents& instrumentingAgents, Node& parent)
@@ -739,6 +743,8 @@ void InspectorInstrumentation::eventDidResetAfterDispatchImpl(InstrumentingAgent
 {
     if (CheckedPtr domAgent = instrumentingAgents.persistentDOMAgent())
         domAgent->eventDidResetAfterDispatch(event);
+    if (CheckedPtr frameDOMAgent = instrumentingAgents.persistentFrameDOMAgent())
+        frameDOMAgent->eventDidResetAfterDispatch(event);
 }
 
 void InspectorInstrumentation::willEvaluateScriptImpl(InstrumentingAgents& instrumentingAgents, const String& url, int lineNumber, int columnNumber)
@@ -1900,6 +1906,16 @@ InstrumentingAgents* InspectorInstrumentation::instrumentingAgents(Document& doc
     if (!page && document.templateDocumentHost())
         page = document.templateDocumentHost()->page();
     return instrumentingAgents(page);
+}
+
+// Unlike instrumentingAgents(Document&), prefers the document's frame, whose own agents report its records
+// under Site Isolation. A document without a frame has no page, except a template document, which uses its
+// host's page.
+InstrumentingAgents* InspectorInstrumentation::instrumentingAgentsForFrameOrPage(Document& document)
+{
+    if (RefPtr frame = document.frame())
+        return &instrumentingAgents(*frame);
+    return instrumentingAgents(document);
 }
 
 InstrumentingAgents& InspectorInstrumentation::instrumentingAgents(Page& page)

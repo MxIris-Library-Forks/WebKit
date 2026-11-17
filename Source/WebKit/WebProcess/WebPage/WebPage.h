@@ -1192,7 +1192,7 @@ public:
     Awaitable<std::optional<WebCore::FrameIdentifier>> commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebCore::PointerID, CompletesDoubleClick);
     void cancelPotentialTap();
     void cancelPotentialTapInFrame(WebFrame&);
-    void commitPotentialTapFailed();
+    void commitPotentialTapFailed(WebCore::LocalFrame* localRootFrame);
     void didHandleTapAsHover(WebCore::Node& nodeRespondingToClick);
 #if HAVE(APPKIT_GESTURES_SUPPORT)
     bool isHoverActivatedByClick(const WebCore::Node& hitNode, const WebCore::IntPoint& locationInRootView) const;
@@ -1234,7 +1234,7 @@ public:
     bool allowsUserScaling() const;
 
     void attemptSyntheticClick(std::optional<WebCore::FrameIdentifier>, const WebCore::IntPoint&, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
-    void tapHighlightAtPosition(WebKit::TapIdentifier, const WebCore::FloatPoint&);
+    void tapHighlightAtPosition(std::optional<WebCore::FrameIdentifier>, WebKit::TapIdentifier, const WebCore::FloatPoint&, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
     void didRecognizeLongPress();
 
     void inspectorNodeSearchMovedToPosition(const WebCore::FloatPoint&);
@@ -1282,7 +1282,7 @@ public:
     bool isShowingInputViewForFocusedElement() const { return m_isShowingInputViewForFocusedElement; }
     void updateSelectionAppearance();
     void getSelectionContext(CompletionHandler<void(const String&, const String&, const String&)>&&);
-    void handleTwoFingerTapAtPoint(const WebCore::IntPoint&, OptionSet<WebKit::WebEventModifier>, WebKit::TapIdentifier);
+    void handleTwoFingerTapAtPoint(std::optional<WebCore::FrameIdentifier>, const WebCore::IntPoint&, OptionSet<WebKit::WebEventModifier>, WebKit::TapIdentifier, CompletionHandler<void(std::optional<WebCore::RemoteUserInputEventData>)>&&);
     void getRectsForGranularityWithSelectionOffset(WebCore::TextGranularity, int32_t, CompletionHandler<void(const Vector<WebCore::SelectionGeometry>&)>&&);
     void getRectsAtSelectionOffsetWithText(int32_t, const String&, CompletionHandler<void(const Vector<WebCore::SelectionGeometry>&)>&&);
     void storeSelectionForAccessibility(bool);
@@ -2525,6 +2525,7 @@ private:
 
 #if ENABLE(TWO_PHASE_CLICKS)
     void dispatchDeferredSyntheticClickIfNeeded();
+    void sendDidNotHandleTapAsClick(WebCore::LocalFrame* localRootFrame, WebCore::FloatPoint pointInLocalRootView);
 #endif
 
     void cancelPointer(WebCore::PointerID, const WebCore::IntPoint&);

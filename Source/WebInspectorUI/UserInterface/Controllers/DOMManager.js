@@ -314,7 +314,7 @@ WI.DOMManager = class DOMManager extends WI.Object
 
             // An owner that is already in the page tree would have connected the node when it arrived, so the
             // node is still pending only because the splice did not happen.
-            let owner = target instanceof WI.FrameTarget ? this.nodeForIdInFrameTarget(ownerNodeId, target) : this.nodeForId(ownerNodeId);
+            let owner = this.nodeForIdInTarget(ownerNodeId, target);
             if (!owner || this._isInPageTree(owner)) {
                 revealAsIs();
                 return;
@@ -461,6 +461,13 @@ WI.DOMManager = class DOMManager extends WI.Object
     nodeForIdInFrameTarget(nodeId, target)
     {
         return this._idToDOMNode[DOMManager.keyForNodeId(nodeId, target)] || null;
+    }
+
+    nodeForIdInTarget(nodeId, target)
+    {
+        if (target instanceof WI.FrameTarget)
+            return this.nodeForIdInFrameTarget(nodeId, target);
+        return this.nodeForId(nodeId);
     }
 
     _frameTargetSetChildNodes(target, parentId, payloads)
@@ -1145,18 +1152,18 @@ WI.DOMManager = class DOMManager extends WI.Object
         node.dispatchEventToListeners(WI.DOMNode.Event.EventListenersChanged);
     }
 
-    didFireEvent(nodeId, eventName, timestamp, data)
+    didFireEvent(nodeId, eventName, timestamp, data, target)
     {
-        let node = this._idToDOMNode[nodeId];
+        let node = target instanceof WI.FrameTarget ? this.nodeForIdInFrameTarget(nodeId, target) : this._idToDOMNode[nodeId];
         if (!node)
             return;
 
         node.didFireEvent(eventName, timestamp, data);
     }
 
-    powerEfficientPlaybackStateChanged(nodeId, timestamp, isPowerEfficient)
+    powerEfficientPlaybackStateChanged(nodeId, timestamp, isPowerEfficient, target)
     {
-        let node = this._idToDOMNode[nodeId];
+        let node = target instanceof WI.FrameTarget ? this.nodeForIdInFrameTarget(nodeId, target) : this._idToDOMNode[nodeId];
         if (!node)
             return;
 
@@ -1167,7 +1174,7 @@ WI.DOMManager = class DOMManager extends WI.Object
 
     nodeLayoutFlagsChanged(nodeId, layoutFlags, target)
     {
-        let domNode = target instanceof WI.FrameTarget ? this.nodeForIdInFrameTarget(nodeId, target) : this._idToDOMNode[nodeId];
+        let domNode = this.nodeForIdInTarget(nodeId, target);
         console.assert(domNode instanceof WI.DOMNode, domNode, nodeId);
         if (!domNode)
             return;

@@ -341,6 +341,7 @@ enum class CSSPropertyID : uint16_t;
 enum class DidUpdateAnyContentRelevancy : bool;
 
 enum class CompositeOperator : uint8_t;
+enum class ConsistentQueryParameterFilteringLevel : uint8_t;
 enum class ContentRelevancy : uint8_t;
 #if ENABLE(DOM_AUDIO_SESSION)
 enum class DOMAudioSessionType : uint8_t;
@@ -930,6 +931,7 @@ public:
     WEBCORE_EXPORT const URL& urlForBindings();
 
     URL adjustedURL() const;
+    ConsistentQueryParameterFilteringLevel consistentQueryParameterFilteringLevelForBindings();
 
     const URL& creationURL() const LIFETIME_BOUND { return m_creationURL; }
 
@@ -1212,6 +1214,9 @@ public:
     WEBCORE_EXPORT bool isViewportDocument() const;
     void processDisabledAdaptations(const String& adaptations);
     void updateViewportArguments();
+#if PLATFORM(IOS_FAMILY)
+    void updateViewportDefaultConfiguration();
+#endif
     void processReferrerPolicy(const String& policy, ReferrerPolicySource);
 
     void metaElementThemeColorChanged(HTMLMetaElement&);
@@ -1487,7 +1492,6 @@ public:
     void initContentSecurityPolicy();
 
     void inheritPolicyContainerFrom(const PolicyContainer&) final;
-    void enforceSandboxFlags(SandboxFlags, SandboxFlagsSource = SandboxFlagsSource::Other) final;
 
     WEBCORE_EXPORT void updateURLForPushOrReplaceState(const URL&);
     void statePopped(Ref<SerializedScriptValue>&&);
@@ -1772,7 +1776,7 @@ public:
     void setIsOriginKeyed(OriginKeyed value) { m_isOriginKeyed = value; }
 
     std::optional<AgentClusterIdentifier> agentClusterIdentifier() const { return m_agentClusterIdentifier; }
-    void setAgentClusterIdentifier(std::optional<AgentClusterIdentifier> identifier) { m_agentClusterIdentifier = identifier; }
+    void setAgentClusterIdentifier(std::optional<AgentClusterIdentifier>);
 
     void willLoadScriptElement(const URL&);
     void willLoadFrameElement(const URL&);
@@ -2289,7 +2293,7 @@ private:
 
     // ScriptExecutionContext
     CSSFontSelector* cssFontSelector() final;
-    RefPtr<FontLoadRequest> fontLoadRequest(const String&, bool, bool, LoadedFromOpaqueSource) final;
+    RefPtr<FontLoadRequest> fontLoadRequest(const String&, bool, bool, const CSS::URLModifiers&) final;
     void beginLoadingFontSoon(FontLoadRequest&) final;
 
     // FontSelectorClient
@@ -2445,6 +2449,7 @@ private:
     URL m_firstPartyForCookies; // The policy URL for third-party cookie blocking.
     URL m_siteForCookies; // The policy URL for Same-Site cookies.
     URL m_adjustedURL; // The URL to return for bindings after a cross-site navigation when advanced privacy protections are enabled.
+    std::optional<ConsistentQueryParameterFilteringLevel> m_consistentQueryParameterFilteringLevelForBindings;
 
     // Document.documentURI:
     // Although URL-like, Document.documentURI can actually be set to any

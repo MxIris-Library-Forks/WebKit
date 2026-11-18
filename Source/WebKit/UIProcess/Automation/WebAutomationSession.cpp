@@ -94,6 +94,10 @@
 #include "WebDriverBidiProcessor.h"
 #endif
 
+#if ENABLE(WK_WEB_EXTENSIONS_IN_WEBDRIVER)
+#include "WebExtensionContext.h"
+#endif
+
 // FIXME: https://bugs.webkit.org/show_bug.cgi?id=306415
 #include "WebKit-Swift.h"
 
@@ -2863,6 +2867,68 @@ void WebAutomationSession::unloadWebExtension(const String& identifier, CommandC
         callback({ });
     });
 }
+
+NODELETE static std::optional<Inspector::Protocol::Automation::WebExtensionPageType> webExtensionPageType(WebExtensionContext::WebViewPurpose purpose)
+{
+    switch (purpose) {
+    case WebExtensionContext::WebViewPurpose::Background:
+        return Inspector::Protocol::Automation::WebExtensionPageType::Background;
+    case WebExtensionContext::WebViewPurpose::Popup:
+        return Inspector::Protocol::Automation::WebExtensionPageType::Popup;
+    case WebExtensionContext::WebViewPurpose::Sidebar:
+        return Inspector::Protocol::Automation::WebExtensionPageType::Sidebar;
+    case WebExtensionContext::WebViewPurpose::Tab:
+        return Inspector::Protocol::Automation::WebExtensionPageType::Tab;
+#if ENABLE(WK_WEB_EXTENSIONS_OFFSCREEN)
+    case WebExtensionContext::WebViewPurpose::Offscreen:
+        return Inspector::Protocol::Automation::WebExtensionPageType::Offscreen;
+#endif
+    case WebExtensionContext::WebViewPurpose::Any:
+    case WebExtensionContext::WebViewPurpose::Inspector:
+        return std::nullopt;
+    }
+
+    RELEASE_ASSERT_NOT_REACHED();
+}
+
+void WebAutomationSession::getWebExtensionPages(const String& identifier, CommandCallbackOf<String, Ref<JSON::ArrayOf<Inspector::Protocol::Automation::WebExtensionPage>>>&& callback)
+{
+    ASSERT(m_client);
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!m_client, InternalError, "The remote session could not look up the web extension."_s);
+
+    RefPtr extensionContext = m_client->webExtensionContextForIdentifier(*this, identifier);
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!extensionContext || !extensionContext->isLoaded(), NoSuchExtension, "No loaded web extension has this identifier."_s);
+
+    bool backgroundIsServiceWorker = protect(extensionContext->extension())->backgroundContentIsServiceWorker();
+    auto replyWithPages = [protectedThis = Ref { *this }, extensionContext, backgroundIsServiceWorker, callback = WTF::move(callback)] mutable {
+        auto pages = JSON::ArrayOf<Inspector::Protocol::Automation::WebExtensionPage>::create();
+
+        extensionContext->enumerateExtensionPages([&](WebPageProxy& page, bool&) {
+            auto purpose = extensionContext->purposeOfExtensionPage(page.identifier());
+            if (!purpose || (*purpose == WebExtensionContext::WebViewPurpose::Background && backgroundIsServiceWorker))
+                return;
+
+            auto type = webExtensionPageType(*purpose);
+            if (!type)
+                return;
+
+            pages->addItem(Inspector::Protocol::Automation::WebExtensionPage::create()
+                .setHandle(protectedThis->handleForWebPageProxy(page))
+                .setType(*type)
+                .setUrl(activeOrInitialURL(page).string())
+                .release());
+        });
+
+        callback({ { extensionContext->baseURL().string(), WTF::move(pages) } });
+    };
+
+    if (backgroundIsServiceWorker) {
+        replyWithPages();
+        return;
+    }
+
+    extensionContext->wakeUpBackgroundContentIfNecessary(WTF::move(replyWithPages));
+}
 #endif
 
 CommandResult<void> WebAutomationSession::generateTestReport(const String& browsingContextHandle, const String& message, const String& group)
@@ -3742,13 +3808,21 @@ void WebAutomationSession::takeScreenshot(const Inspector::Protocol::Automation:
 #if PLATFORM(GTK) || PLATFORM(COCOA) || PLATFORM(WPE)
     Function<void(WebPageProxy&, std::optional<WebCore::IntRect>&&, CommandCallback<String>&&)> takeViewSnapshot = [](WebPageProxy& page, std::optional<WebCore::IntRect>&& rect, CommandCallback<String>&& callback) {
         page.callAfterNextPresentationUpdate([page = protect(page), rect = WTF::move(rect), callback = WTF::move(callback)] () mutable {
-            RefPtr snapshot = page->takeViewSnapshot(WTF::move(rect), ForceSoftwareCapturingViewportSnapshot::Yes);
-            ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!snapshot, InternalError);
+            auto snapshotView = [page, rect = WTF::move(rect), callback = WTF::move(callback)] mutable {
+                RefPtr snapshot = page->takeViewSnapshot(WTF::move(rect), ForceSoftwareCapturingViewportSnapshot::Yes);
+                ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!snapshot, InternalError);
 
-            std::optional<String> base64EncodedData = platformGetBase64EncodedPNGData(*snapshot);
-            ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!base64EncodedData, InternalError);
+                std::optional<String> base64EncodedData = platformGetBase64EncodedPNGData(*snapshot);
+                ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!base64EncodedData, InternalError);
 
-            callback(base64EncodedData.value());
+                callback(base64EncodedData.value());
+            };
+#if PLATFORM(MAC)
+            // The view snapshot is a window server capture, and the layer changes this presentation update waited for haven't reached the window server yet.
+            platformCallAfterWindowServerDrawsView(page, WTF::move(snapshotView));
+#else
+            snapshotView();
+#endif
         });
     };
 

@@ -162,7 +162,6 @@ public:
 
     void updateStyleIfNeeded();
 
-    bool hasSVGFontFaceSource() const;
     bool supportsSVGVariantCaps(FontVariantCaps) const;
     void setErrorState();
 
@@ -171,7 +170,6 @@ private:
 
     size_t pump(ExternalResourceDownloadPolicy);
     void setStatus(Status);
-    void notifyClientsOfFontPropertyChange();
 
     void initializeWrapper();
 

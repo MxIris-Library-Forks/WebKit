@@ -1177,7 +1177,6 @@ css/parser/CSSSupportsParser.cpp
 css/parser/CSSTokenizer.cpp
 css/parser/CSSTokenizerInputStream.cpp
 css/parser/CSSSubstitutionParser.cpp
-css/parser/MediaQueryBlockWatcher.cpp
 css/parser/MutableCSSSelector.cpp
 css/parser/SizesAttributeParser.cpp @header:RenderStyleGetters
 css/query/ContainerQuery.cpp
@@ -1556,6 +1555,7 @@ domjit/JSNodeDOMJIT.cpp
 editing/AlternativeTextController.cpp @cost:3
 editing/AppendNodeCommand.cpp
 editing/ApplyBlockElementCommand.cpp @header:RenderStyleGetters
+editing/ApplyBlockPresentationIntentCommand.cpp
 editing/ApplyStyleCommand.cpp @header:RenderStyleGetters
 editing/BreakBlockquoteCommand.cpp
 editing/CachedMatchFinder.cpp
@@ -2800,6 +2800,7 @@ platform/graphics/PixelBuffer.cpp
 platform/graphics/PixelBufferConversion.cpp
 platform/graphics/PixelBufferFormat.cpp
 platform/graphics/PixelFormat.cpp
+platform/graphics/PlanarImageConverter.cpp
 platform/graphics/PlatformDynamicRangeLimit.cpp
 platform/graphics/PlatformTimeRanges.cpp
 platform/graphics/PlatformVideoColorSpace.cpp

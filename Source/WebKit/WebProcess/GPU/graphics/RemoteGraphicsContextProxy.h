@@ -101,7 +101,9 @@ private:
     std::optional<WebCore::RenderingMethod> renderingMethod() const final { return std::nullopt; }
 
     void save(WebCore::GraphicsContextState::Purpose) final;
-    void restore(WebCore::GraphicsContextState::Purpose) final;
+    bool restore(WebCore::GraphicsContextState::Purpose) final;
+    void saveTransform() final;
+    bool restoreTransform() final;
     void translate(float x, float y) final;
     void rotate(float angle) final;
     void scale(const WebCore::FloatSize&) final;
@@ -158,10 +160,6 @@ private:
     void drawGlyphs(const WebCore::Font&, std::span<const WebCore::GlyphBufferGlyph>, std::span<const WebCore::GlyphBufferAdvance>, const WebCore::FloatPoint& localAnchor, WebCore::FontSmoothingMode) final;
     void drawGlyphsImmediate(const WebCore::FontBase&, std::span<const WebCore::GlyphBufferGlyph>, std::span<const WebCore::GlyphBufferAdvance>, const WebCore::FloatPoint& localAnchor, WebCore::FontSmoothingMode) final;
 
-#if USE(CG)
-    void applyStrokePattern() final;
-    void applyFillPattern() final;
-#endif
     void applyDeviceScaleFactor(float) final;
 
     void beginPage(const WebCore::FloatRect&) final;

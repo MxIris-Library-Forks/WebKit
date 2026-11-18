@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <WebCore/AffineTransform.h>
 #include <WebCore/ColorSpace.h>
 #include <WebCore/ControlPart.h>
 #include <WebCore/DashArray.h>
@@ -181,7 +182,12 @@ public:
     void updatePlatformContextState() { didUpdateState(m_state); }
 
     WEBCORE_EXPORT virtual void save(GraphicsContextState::Purpose = GraphicsContextState::Purpose::SaveRestore);
-    WEBCORE_EXPORT virtual void restore(GraphicsContextState::Purpose = GraphicsContextState::Purpose::SaveRestore);
+    // These return false, doing nothing, when the innermost saved state was not saved for the matching purpose.
+    WEBCORE_EXPORT virtual bool restore(GraphicsContextState::Purpose = GraphicsContextState::Purpose::SaveRestore);
+
+    // Saves and restores only the CTM, leaving the rest of the state, such as the clip, as it is.
+    WEBCORE_EXPORT virtual void saveTransform();
+    WEBCORE_EXPORT virtual bool restoreTransform();
 
     void unwindStateStack(unsigned count);
     WEBCORE_EXPORT void unwindStateStack();
@@ -189,10 +195,6 @@ public:
     unsigned stackSize() const { return m_stack.size(); }
 
 #if USE(CG)
-    // FIXME: Should these really be public GraphicsContext methods?
-    virtual void applyStrokePattern() = 0;
-    virtual void applyFillPattern() = 0;
-
     // FIXME: Can we make this a why instead of a what, and then have it exist cross-platform?
     virtual bool isCALayerContext() const = 0;
 #endif
@@ -417,6 +419,10 @@ protected:
         Color strokeColor;
     };
     RectsAndStrokeColor computeRectsAndStrokeColorForLinesForText(const FloatPoint& origin, float thickness, std::span<const FloatSegment>, bool isPrinting, bool doubleLines, StrokeStyle);
+
+    // Whether the innermost saved state was saved for the purpose. A restore for another purpose is ignored,
+    // since the platform context did not save its state for the innermost saved state.
+    bool canRestore(GraphicsContextState::Purpose purpose) const { return !m_stack.isEmpty() && m_state.purpose() == purpose; }
 
     GraphicsContextState m_state;
 private:

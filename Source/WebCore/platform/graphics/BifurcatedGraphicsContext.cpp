@@ -76,13 +76,14 @@ void BifurcatedGraphicsContext::save(GraphicsContextState::Purpose purpose)
     VERIFY_STATE_SYNCHRONIZATION();
 }
 
-void BifurcatedGraphicsContext::restore(GraphicsContextState::Purpose purpose)
+bool BifurcatedGraphicsContext::restore(GraphicsContextState::Purpose purpose)
 {
-    GraphicsContext::restore(purpose);
+    bool restored = GraphicsContext::restore(purpose);
     m_primaryContext.restore(purpose);
     m_secondaryContext.restore(purpose);
 
     VERIFY_STATE_SYNCHRONIZATION();
+    return restored;
 }
 
 void BifurcatedGraphicsContext::drawRect(const FloatRect& rect, float borderThickness)
@@ -111,26 +112,6 @@ void BifurcatedGraphicsContext::drawEllipse(const FloatRect& rect)
 
     VERIFY_STATE_SYNCHRONIZATION();
 }
-
-#if USE(CG)
-void BifurcatedGraphicsContext::applyStrokePattern()
-{
-    updatePlatformContextStateIfNeeded();
-    m_primaryContext.applyStrokePattern();
-    m_secondaryContext.applyStrokePattern();
-
-    VERIFY_STATE_SYNCHRONIZATION();
-}
-
-void BifurcatedGraphicsContext::applyFillPattern()
-{
-    updatePlatformContextStateIfNeeded();
-    m_primaryContext.applyFillPattern();
-    m_secondaryContext.applyFillPattern();
-
-    VERIFY_STATE_SYNCHRONIZATION();
-}
-#endif
 
 void BifurcatedGraphicsContext::drawPath(const Path& path)
 {
@@ -511,6 +492,23 @@ void BifurcatedGraphicsContext::setCTM(const AffineTransform& transform)
     m_secondaryContext.setCTM(transform);
 
     VERIFY_STATE_SYNCHRONIZATION();
+}
+
+void BifurcatedGraphicsContext::saveTransform()
+{
+    m_primaryContext.saveTransform();
+    m_secondaryContext.saveTransform();
+
+    VERIFY_STATE_SYNCHRONIZATION();
+}
+
+bool BifurcatedGraphicsContext::restoreTransform()
+{
+    bool restored = m_primaryContext.restoreTransform();
+    m_secondaryContext.restoreTransform();
+
+    VERIFY_STATE_SYNCHRONIZATION();
+    return restored;
 }
 
 AffineTransform BifurcatedGraphicsContext::getCTM(IncludeDeviceScale includeDeviceScale) const

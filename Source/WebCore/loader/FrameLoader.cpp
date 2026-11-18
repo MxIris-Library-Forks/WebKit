@@ -792,14 +792,6 @@ void FrameLoader::clear(RefPtr<Document>&& newDocument, bool clearWindowProperti
     if (clearScriptObjects)
         protect(frame->script())->clearScriptObjects();
 
-    if (CheckedPtr newDocumentCSP = newDocument->contentSecurityPolicy()) {
-        bool enableEvalValue = newDocumentCSP->evalErrorMessage().isNull();
-        bool enableWASMValue = newDocumentCSP->webAssemblyErrorMessage().isNull();
-        CheckedRef script = frame->script();
-        script->setEvalEnabled(enableEvalValue, newDocumentCSP->evalErrorMessage());
-        script->setWebAssemblyEnabled(enableWASMValue, newDocumentCSP->webAssemblyErrorMessage());
-    }
-
     protect(frame->navigationScheduler())->clear();
 
     m_checkTimer.stop();
@@ -951,7 +943,6 @@ void FrameLoader::didBeginDocument(bool dispatch, LocalDOMWindow* previousWindow
 
     document->updateHasUnpartitionedStorageAccess(protect(m_documentLoader).get());
     updateFirstPartyForCookies();
-    document->initContentSecurityPolicy();
 
     Ref settings = frame->settings();
     protect(document->cachedResourceLoader())->setImagesEnabled(settings->areImagesEnabled());
@@ -960,15 +951,6 @@ void FrameLoader::didBeginDocument(bool dispatch, LocalDOMWindow* previousWindow
     std::optional<NavigationNavigationType> navigationType;
 
     if (RefPtr documentLoader = m_documentLoader) {
-        // The DocumentLoader may have already parsed the CSP header to do some checks. If so, reuse the already parsed version instead of parsing again.
-        if (CheckedPtr contentSecurityPolicy = documentLoader->contentSecurityPolicy())
-            protect(document->contentSecurityPolicy())->didReceiveHeaders(*contentSecurityPolicy, ContentSecurityPolicy::ReportParsingErrors::No);
-        else
-            protect(document->contentSecurityPolicy())->didReceiveHeaders(ContentSecurityPolicyResponseHeaders(documentLoader->response()), referrer(), ContentSecurityPolicy::ReportParsingErrors::No);
-
-        if (document->url().protocolIsBlob())
-            protect(document->contentSecurityPolicy())->updateSourceSelf(SecurityOrigin::create(document->url()));
-
         if (document->url().protocolIsInHTTPFamilyOrBlob()) {
             auto isSecureContext = document->isSecureContext() ? IsSecureContext::Yes : IsSecureContext::No;
             document->setCrossOriginEmbedderPolicy(obtainCrossOriginEmbedderPolicy(documentLoader->response(), isSecureContext, credentiallessSupport(document->settingsValues()), document.ptr()));
@@ -2810,7 +2792,7 @@ void FrameLoader::commitProvisionalLoad()
             cachedPage->cachedMainFrame()->wasPrivateRelayed(),
             restoredDocument->identifier(),
             restoredDocument->securityOrigin().data(),
-            DocumentSecurityPolicy { restoredDocument->crossOriginEmbedderPolicy(), restoredDocument->crossOriginOpenerPolicy(), restoredDocument->isSecureContext() ? IsSecureContext::Yes : IsSecureContext::No, restoredDocument->agentClusterIdentifier() },
+            DocumentSecurityPolicy { restoredDocument->crossOriginEmbedderPolicy(), restoredDocument->crossOriginOpenerPolicy(), restoredDocument->isSecureContext() ? IsSecureContext::Yes : IsSecureContext::No, restoredDocument->agentClusterIdentifier(), restoredDocument->isSandboxed(SandboxFlag::Origin) },
             restoredContentSecurityPolicy ? restoredContentSecurityPolicy->insecureNavigationRequestsToUpgrade() : HashSet<SecurityOriginData> { },
             restoredDocument->isPluginDocument()
         });
@@ -2861,9 +2843,10 @@ IGNORE_GCC_WARNINGS_END
         history().updateForClientRedirect();
 
     if (m_loadingFromCachedPage) {
-        // Note, didReceiveDocType is expected to be called for cached pages. See <rdar://problem/5906758> for more details.
-        if (RefPtr page = frame->page())
-            page->chrome().didReceiveDocType(frame);
+#if PLATFORM(IOS_FAMILY)
+        // Note, updateViewportDefaultConfiguration is expected to be called for cached pages. See <rdar://problem/5906758> for more details.
+        protect(frame->document())->updateViewportDefaultConfiguration();
+#endif
         protect(frame->document())->resume(ReasonForSuspension::BackForwardCache);
 
         // Force a layout to update view size and thereby update scrollbars.
@@ -3892,7 +3875,7 @@ void FrameLoader::updateRequestAndAddExtraFields(Frame& targetFrame, ResourceReq
         }
     }
 
-    if (page && isMainResource && !request.didFilterLinkDecoration()) {
+    if (page && isMainFrameMainResource && !request.didFilterLinkDecoration()) {
         auto [filteredURL, didFilter] = page->chrome().client().applyLinkDecorationFilteringWithResult(request.url(), LinkDecorationFilteringTrigger::Navigation);
         request.setURL(WTF::move(filteredURL), didFilter == DidFilterLinkDecoration::Yes);
     }

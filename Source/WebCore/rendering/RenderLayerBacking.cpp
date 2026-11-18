@@ -722,6 +722,9 @@ void RenderLayerBacking::createPrimaryGraphicsLayer()
 #endif
     updateBackdropRoot();
     updateScreenCaptureProtection();
+#if ENABLE(SPATIAL_PORTAL)
+    updateIsHostedInSpatialPortalScene();
+#endif
     updateBlendMode(style);
 #if ENABLE(VIDEO)
     updateVideoGravity(style);
@@ -1331,7 +1334,11 @@ void RenderLayerBacking::updateAllowsBackingStoreDetaching(bool allowDetachingFo
     };
 
     if (!m_owningLayer.behavesAsFixed()) {
+#if ENABLE(SPATIAL_PORTAL)
+        setAllowsBackingStoreDetaching(!RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer));
+#else
         setAllowsBackingStoreDetaching(true);
+#endif
         return;
     }
 
@@ -1592,10 +1599,7 @@ bool RenderLayerBacking::updateConfiguration(const RenderLayer* compositingAnces
 #if ENABLE(SPATIAL_PORTAL)
     if (RefPtr element = renderer->element()) {
         if (CheckedPtr controller = element->spatialPortalController()) {
-            updateContentsRects();
-            auto portalBackgroundColor = blendSourceOver(renderer->theme().systemColor(CSSValueID::Canvas, renderer->styleColorOptions(StyleColorOptionsPurpose::Rendering)), rendererBackgroundColor());
-            controller->configureGraphicsLayer(graphicsLayer, portalBackgroundColor);
-            controller->sizeMayHaveChanged();
+            configureSpatialPortalLayer(*controller);
             layerConfigChanged = true;
         }
     }
@@ -1779,7 +1783,13 @@ LayoutRect RenderLayerBacking::computeParentGraphicsLayerRect(const RenderLayer*
         LayoutRect ancestorCompositedBounds = ancestorBacking->compositedBounds();
         LayoutRect scrollContainerBox = scrollContainerLayerBox(*ancestorRenderBox);
         ScrollOffset scrollOffset = scrollableArea->scrollOffset();
-        parentGraphicsLayerRect = LayoutRect((scrollContainerBox.location() - toLayoutSize(ancestorCompositedBounds.location()) - toLayoutSize(scrollOffset)), scrollContainerBox.size());
+        auto scrolledContentsLocation = scrollContainerBox.location() - toLayoutSize(ancestorCompositedBounds.location());
+        if (!ancestorBacking->hasClippingLayer()) {
+            // Match the pixel-snapped position of the ancestor's scroll container layer (see updateGeometry()).
+            auto scrollContainerOffset = computeOffsetFromAncestorGraphicsLayer(compositedAncestor, scrollContainerBox.location(), pixelSnappingScaleFactor());
+            scrolledContentsLocation = snappedGraphicsLayer(scrollContainerOffset, scrollContainerBox.size(), protect(renderer())).m_snappedRect.location();
+        }
+        parentGraphicsLayerRect = LayoutRect(scrolledContentsLocation - toLayoutSize(scrollOffset), scrollContainerBox.size());
     }
 
     return parentGraphicsLayerRect;
@@ -1841,6 +1851,9 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
 #endif
     updateBackdropRoot();
     updateScreenCaptureProtection();
+#if ENABLE(SPATIAL_PORTAL)
+    updateIsHostedInSpatialPortalScene();
+#endif
     updateBlendMode(style);
     updateContentsScalingFilters(style);
 
@@ -1954,7 +1967,7 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
         clipLayer->setOffsetFromRenderer(toLayoutSize(clippingBox.location() - snappedClippingGraphicsLayer.m_snapDelta));
 
         auto computeMasksToBoundsRect = [&] {
-            if ((renderer->hasClipPath() || style->border().hasBorderRadius())) {
+            if ((renderer->hasClipPath() || renderer->usedStyle().hasBorderRadius())) {
                 auto borderShape = BorderShape::shapeForBorderRect(renderer->usedStyle(), owningLayer->rendererBorderBoxRect());
                 auto contentsClippingRect = contentsClippingRectForCornerShape(borderShape.deprecatedPixelSnappedInnerRoundedRect(pixelSnappingScaleFactor), style);
                 contentsClippingRect.move(LayoutSize(-clipLayer->offsetFromRenderer()));
@@ -1994,8 +2007,17 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
         LayoutRect scrollContainerBox = scrollContainerLayerBox(downcast<RenderBox>(renderer));
         LayoutRect parentLayerBounds = clippingLayer() ? scrollContainerBox : compositedBounds();
 
-        // FIXME: need to do some pixel snapping here.
-        scrollContainerLayer->setPosition(FloatPoint(scrollContainerBox.location() - parentLayerBounds.location()));
+        auto unsnappedScrollContainerPosition = scrollContainerBox.location() - parentLayerBounds.location();
+        LayoutSize scrollContainerSnapOffset;
+        if (!clippingLayer()) {
+            // Snap the same way the clipping layers of descendants are snapped (see updateClippingStackLayerGeometry()),
+            // so that content clipped by this layer and content clipped by those layers agree on the first device pixel row.
+            // The scrolled contents must not move along with the clip, so the offset from the renderer absorbs the snap.
+            auto scrollContainerOffsetFromGraphicsLayer = toLayoutSize(scrollContainerBox.location()) + rendererOffset.fromPrimaryGraphicsLayer();
+            auto snappedScrollContainerPosition = snappedGraphicsLayer(scrollContainerOffsetFromGraphicsLayer, scrollContainerBox.size(), renderer).m_snappedRect.location();
+            scrollContainerSnapOffset = snappedScrollContainerPosition - toLayoutPoint(unsnappedScrollContainerPosition);
+        }
+        scrollContainerLayer->setPosition(FloatPoint(toLayoutPoint(unsnappedScrollContainerPosition + scrollContainerSnapOffset)));
         scrollContainerLayer->setSize(roundedIntSize(LayoutSize(scrollContainerBox.width(), scrollContainerBox.height())));
 
         CheckedPtr scrollableArea = owningLayer->scrollableArea();
@@ -2005,7 +2027,7 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
         updateScrollOffset(scrollOffset);
 
         FloatSize oldScrollingLayerOffset = scrollContainerLayer->offsetFromRenderer();
-        scrollContainerLayer->setOffsetFromRenderer(toFloatSize(scrollContainerBox.location()));
+        scrollContainerLayer->setOffsetFromRenderer(toLayoutSize(scrollContainerBox.location()) + scrollContainerSnapOffset);
 
         bool paddingBoxOffsetChanged = oldScrollingLayerOffset != scrollContainerLayer->offsetFromRenderer();
 
@@ -2017,7 +2039,7 @@ void RenderLayerBacking::updateGeometry(const RenderLayer* compositedAncestor)
 
         scrolledContentsLayer->setSize(scrollSize);
         scrolledContentsLayer->setScrollOffset(scrollOffset, GraphicsLayer::ShouldSetNeedsDisplay::DoNotSet);
-        scrolledContentsLayer->setOffsetFromRenderer(toLayoutSize(scrollContainerBox.location()), GraphicsLayer::ShouldSetNeedsDisplay::DoNotSet);
+        scrolledContentsLayer->setOffsetFromRenderer(toLayoutSize(scrollContainerBox.location()) + scrollContainerSnapOffset, GraphicsLayer::ShouldSetNeedsDisplay::DoNotSet);
         
         adjustTiledBackingCoverage();
     }
@@ -2209,7 +2231,153 @@ void RenderLayerBacking::updateAfterDescendants()
         if (RefPtr layerForScrollCorner = m_layerForScrollCorner)
             layerForScrollCorner->setUserInteractionEnabled(userInteractive);
     }
+
+#if ENABLE(SPATIAL_PORTAL)
+    if (RefPtr element = renderer().element()) {
+        if (CheckedPtr controller = element->spatialPortalController())
+            updatePortalPromotedChildren(*controller);
+    }
+#endif
 }
+
+#if ENABLE(SPATIAL_PORTAL)
+void RenderLayerBacking::configureSpatialPortalLayer(SpatialPortalController& controller)
+{
+    updateContentsRects();
+    CheckedRef renderer = this->renderer();
+    auto portalBackgroundColor = blendSourceOver(renderer->theme().systemColor(CSSValueID::Canvas, renderer->styleColorOptions(StyleColorOptionsPurpose::Rendering)), rendererBackgroundColor());
+    controller.configureGraphicsLayer(protect(*m_graphicsLayer), portalBackgroundColor);
+    controller.sizeMayHaveChanged();
+}
+
+static bool collectPortalHostedLayers(RenderLayer& promotedChild, NodeIdentifier rootNodeID, RenderLayer& layer, const FloatPoint& childOriginInPortal, const FloatSize& childSize, Vector<PortalPromotedChild>& children)
+{
+    if (auto* backing = layer.backing()) {
+        if (backing->foregroundLayer() || backing->backgroundLayer() || backing->hasClippingLayer() || backing->hasAncestorClippingLayers() || backing->scrollContainerLayer() || backing->hasMaskLayer() || backing->viewportClippingOrAnchorLayer() || backing->overflowControlsContainer())
+            return false;
+
+        RefPtr graphicsLayer = backing->graphicsLayer();
+        if (compositedWithOwnBackingStore(layer) && graphicsLayer->drawsContent()) {
+            RefPtr element = layer.renderer().element();
+            if (!element || backing->tiledBacking() || !SpatialPortalController::canHostPromotedChild(layer.renderer()))
+                return false;
+
+            auto transform = SpatialPortalController::transformForHostedLayer(layer, promotedChild);
+            if (!transform)
+                return false;
+
+            FloatRect quadRect { { }, graphicsLayer->size() };
+            if (&layer == &promotedChild)
+                quadRect.move(graphicsLayer->offsetFromRenderer() + backing->subpixelOffsetFromRenderer());
+
+            children.append({
+                .nodeID = element->nodeIdentifier(),
+                .rootNodeID = rootNodeID,
+                .layer = *graphicsLayer,
+                .quadRectInChildSpace = quadRect,
+                .childOriginInPortal = childOriginInPortal,
+                .childSize = childSize,
+                .transform = *transform,
+            });
+        }
+    }
+
+    if (!layer.hasCompositingDescendant())
+        return true;
+
+    if (layer.renderer().hasNonVisibleOverflow() || !SpatialPortalController::canHostPromotedChild(layer.renderer()))
+        return false;
+
+    layer.updateLayerListsIfNeeded();
+    if (layer.isStackingContext()) {
+        for (CheckedPtr child : layer.negativeZOrderLayers()) {
+            if (child->isComposited() || child->hasCompositingDescendant())
+                return false;
+        }
+    }
+
+    for (CheckedPtr child : layer.normalFlowLayers()) {
+        if (!collectPortalHostedLayers(promotedChild, rootNodeID, *child, childOriginInPortal, childSize, children))
+            return false;
+    }
+
+    if (layer.isStackingContext()) {
+        for (CheckedPtr child : layer.positiveZOrderLayers()) {
+            if (!collectPortalHostedLayers(promotedChild, rootNodeID, *child, childOriginInPortal, childSize, children))
+                return false;
+        }
+    }
+
+    return true;
+}
+
+void RenderLayerBacking::updatePortalPromotedChildren(SpatialPortalController& controller)
+{
+    CheckedPtr portalBox = dynamicDowncast<RenderBox>(renderer());
+    if (!portalBox)
+        return;
+
+    FloatSize portalBorderOffset { portalBox->borderLeft().toFloat(), portalBox->borderTop().toFloat() };
+    Vector<PortalPromotedChild> children;
+    for (CheckedPtr childLayer = m_owningLayer.firstChild(); childLayer; childLayer = childLayer->nextSibling()) {
+        if (!RenderLayerCompositor::isPromotedSpatialPortalChild(*childLayer))
+            continue;
+
+        RefPtr childElement = childLayer->renderer().element();
+        if (!childElement || !compositedWithOwnBackingStore(*childLayer) || childLayer->paintsIntoProvidedBacking())
+            continue;
+
+        FloatSize offsetFromPortal { childLayer->offsetFromAncestor(&m_owningLayer) };
+        Vector<PortalPromotedChild> hostedLayers;
+        FloatSize childSize { childLayer->rendererBorderBoxRect().size() };
+        if (collectPortalHostedLayers(*childLayer, childElement->nodeIdentifier(), *childLayer, toFloatPoint(offsetFromPortal - portalBorderOffset), childSize, hostedLayers))
+            children.appendVector(WTF::move(hostedLayers));
+    }
+
+    bool hadPortalContent = controller.hasPortalContent();
+    controller.updatePromotedChildren(WTF::move(children));
+    if (hadPortalContent != controller.hasPortalContent())
+        configureSpatialPortalLayer(controller);
+
+    updateHostedPromotedChildren();
+}
+
+void RenderLayerBacking::updateHostedPromotedChildren()
+{
+    for (CheckedPtr childLayer = m_owningLayer.firstChild(); childLayer; childLayer = childLayer->nextSibling()) {
+        if (auto* backing = childLayer->backing())
+            backing->updateIsHostedInSpatialPortalScene();
+    }
+}
+
+void RenderLayerBacking::updateIsHostedInSpatialPortalScene()
+{
+    m_graphicsLayer->setIsHostedInSpatialPortalScene(!!hostingSpatialPortalController());
+}
+
+SpatialPortalController* RenderLayerBacking::promotedChildPortalController() const
+{
+    CheckedPtr promotedChild = RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer);
+    if (!promotedChild)
+        return nullptr;
+
+    RefPtr portalElement = promotedChild->parent()->renderer().element();
+    return portalElement ? portalElement->spatialPortalController() : nullptr;
+}
+
+SpatialPortalController* RenderLayerBacking::hostingSpatialPortalController() const
+{
+    if (!RenderLayerCompositor::isPromotedSpatialPortalChild(m_owningLayer))
+        return nullptr;
+
+    auto* controller = promotedChildPortalController();
+    RefPtr element = renderer().element();
+    if (!element || !controller || !controller->hostsPromotedChild(element->nodeIdentifier()))
+        return nullptr;
+
+    return controller;
+}
+#endif
 
 // FIXME: Avoid repaints when clip path changes.
 void RenderLayerBacking::updateMaskingLayerGeometry()
@@ -3908,6 +4076,11 @@ bool RenderLayerBacking::isSimpleContainerCompositingLayer(PaintedContentsInfo& 
     if (m_owningLayer.isRenderViewLayer())
         return false;
 
+#if ENABLE(SPATIAL_PORTAL)
+    if ((RenderLayerCompositor::isSpatialPortal(renderer()) || RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer)) && rendererBackgroundColor().isVisible())
+        return false;
+#endif
+
     // Scroll containers intentionally use the bitmap path for their background
     // in updateDrawsContent(), so they are not simple containers.
     if (m_scrollContainerLayer)
@@ -4095,6 +4268,11 @@ bool RenderLayerBacking::isDirectlyCompositedImage() const
     if (auto* viewTransitionCapture = dynamicDowncast<RenderViewTransitionCapture>(renderer()); viewTransitionCapture && viewTransitionCapture->displayOnlyImage())
         return true;
 
+#if ENABLE(SPATIAL_PORTAL)
+    if (RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer))
+        return false;
+#endif
+
     if (m_owningLayer.hasVisibleBoxDecorationsOrBackground() || m_owningLayer.shouldPaintWithFilters() || renderer().hasClip())
         return false;
 
@@ -4161,6 +4339,11 @@ bool RenderLayerBacking::isUnscaledBitmapOnly() const
 {
     if (!is<RenderImage>(renderer()) && !is<RenderHTMLCanvas>(renderer()))
         return false;
+
+#if ENABLE(SPATIAL_PORTAL)
+    if (RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer))
+        return false;
+#endif
 
     if (m_owningLayer.hasVisibleBoxDecorationsOrBackground())
         return false;
@@ -5027,6 +5210,13 @@ void RenderLayerBacking::paintContents(const GraphicsLayer& graphicsLayer, Graph
 
         paintIntoLayer(&graphicsLayer, context, dirtyRect, behavior);
 
+#if ENABLE(SPATIAL_PORTAL)
+        if (&graphicsLayer == m_graphicsLayer.get()) {
+            if (CheckedPtr controller = promotedChildPortalController())
+                controller->promotedChildDidPaint();
+        }
+#endif
+
         auto visibleDebugOverlayRegions = OptionSet<DebugOverlayRegions>::fromRaw(renderer().settings().visibleDebugOverlayRegions());
 
         if (visibleDebugOverlayRegions.containsAny({ DebugOverlayRegions::TouchActionRegion, DebugOverlayRegions::TouchEventRegion, DebugOverlayRegions::EditableElementRegion, DebugOverlayRegions::WheelEventHandlerRegion, DebugOverlayRegions::InteractionRegion }))
@@ -5775,6 +5965,11 @@ void RenderLayerBacking::setNeedsFixedContainerEdgesUpdateIfNeeded()
 
 OptionSet<ContentsFormat> RenderLayerBacking::screenContentsFormats() const
 {
+#if ENABLE(SPATIAL_PORTAL)
+    if (RenderLayerCompositor::promotedSpatialPortalChildForLayer(m_owningLayer))
+        return { ContentsFormat::RGBA8 };
+#endif
+
 #if PLATFORM(MAC) || PLATFORM(IOS_FAMILY)
     return WebCore::screenContentsFormats(&renderer().view().frameView());
 #else

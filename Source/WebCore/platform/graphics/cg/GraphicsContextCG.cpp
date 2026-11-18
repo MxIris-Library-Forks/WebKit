@@ -386,14 +386,15 @@ void GraphicsContextCG::save(GraphicsContextState::Purpose purpose)
     CGContextSaveGState(contextForState());
 }
 
-void GraphicsContextCG::restore(GraphicsContextState::Purpose purpose)
+bool GraphicsContextCG::restore(GraphicsContextState::Purpose purpose)
 {
-    if (!stackSize())
-        return;
+    if (!canRestore(purpose))
+        return false;
 
     GraphicsContext::restore(purpose);
     CGContextRestoreGState(contextForState());
     m_userToDeviceTransformKnownToBeIdentity = false;
+    return true;
 }
 
 void GraphicsContextCG::drawNativeImage(const NativeImage& nativeImage, const FloatRect& destRect, const FloatRect& srcRect, RasterDrawingOptions options)
@@ -1190,6 +1191,16 @@ IntRect GraphicsContextCG::clipBounds() const
     return enclosingIntRect(CGContextGetClipBoundingBox(contextForDraw()));
 }
 
+void GraphicsContextCG::drawGlyphsImmediate(const FontBase& font, std::span<const GlyphBufferGlyph> glyphs, std::span<const GlyphBufferAdvance> advances, const FloatPoint& point, FontSmoothingMode fontSmoothingMode)
+{
+    auto textDrawingMode = this->textDrawingMode();
+    if (textDrawingMode.contains(TextDrawingMode::Fill) && fillPattern())
+        applyFillPattern();
+    if (textDrawingMode.contains(TextDrawingMode::Stroke) && strokePattern())
+        applyStrokePattern();
+    FontCascade::drawGlyphs(*this, font, glyphs, advances, point, fontSmoothingMode);
+}
+
 void GraphicsContextCG::beginTransparencyLayer(float opacity)
 {
     GraphicsContext::beginTransparencyLayer(opacity);
@@ -1218,6 +1229,9 @@ void GraphicsContextCG::beginTransparencyLayer(CompositeOperator, BlendMode)
 
 void GraphicsContextCG::endTransparencyLayer()
 {
+    if (!canRestore(GraphicsContextState::Purpose::TransparencyLayer))
+        return;
+
     GraphicsContext::endTransparencyLayer();
 
     const RetainPtr<CGContextRef>& context = contextForDraw();

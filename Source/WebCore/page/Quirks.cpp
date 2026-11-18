@@ -173,6 +173,7 @@ NODELETE static HashMap<RegistrableDomain, String>& updatableStorageAccessUserAg
 NODELETE static inline bool shouldNotAutoUpgradeToHTTPSNavigationInternal(const URL&) { return false; }
 NODELETE static inline bool shouldDisableBlobFileAccessEnforcementInternal() { return false; }
 NODELETE static inline bool shouldExemptCookieFromITPDataRemovalInternal(const String&) { return false; }
+NODELETE static inline bool isConsistentQueryParameterFilteringTrackingScriptInternal(const URL&) { return false; }
 NODELETE static inline ConsistentQueryParameterFilteringLevel needsConsistentQueryParameterFilteringInternal(const URL&, const URL&) { return ConsistentQueryParameterFilteringLevel::Disabled; }
 #if PLATFORM(COCOA)
 NODELETE static inline String standardUserAgentWithApplicationNameIncludingCompatOverridesInternal(const String&, const String&, UserAgentType) { return { }; }
@@ -630,11 +631,6 @@ Quirks::StorageAccessResult Quirks::requestStorageAccessAndHandleClick(Completio
     return Quirks::StorageAccessResult::ShouldCancelEvent;
 }
 
-static bool isProbablyRegistrableDomainForBrand(const RegistrableDomain& domain, const String& brandName)
-{
-    return PublicSuffixStore::singleton().topPrivatelyControlledDomain(domain.string()).startsWithIgnoringASCIICase(makeString(brandName, "."_s));
-}
-
 void Quirks::triggerOptionalStorageAccessIframeQuirk(const URL& frameURL, CompletionHandler<void()>&& completionHandler) const
 {
     if (RefPtr document = m_document.get()) {
@@ -646,11 +642,10 @@ void Quirks::triggerOptionalStorageAccessIframeQuirk(const URL& frameURL, Comple
             }
         }
 
-        bool isMSOLoginButNotMSTeams = document->url().hasQuery() && document->url().host() == "login.microsoftonline.com"_s && !document->url().query().contains("redirect_uri=https%3A%2F%2Fteams.microsoft.com"_s);
-        bool isProbablyGoogleCCTLD = isProbablyRegistrableDomainForBrand(RegistrableDomain { document->url() }, "google"_s);
-        bool isGoogleMyAccountForProfilePicture = isProbablyGoogleCCTLD && frameURL.hasQuery() && frameURL.host() == "myaccount.google.com"_s && frameURL.query().contains("startPath=profile-picture"_s);
+        bool isGoogleMyAccountForProfilePicture = m_quirksData.behaviorAppliesToURL(QuirkBehaviorID::NeedsStorageAccessForGoogleMyAccountProfilePictureIframeQuirk, frameURL);
+        bool shouldSkipDomainList = m_quirksData.isBehaviorEnabled(QuirkBehaviorID::ShouldSkipStorageAccessIframeDomainListQuirk);
         RegistrableDomain frameDomain { frameURL };
-        if (isGoogleMyAccountForProfilePicture || (!isMSOLoginButNotMSTeams && subFrameDomainsForStorageAccessQuirk().contains(frameDomain))) {
+        if (isGoogleMyAccountForProfilePicture || (!shouldSkipDomainList && subFrameDomainsForStorageAccessQuirk().contains(frameDomain))) {
             return DocumentStorageAccess::requestStorageAccessForNonDocumentQuirk(*document, WTF::move(frameDomain), [completionHandler = WTF::move(completionHandler)](StorageAccessWasGranted) mutable {
                 completionHandler();
             });
@@ -936,7 +931,7 @@ bool Quirks::needsPopupFromMicrosoftOfficeToOneDrive(const String& targetURLStri
 static ConsistentQueryParameterFilteringLevel consistentQueryParameterFilteringLevelForTesting(const URL& sourceURL, const URL& destinationURL)
 {
     auto levelForDomain = [](const RegistrableDomain& domain) {
-        if (equalLettersIgnoringASCIICase(domain.string(), "consistentqueryparameterfiltering.internal"_s) || equalLettersIgnoringASCIICase(domain.string(), "bundle-file"_s))
+        if (equalLettersIgnoringASCIICase(domain.string(), "consistentqueryparameterfiltering.internal"_s))
             return ConsistentQueryParameterFilteringLevel::High;
         if (equalLettersIgnoringASCIICase(domain.string(), "consistentqueryparameterfiltering-medium.internal"_s))
             return ConsistentQueryParameterFilteringLevel::Medium;
@@ -948,6 +943,14 @@ static ConsistentQueryParameterFilteringLevel consistentQueryParameterFilteringL
     RegistrableDomain sourceDomain { sourceURL };
     RegistrableDomain destinationDomain { destinationURL };
     auto level = std::max(levelForDomain(sourceDomain), levelForDomain(destinationDomain));
+
+    if (equalLettersIgnoringASCIICase(sourceURL.host(), "bundle-file"_s) || equalLettersIgnoringASCIICase(destinationURL.host(), "bundle-file"_s)) {
+        auto defaultBundleFileLevel =
+            queryParameters(destinationURL).contains(makeKeyValuePair("level"_str, "high"_str))
+            ? ConsistentQueryParameterFilteringLevel::High
+            : ConsistentQueryParameterFilteringLevel::Low;
+        level = std::max(level, defaultBundleFileLevel);
+    }
 
     if (equalLettersIgnoringASCIICase(sourceDomain.string(), "consistentqueryparameterfiltering-pair-source.internal"_s)
         && equalLettersIgnoringASCIICase(destinationDomain.string(), "consistentqueryparameterfiltering-pair-destination.internal"_s))
@@ -985,16 +988,34 @@ ConsistentQueryParameterFilteringLevel Quirks::consistentQueryParameterFiltering
     return level;
 }
 
-bool Quirks::needsConsistentQueryParameterFilteringQuirk(const URL& url) const
+static bool isConsistentQueryParameterFilteringTrackingScriptForTesting(const URL& scriptURL)
+{
+    return equalLettersIgnoringASCIICase(scriptURL.host(), "bundle-file"_s)
+        || equalLettersIgnoringASCIICase(RegistrableDomain { scriptURL }.string(), "consistentqueryparameterfiltering-tracker.internal"_s);
+}
+
+bool Quirks::needsConsistentQueryParameterFilteringQuirkForScript(const URL& scriptURL) const
 {
     QUIRKS_EARLY_RETURN_IF_DISABLED_WITH_VALUE(false);
-    return consistentQueryParameterFilteringLevel(url, m_document->url()) != ConsistentQueryParameterFilteringLevel::Disabled;
+
+    if (!m_document->settings().consistentQueryParameterFilteringQuirkEnabled())
+        return false;
+
+    if (isConsistentQueryParameterFilteringTrackingScriptForTesting(scriptURL))
+        return true;
+
+    if (m_document->settings().consistentQueryParameterFilteringInternalQuirkEnabled()
+        && isConsistentQueryParameterFilteringTrackingScriptInternal(URL { scriptURL.string().foldCase() }))
+        return true;
+
+    RefPtr page = m_document->page();
+    return page && page->requiresConsistentPrivacyQuirkForDomain(scriptURL);
 }
 
 bool Quirks::mayBenefitFromFingerprintingProtectionQuirk(const URL& url) const
 {
     // FIXME: Placeholder for now.
-    return needsConsistentQueryParameterFilteringQuirk(url);
+    return needsConsistentQueryParameterFilteringQuirkForScript(url);
 }
 
 #if PLATFORM(COCOA)

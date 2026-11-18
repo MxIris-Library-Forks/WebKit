@@ -326,6 +326,7 @@ struct AriaNotifyData;
 struct AttributedString;
 struct BackForwardFrameItemIdentifierType;
 struct BackForwardItemIdentifierType;
+struct BlockPresentationIntent;
 struct CharacterRange;
 struct CompositionHighlight;
 struct CompositionUnderline;
@@ -1221,7 +1222,7 @@ public:
     WebCore::FloatSize overrideScreenSize() const;
     WebCore::FloatSize overrideAvailableScreenSize() const;
     WebCore::IntDegrees deviceOrientation() const { return m_deviceOrientation; }
-    void didReceiveMobileDocType(bool);
+    void updateViewportDefaultConfiguration(bool hasMobileDoctype);
 
     bool screenIsBeingCaptured() const { return m_screenIsBeingCaptured; }
     void setScreenIsBeingCaptured(bool);
@@ -1286,7 +1287,7 @@ public:
     void getRectsForGranularityWithSelectionOffset(WebCore::TextGranularity, int32_t, CompletionHandler<void(const Vector<WebCore::SelectionGeometry>&)>&&);
     void getRectsAtSelectionOffsetWithText(int32_t, const String&, CompletionHandler<void(const Vector<WebCore::SelectionGeometry>&)>&&);
     void storeSelectionForAccessibility(bool);
-    void requestEvasionRectsAboveSelection(CompletionHandler<void(const Vector<WebCore::FloatRect>&)>&&);
+    void requestEvasionRectsAboveSelection(std::optional<WebCore::FloatRect> selectionBoundsInMainFrameView, double pageScaleFactor, double contextMenuAreaLimit, CompletionHandler<void(const Vector<WebCore::FloatRect>&)>&&);
 
     void contentSizeCategoryDidChange(const String&);
 
@@ -2413,7 +2414,7 @@ private:
 #endif
 
 #if ENABLE(META_VIEWPORT)
-    void resetViewportDefaultConfiguration(WebFrame* mainFrame, bool hasMobileDocType = false);
+    void resetViewportDefaultConfiguration(WebFrame* mainFrame);
     enum class ZoomToInitialScale : bool { No, Yes };
     void viewportConfigurationChanged(ZoomToInitialScale = ZoomToInitialScale::No);
     bool shouldIgnoreMetaViewport() const;
@@ -2502,6 +2503,7 @@ private:
     void increaseListLevel();
     void decreaseListLevel();
     void changeListType();
+    void applyBlockPresentationIntent(const WebCore::BlockPresentationIntent&);
 
     void setBaseWritingDirection(WebCore::WritingDirection);
 

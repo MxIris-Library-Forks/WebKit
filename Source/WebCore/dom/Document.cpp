@@ -1629,11 +1629,9 @@ void Document::childrenChanged(const ChildChange& change)
 {
     ContainerNode::childrenChanged(change);
 
-    // FIXME: Chrome::didReceiveDocType() used to be called only when the doctype changed. We need to check the
-    // impact of calling this systematically. If the overhead is negligible, we need to rename didReceiveDocType,
-    // otherwise, we need to detect the doc type changes before updating the viewport.
-    if (RefPtr page = this->page())
-        page->chrome().didReceiveDocType(*protect(frame()));
+#if PLATFORM(IOS_FAMILY)
+    updateViewportDefaultConfiguration();
+#endif
 
     RefPtr newDocumentElement = childrenOfType<Element>(*this).first();
     if (newDocumentElement == m_documentElement)
@@ -4237,9 +4235,9 @@ void Document::implicitOpen()
     setReadyState(ReadyState::Loading);
 }
 
-RefPtr<FontLoadRequest> Document::fontLoadRequest(const String& url, bool isSVG, bool isInitiatingElementInUserAgentShadowTree, LoadedFromOpaqueSource loadedFromOpaqueSource)
+RefPtr<FontLoadRequest> Document::fontLoadRequest(const String& url, bool isSVG, bool isInitiatingElementInUserAgentShadowTree, const CSS::URLModifiers& modifiers)
 {
-    RefPtr cachedFont = protect(fontLoader())->cachedFont(encodingParseURL(url), isSVG, isInitiatingElementInUserAgentShadowTree, loadedFromOpaqueSource);
+    RefPtr cachedFont = protect(fontLoader())->cachedFont(encodingParseURL(url), isSVG, isInitiatingElementInUserAgentShadowTree, modifiers);
     if (!cachedFont)
         return nullptr;
     return CachedFontLoadRequest::create(*cachedFont, *this);
@@ -4739,11 +4737,59 @@ void Document::setURL(URL&& url)
 
     m_documentURI = m_url.url();
     m_adjustedURL = adjustedURL();
+    m_consistentQueryParameterFilteringLevelForBindings = std::nullopt;
     updateBaseURL();
 
     urlsAffectingQuirksDidChange();
     if (RefPtr page = this->page(); page && isTopDocument())
         page->topDocumentURLDidChange();
+}
+
+static bool areSameSiteIgnoringPublicSuffix(StringView domain, StringView otherDomain)
+{
+    auto& publicSuffixStore = PublicSuffixStore::singleton();
+    auto domainString = publicSuffixStore.topPrivatelyControlledDomain(domain);
+    auto otherDomainString = publicSuffixStore.topPrivatelyControlledDomain(otherDomain);
+    auto substringToSeparator = [](const String& string) -> String {
+        auto indexOfFirstSeparator = string.find('.');
+        if (indexOfFirstSeparator == notFound)
+            return { };
+        return string.left(indexOfFirstSeparator);
+    };
+    auto firstSubstring = substringToSeparator(domainString);
+    return !firstSubstring.isEmpty() && firstSubstring == substringToSeparator(otherDomainString);
+}
+
+ConsistentQueryParameterFilteringLevel Document::consistentQueryParameterFilteringLevelForBindings()
+{
+    if (m_consistentQueryParameterFilteringLevelForBindings)
+        return *m_consistentQueryParameterFilteringLevelForBindings;
+
+    auto level = [&] {
+        RefPtr documentLoader = loader();
+        if (!documentLoader)
+            return ConsistentQueryParameterFilteringLevel::Disabled;
+
+        auto navigationSourceURL = [&] -> URL {
+            // Prefer the requester over the referrer, which may be stripped by referrer policy.
+            if (auto& requester = documentLoader->crossSiteRequester())
+                return requester->url;
+            if (auto& requester = documentLoader->triggeringAction().requester())
+                return requester->url;
+            return URL { documentLoader->originalRequest().httpReferrer() };
+        }();
+
+        // Only apply following a cross-site navigation.
+        if (navigationSourceURL.isEmpty()
+            || RegistrableDomain { navigationSourceURL }.matches(securityOrigin().data())
+            || areSameSiteIgnoringPublicSuffix(navigationSourceURL.host(), securityOrigin().data().host()))
+            return ConsistentQueryParameterFilteringLevel::Disabled;
+
+        return quirks().consistentQueryParameterFilteringLevel(navigationSourceURL, m_url.url());
+    }();
+
+    m_consistentQueryParameterFilteringLevelForBindings = level;
+    return level;
 }
 
 const URL& Document::urlForBindings()
@@ -4757,38 +4803,9 @@ const URL& Document::urlForBindings()
         if (!documentLoader)
             return false;
 
-        auto navigationalProtections = documentLoader->navigationalAdvancedPrivacyProtections();
-        if (navigationalProtections.isEmpty())
-            return false;
+        auto currentHost = securityOrigin().data().host();
 
-        auto preNavigationURL = URL { documentLoader->originalRequest().httpReferrer() };
-        if (preNavigationURL.isEmpty() || RegistrableDomain { preNavigationURL }.matches(securityOrigin().data())) {
-            // Only apply the protections below following a cross-origin navigation.
-            return false;
-        }
-
-        auto areSameSiteIgnoringPublicSuffix = [](StringView domain, StringView otherDomain) {
-            auto& publicSuffixStore = PublicSuffixStore::singleton();
-            auto domainString = publicSuffixStore.topPrivatelyControlledDomain(domain);
-            auto otherDomainString = publicSuffixStore.topPrivatelyControlledDomain(otherDomain);
-            auto substringToSeparator = [](const String& string) -> String {
-                auto indexOfFirstSeparator = string.find('.');
-                if (indexOfFirstSeparator == notFound)
-                    return { };
-                return string.left(indexOfFirstSeparator);
-            };
-            auto firstSubstring = substringToSeparator(domainString);
-            return !firstSubstring.isEmpty() && firstSubstring == substringToSeparator(otherDomainString);
-        };
-
-        auto shouldApplyBaselineProtections = [&] {
-            if (!navigationalProtections.contains(AdvancedPrivacyProtections::BaselineProtections))
-                return false;
-
-            auto currentHost = securityOrigin().data().host();
-            if (areSameSiteIgnoringPublicSuffix(preNavigationURL.host(), currentHost))
-                return false;
-
+        auto isCrossSiteScript = [&] {
             if (!m_hasLoadedThirdPartyScript)
                 return false;
 
@@ -4802,6 +4819,52 @@ const URL& Document::urlForBindings()
             addConsoleMessage(MessageSource::JS, MessageLevel::Info, makeLogMessage(m_url, ScriptTrackingPrivacyCategory::QueryParameters));
 
             return true;
+        };
+
+        auto isKnownTrackingScript = [&] {
+            if (requiresScriptTrackingPrivacyProtection(ScriptTrackingPrivacyCategory::QueryParameters))
+                return true;
+
+            // Scripts are only tainted at load time when script tracking privacy protections are enabled,
+            // so also check the calling script against the known tracking scripts directly.
+            RefPtr page = this->page();
+            auto sourceURL = currentSourceURL();
+            return page && !sourceURL.isEmpty() && page->chrome().client().requiresScriptTrackingPrivacyProtections(sourceURL, protect(topOrigin()));
+        };
+
+        switch (consistentQueryParameterFilteringLevelForBindings()) {
+        case ConsistentQueryParameterFilteringLevel::Disabled:
+            break;
+        case ConsistentQueryParameterFilteringLevel::Low:
+            if (isKnownTrackingScript())
+                return true;
+            break;
+        case ConsistentQueryParameterFilteringLevel::Medium:
+            if (isCrossSiteScript() || isKnownTrackingScript())
+                return true;
+            break;
+        case ConsistentQueryParameterFilteringLevel::High:
+            return true;
+        }
+
+        auto navigationalProtections = documentLoader->navigationalAdvancedPrivacyProtections();
+        if (navigationalProtections.isEmpty())
+            return false;
+
+        auto preNavigationURL = URL { documentLoader->originalRequest().httpReferrer() };
+        if (preNavigationURL.isEmpty() || RegistrableDomain { preNavigationURL }.matches(securityOrigin().data())) {
+            // Only apply the protections below following a cross-origin navigation.
+            return false;
+        }
+
+        auto shouldApplyBaselineProtections = [&] {
+            if (!navigationalProtections.contains(AdvancedPrivacyProtections::BaselineProtections))
+                return false;
+
+            if (areSameSiteIgnoringPublicSuffix(preNavigationURL.host(), currentHost))
+                return false;
+
+            return isCrossSiteScript();
         };
 
         auto shouldApplyEnhancedProtections = [&] {
@@ -5053,7 +5116,7 @@ String Document::navigatorPlatform() const
 void Document::disableEval(const String& errorMessage)
 {
     RefPtr frame = this->frame();
-    if (!frame)
+    if (!frame || frame->document() != this)
         return;
 
     protect(frame->script())->setEvalEnabled(false, errorMessage);
@@ -5062,7 +5125,7 @@ void Document::disableEval(const String& errorMessage)
 void Document::disableWebAssembly(const String& errorMessage)
 {
     RefPtr frame = this->frame();
-    if (!frame)
+    if (!frame || frame->document() != this)
         return;
 
     protect(frame->script())->setWebAssemblyEnabled(false, errorMessage);
@@ -5077,7 +5140,8 @@ void Document::setTrustedTypesEnforcement(JSC::TrustedTypesEnforcement enforceme
     if (!frame)
         return;
 
-    protect(frame->script())->setTrustedTypesEnforcement(enforcement);
+    if (frame->document() == this)
+        protect(frame->script())->setTrustedTypesEnforcement(enforcement);
     m_requiresTrustedTypes = enforcement != JSC::TrustedTypesEnforcement::None;
 }
 
@@ -5504,8 +5568,24 @@ void Document::updateViewportArguments()
         return;
 
     page->chrome().dispatchViewportPropertiesDidChange(viewportArguments());
-    page->chrome().didReceiveDocType(protect(frame()).releaseNonNull());
+#if PLATFORM(IOS_FAMILY)
+    updateViewportDefaultConfiguration();
+#endif
 }
+
+#if PLATFORM(IOS_FAMILY)
+void Document::updateViewportDefaultConfiguration()
+{
+    RefPtr page = this->page();
+    if (!page || !m_frame->isMainFrame() || m_frame->document() != this)
+        return;
+
+    // FIXME: The doctype only needs checking when the parser inserts it, but the client also relies on these calls to
+    // recompute the rest of its default viewport configuration, such as after a back/forward cache restore.
+    RefPtr doctype = this->doctype();
+    page->chrome().client().updateViewportDefaultConfiguration(doctype && doctype->publicId().containsIgnoringASCIICase("xhtml mobile"_s));
+}
+#endif
 
 void Document::updateSafeAreaInsetOptIn()
 {
@@ -8778,6 +8858,7 @@ void Document::initContentSecurityPolicy()
 {
     if (!m_frame)
         return;
+    ASSERT(m_frame->document() != this);
     RefPtr parentFrame = dynamicDowncast<LocalFrame>(m_frame->tree().parent());
     if (parentFrame)
         protect(contentSecurityPolicy())->copyUpgradeInsecureRequestStateFrom(*protect(parentFrame->document()->contentSecurityPolicy()));
@@ -8801,22 +8882,9 @@ void Document::initContentSecurityPolicy()
 
 void Document::inheritPolicyContainerFrom(const PolicyContainer& policyContainer)
 {
+    ASSERT(!m_frame || m_frame->document() != this);
     setContentSecurityPolicy(makeUnique<ContentSecurityPolicy>(URL { m_url }, *this));
     SecurityContext::inheritPolicyContainerFrom(policyContainer);
-}
-
-void Document::enforceSandboxFlags(SandboxFlags flags, SandboxFlagsSource source)
-{
-    bool wasSandboxedOrigin = isSandboxed(SandboxFlag::Origin);
-    SecurityContext::enforceSandboxFlags(flags, source);
-
-    if (RefPtr page = this->page(); page && page->mainFrame().tree().containsRemoteFrame()) {
-        bool sandboxedStateDidChange = wasSandboxedOrigin != isSandboxed(SandboxFlag::Origin);
-        if (!sandboxedStateDidChange)
-            return;
-
-        m_frame->loader().client().broadcastFrameDocumentIsSandboxedOriginToOtherProcesses(isSandboxed(SandboxFlag::Origin));
-    }
 }
 
 // https://html.spec.whatwg.org/#the-rules-for-choosing-a-browsing-context-given-a-browsing-context-name (Step 8.2)
@@ -8891,6 +8959,12 @@ bool Document::crossOriginIsolated() const
     if (documentIsolationPolicy().value != DocumentIsolationPolicyValue::None)
         return true;
     return PermissionsPolicy::isFeatureEnabled(PermissionsPolicy::Feature::CrossOriginIsolated, *this, PermissionsPolicy::ShouldReportViolation::No);
+}
+
+void Document::setAgentClusterIdentifier(std::optional<AgentClusterIdentifier> identifier)
+{
+    ASSERT(!m_eventLoop);
+    m_agentClusterIdentifier = identifier;
 }
 
 String Document::agentClusterID() const
@@ -12711,6 +12785,7 @@ PermissionsPolicy Document::permissionsPolicy() const
 
 void Document::securityOriginDidChange()
 {
+    ASSERT(!m_eventLoop);
     m_syncData->documentSecurityOrigin = SecurityContext::securityOrigin();
     m_permissionsPolicy = nullptr;
     if (m_hasUnpartitionedStorageAccess) {

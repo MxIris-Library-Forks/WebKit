@@ -955,7 +955,7 @@ WebPageProxy* WebPageProxy::fromIdentifier(std::optional<WebPageProxyIdentifier>
 static Ref<BrowsingContextGroup> getOrCreateBrowsingContextGroup(const API::PageConfiguration& configuration, const WebProcessProxy& process)
 {
     Ref websiteDataStore = configuration.websiteDataStore();
-    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->websiteDataStore() == websiteDataStore.ptr() && preferredBrowsingContextGroup->lockdownMode() == process.lockdownMode() && preferredBrowsingContextGroup->canUseProcessForEnhancedSecurity(process, protect(configuration.preferences())))
+    if (RefPtr preferredBrowsingContextGroup = configuration.preferredBrowsingContextGroup(); preferredBrowsingContextGroup && preferredBrowsingContextGroup->canUseProcess(process, protect(configuration.preferences())))
         return *preferredBrowsingContextGroup;
 
     return BrowsingContextGroup::create(CrossOriginMode::Shared, websiteDataStore, process.lockdownMode(), process.enhancedSecurity());
@@ -1529,7 +1529,7 @@ void WebPageProxy::launchProcess(const Site& site, ProcessLaunchReason reason)
     if (RefPtr frameProcess = protect(browsingContextGroup())->processForSite(site)) {
         ASSERT(siteIsolationEnabled);
         m_legacyMainFrameProcess = frameProcess->process();
-    } else if (relatedPage && !relatedPage->isClosed() && reason == ProcessLaunchReason::InitialProcess && hasSameGPUAndNetworkProcessPreferencesAs(*relatedPage) && !siteIsolationEnabled && protect(relatedPage->browsingContextGroup())->crossOriginMode() == crossOriginMode && protect(relatedPage->browsingContextGroup())->lockdownMode() == protect(browsingContextGroup())->lockdownMode()) {
+    } else if (relatedPage && !relatedPage->isClosed() && reason == ProcessLaunchReason::InitialProcess && hasSameGPUAndNetworkProcessPreferencesAs(*relatedPage) && !siteIsolationEnabled && protect(browsingContextGroup())->hasSameModesAs(protect(relatedPage->browsingContextGroup()))) {
         m_legacyMainFrameProcess = relatedPage->ensureRunningProcess();
         WEBPAGEPROXY_RELEASE_LOG(Loading, "launchProcess: Using process (process=%p, PID=%i) from related page", m_legacyMainFrameProcess.ptr(), m_legacyMainFrameProcess->processID());
     } else
@@ -4327,6 +4327,14 @@ void WebPageProxy::changeListType()
         return;
 
     sendToFocusedOrMainFrameProcess(Messages::WebPage::ChangeListType());
+}
+
+void WebPageProxy::applyBlockPresentationIntent(const BlockPresentationIntent& intent)
+{
+    if (!hasRunningProcess())
+        return;
+
+    sendToFocusedOrMainFrameProcess(Messages::WebPage::ApplyBlockPresentationIntent(intent));
 }
 
 void WebPageProxy::setBaseWritingDirection(WritingDirection direction)
@@ -9816,7 +9824,9 @@ void WebPageProxy::preconnectTo(ResourceRequest&& request, OptionSet<WebCore::Ad
 void WebPageProxy::setCanUseCredentialStorage(bool canUseCredentialStorage)
 {
     m_canUseCredentialStorage = canUseCredentialStorage;
-    send(Messages::WebPage::SetCanUseCredentialStorage(canUseCredentialStorage));
+    forEachWebContentProcess([&](auto& process, auto pageID) {
+        process.send(Messages::WebPage::SetCanUseCredentialStorage(canUseCredentialStorage), pageID);
+    });
 }
 
 void WebPageProxy::didDestroyNavigation(IPC::Connection& connection, WebCore::NavigationIdentifier navigationID)
@@ -10704,6 +10714,8 @@ void WebPageProxy::didCommitLoadForFrame(IPC::Connection& connection, FrameIdent
     if (frame->isMainFrame()) {
         m_shouldListenToVoiceActivity = false;
         m_mutedCaptureKindsDesiredByWebApp = { };
+        m_isPromptingForDisplayCapture = false;
+        m_hasGrantedDisplayCapture = false;
     }
 #endif
 
@@ -10877,7 +10889,6 @@ void WebPageProxy::applyDeferredTopDocumentSyncDataFromCommittedProcess(Ref<WebC
 NODELETE static bool frameTreePropertyCanBeBroadcastByWebProcess(WebCore::FrameTreeSyncDataType property)
 {
     switch (property) {
-    case WebCore::FrameTreeSyncDataType::FrameDocumentIsSandboxedOrigin:
     case WebCore::FrameTreeSyncDataType::FrameRect:
         return true;
     case WebCore::FrameTreeSyncDataType::FrameCanCreatePaymentSession:
@@ -12812,12 +12823,9 @@ void WebPageProxy::triggerProcessSwapForDocumentIsolationPolicy(WebCore::Navigat
 
     Site responseSite { response.url };
     auto crossOriginIsolation = needsIsolation ? ProcessCrossOriginIsolation::DocumentIsolationPolicy : ProcessCrossOriginIsolation::None;
-    RefPtr frameProcess = browsingContextGroupForSwap->processForSite(responseSite, crossOriginIsolation);
-    RefPtr<WebProcessProxy> processForNavigation = frameProcess ? &frameProcess->process() : nullptr;
     // The navigation already picked its website data store, Lockdown Mode and Enhanced Security.
     Ref dataStore = websiteDataStoreOfLoad(*processLoadingNavigation, protect(websiteDataStore()));
-    if (processForNavigation && (processForNavigation->websiteDataStore() != dataStore.ptr() || !processForNavigation->matchesLockdownModeAndEnhancedSecurity(processLoadingNavigation->lockdownMode(), processLoadingNavigation->enhancedSecurity())))
-        processForNavigation = nullptr;
+    RefPtr processForNavigation = browsingContextGroupForSwap->processForNavigationToSite(responseSite, crossOriginIsolation, dataStore, processLoadingNavigation->lockdownMode(), processLoadingNavigation->enhancedSecurity());
     if (!processForNavigation) {
         auto isolatedProcessType = frame->isMainFrame() ? WebProcessProxy::IsolatedProcessType::MainFrame : WebProcessProxy::IsolatedProcessType::SubFrame;
         auto mainFrameSite = frame->isMainFrame() ? responseSite : Site { protect(mainFrame())->url() };
@@ -14408,6 +14416,9 @@ void WebPageProxy::stopMediaCapture(MediaProducerMediaCaptureKind kind, Completi
 #if ENABLE(MEDIA_STREAM)
     if (RefPtr manager = m_userMediaPermissionRequestManager)
         manager->resetAccess();
+
+    if (kind == MediaProducerMediaCaptureKind::Display || kind == MediaProducerMediaCaptureKind::EveryKind)
+        m_hasGrantedDisplayCapture = false;
 
     auto aggregator = CallbackAggregator::create(WTF::move(completionHandler));
     forEachWebContentProcess([&](auto& webProcess, auto pageID) {
@@ -16924,6 +16935,8 @@ void WebPageProxy::resetState(ResetStateReason resetStateReason)
         userMediaPermissionRequestManager->disconnectFromPage();
     m_shouldListenToVoiceActivity = false;
     m_mutedCaptureKindsDesiredByWebApp = { };
+    m_isPromptingForDisplayCapture = false;
+    m_hasGrantedDisplayCapture = false;
 #endif
 
 #if ENABLE(POINTER_LOCK)
@@ -17929,6 +17942,8 @@ void WebPageProxy::willStartCapture(UserMediaPermissionRequestProxy& request, Co
         [[fallthrough]];
     case WebCore::MediaStreamRequest::Type::DisplayMedia:
         m_mutedCaptureKindsDesiredByWebApp.remove(WebCore::MediaProducerMediaCaptureKind::Display);
+        m_isPromptingForDisplayCapture = false;
+        m_hasGrantedDisplayCapture = true;
         break;
     }
 
@@ -19721,6 +19736,10 @@ void WebPageProxy::setIsPromptingForGetDisplayMedia(WebCore::MediaProducerMediaS
     if (isPrompting)
         internals().mainFrameMediaState.add(state & WebCore::MediaProducer::IsPromptingForDisplayCaptureMask);
 
+#if ENABLE(MEDIA_STREAM)
+    m_isPromptingForDisplayCapture = isPrompting;
+#endif
+
     updatePlayingMediaDidChange(isPrompting ? CanDelayNotification::No : CanDelayNotification::Yes);
 }
 
@@ -19842,7 +19861,6 @@ void WebPageProxy::updatePlayingMediaDidChange(CanDelayNotification canDelayNoti
         updateReportedMediaCaptureState();
 
         RefPtr userMediaPermissionRequestManager = m_userMediaPermissionRequestManager;
-        ASSERT(userMediaPermissionRequestManager);
         if (userMediaPermissionRequestManager)
             userMediaPermissionRequestManager->captureStateChanged(oldMediaCaptureState, newMediaCaptureState);
 
@@ -22412,6 +22430,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTex
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::AttemptSyntheticClick);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::HandleTwoFingerTapAtPoint);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestEvasionRectsAboveSelection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::TapHighlightAtPosition);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithTouches);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithTwoTouches);

@@ -568,9 +568,19 @@
                     "bugs": ["rdar://152194074"]
                 },
                 { "id": "NeedsGoogleMapsMagnificationWheelDeltaScalingQuirk", "bugs": ["rdar://185857498"] },
-                { "id": "NeedsGoogleMapsScrollingQuirk", "bugs": ["rdar://67358928"] },
                 { "id": "ShouldAvoidResizingWhenInputViewBoundsChangeQuirk", "bugs": ["https://webkit.org/b/214945"] },
                 { "id": "ShouldDispatchSimulatedMouseEventsQuirk", "bugs": ["rdar://49124313"] }
+            ]
+        },
+        {
+            "bugs": ["rdar://67358928"],
+            "matches": ["*://*.google.*/maps", "*://*.google.*/maps?*", "*://*.google.*/maps/*"],
+            "available": "iOSFamily",
+            "behaviors": [
+                {
+                    "id": "NeedsStyleSheetInjectedQuirk",
+                    "styleSheet": "body.PUtLdf { touch-action: auto; }"
+                }
             ]
         },
         {
@@ -1320,9 +1330,9 @@
                     "bugs": ["rdar://148759791"]
                 },
                 {
-                    "id": "NeedsTikTokCaptchaSliderTouchActionQuirk",
-                    "elementSelector": "#secsdk-captcha-drag-wrapper",
-                    "bugs": ["rdar://183445905"]
+                    "id": "NeedsStyleSheetInjectedQuirk",
+                    "bugs": ["rdar://183445905"],
+                    "styleSheet": "#secsdk-captcha-drag-wrapper { touch-action: none; }"
                 }
             ]
         },
@@ -1515,6 +1525,20 @@
             "bugs": ["rdar://127246368"],
             "matches": ["*://news.ycombinator.com/*"],
             "behaviors": [{ "id": "ShouldIgnoreTextAutoSizingQuirk" }]
+        },
+        {
+            "matches": ["*://*.google.*/*"],
+            "behaviors": [
+                {
+                    "id": "NeedsStorageAccessForGoogleMyAccountProfilePictureIframeQuirk",
+                    "secondaryURL": ["*://myaccount.google.com/*?*startPath=profile-picture*"]
+                }
+            ]
+        },
+        {
+            "matches": ["*://login.microsoftonline.com/*?*"],
+            "excludeMatches": ["*://login.microsoftonline.com/*redirect_uri=https%3A%2F%2Fteams.microsoft.com*"],
+            "behaviors": [{ "id": "ShouldSkipStorageAccessIframeDomainListQuirk" }]
         },
         {
             "bugs": ["rdar://64549429"],

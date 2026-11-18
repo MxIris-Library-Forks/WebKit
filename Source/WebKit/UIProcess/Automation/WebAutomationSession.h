@@ -331,6 +331,7 @@ public:
 #if ENABLE(WK_WEB_EXTENSIONS_IN_WEBDRIVER)
     void loadWebExtension(const Inspector::Protocol::Automation::WebExtensionResourceOptions, const String& resource, Inspector::CommandCallback<String>&&) override;
     void unloadWebExtension(const String& identifier, Inspector::CommandCallback<void>&&) override;
+    void getWebExtensionPages(const String& identifier, Inspector::CommandCallbackOf<String, Ref<JSON::ArrayOf<Inspector::Protocol::Automation::WebExtensionPage>>>&&) override;
 #endif
     void setStorageAccessPermissionState(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, Inspector::Protocol::Automation::PermissionState, Inspector::CommandCallback<void>&&) override;
     void setStorageAccessPolicy(const Inspector::Protocol::Automation::BrowsingContextHandle&, bool blocked, Inspector::CommandCallback<void>&&) override;
@@ -479,6 +480,10 @@ private:
     static std::optional<String> platformGetBase64EncodedPNGData(const ViewSnapshot&);
 #if PLATFORM(COCOA)
     static std::optional<String> platformGetBase64EncodedPNGData(CGImageRef);
+#endif
+#if PLATFORM(MAC)
+    // Calls the completion handler once the window server has drawn the view's latest layer changes.
+    static void platformCallAfterWindowServerDrawsView(WebPageProxy&, Function<void()>&&);
 #endif
 
     // Save base64-encoded file contents to a local file path and return the path.

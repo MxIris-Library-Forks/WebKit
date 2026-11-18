@@ -818,6 +818,27 @@ static WebCore::Color scrollViewBackgroundColor(WKWebView *webView, AllowPageBac
     return _obscuredInsetEdgesAffectedBySafeArea;
 }
 
+static UIRectEdge edgesWithinSafeArea(const WebCore::ViewportFitEdges& edges)
+{
+    UIRectEdge result = UIRectEdgeNone;
+    if (edges.top == WebCore::ViewportFitEdge::Contain)
+        result |= UIRectEdgeTop;
+    if (edges.left == WebCore::ViewportFitEdge::Contain)
+        result |= UIRectEdgeLeft;
+    if (edges.bottom == WebCore::ViewportFitEdge::Contain)
+        result |= UIRectEdgeBottom;
+    if (edges.right == WebCore::ViewportFitEdge::Contain)
+        result |= UIRectEdgeRight;
+    return result;
+}
+
+- (UIRectEdge)_edgesWithinSafeArea
+{
+    if (![self usesStandardContentView])
+        return UIRectEdgeNone;
+    return edgesWithinSafeArea(_viewportFitEdges);
+}
+
 - (UIEdgeInsets)_computedObscuredInsetForWarningView
 {
     if (_haveSetObscuredInsets)
@@ -863,8 +884,8 @@ static WebCore::Color scrollViewBackgroundColor(WKWebView *webView, AllowPageBac
     if (_haveSetObscuredInsets)
         return _obscuredInsets;
 
-    if (self._safeAreaShouldAffectObscuredInsets)
-        return UIEdgeInsetsAdd(UIEdgeInsetsZero, self._scrollViewSystemContentInset, self._effectiveObscuredInsetEdgesAffectedBySafeArea);
+    if (auto edges = self._effectiveObscuredInsetEdgesAffectedBySafeArea & self._edgesWithinSafeArea)
+        return UIEdgeInsetsAdd(UIEdgeInsetsZero, self._scrollViewSystemContentInset, edges);
 
     return UIEdgeInsetsZero;
 }
@@ -875,7 +896,7 @@ static WebCore::Color scrollViewBackgroundColor(WKWebView *webView, AllowPageBac
         return _obscuredInsets;
 
     UIEdgeInsets insets = [_scrollView contentInset];
-    if (self._safeAreaShouldAffectObscuredInsets) {
+    if (auto edges = self._effectiveObscuredInsetEdgesAffectedBySafeArea & self._edgesWithinSafeArea) {
 #if PLATFORM(WATCHOS)
         // On watchOS, PepperUICore swizzles -[UIScrollView contentInset], such that it includes -_contentScrollInset as well.
         // To avoid double-counting -_contentScrollInset when determining the total content inset, we only apply safe area insets here.
@@ -883,7 +904,7 @@ static WebCore::Color scrollViewBackgroundColor(WKWebView *webView, AllowPageBac
 #else
         auto additionalScrollViewContentInset = self._scrollViewSystemContentInset;
 #endif
-        insets = UIEdgeInsetsAdd(insets, additionalScrollViewContentInset, self._effectiveObscuredInsetEdgesAffectedBySafeArea);
+        insets = UIEdgeInsetsAdd(insets, additionalScrollViewContentInset, edges);
     }
 
     return insets;
@@ -894,21 +915,21 @@ static WebCore::Color scrollViewBackgroundColor(WKWebView *webView, AllowPageBac
     if (_haveSetUnobscuredSafeAreaInsets)
         return _unobscuredSafeAreaInsets;
 
-    if (!self._safeAreaShouldAffectObscuredInsets) {
-        auto safeAreaInsets = self.safeAreaInsets;
-#if PLATFORM(WATCHOS)
-        safeAreaInsets = UIEdgeInsetsAdd(safeAreaInsets, self._contentInsetsFromSystemMinimumLayoutMargins, self._effectiveObscuredInsetEdgesAffectedBySafeArea);
-#endif
-        if (_haveSetObscuredInsets) {
-            safeAreaInsets.top = std::max<CGFloat>(0., safeAreaInsets.top - _obscuredInsets.top);
-            safeAreaInsets.left = std::max<CGFloat>(0., safeAreaInsets.left - _obscuredInsets.left);
-            safeAreaInsets.bottom = std::max<CGFloat>(0., safeAreaInsets.bottom - _obscuredInsets.bottom);
-            safeAreaInsets.right = std::max<CGFloat>(0., safeAreaInsets.right - _obscuredInsets.right);
-        }
-        return safeAreaInsets;
-    }
+    auto edgesBeyondSafeArea = UIRectEdgeAll & ~self._edgesWithinSafeArea;
+    if (edgesBeyondSafeArea == UIRectEdgeNone)
+        return UIEdgeInsetsZero;
 
-    return UIEdgeInsetsZero;
+    auto safeAreaInsets = self.safeAreaInsets;
+#if PLATFORM(WATCHOS)
+    safeAreaInsets = UIEdgeInsetsAdd(safeAreaInsets, self._contentInsetsFromSystemMinimumLayoutMargins, self._effectiveObscuredInsetEdgesAffectedBySafeArea);
+#endif
+    if (_haveSetObscuredInsets) {
+        safeAreaInsets.top = std::max<CGFloat>(0., safeAreaInsets.top - _obscuredInsets.top);
+        safeAreaInsets.left = std::max<CGFloat>(0., safeAreaInsets.left - _obscuredInsets.left);
+        safeAreaInsets.bottom = std::max<CGFloat>(0., safeAreaInsets.bottom - _obscuredInsets.bottom);
+        safeAreaInsets.right = std::max<CGFloat>(0., safeAreaInsets.right - _obscuredInsets.right);
+    }
+    return UIEdgeInsetsAdd(UIEdgeInsetsZero, safeAreaInsets, edgesBeyondSafeArea);
 }
 
 #if ENABLE(UNIFIED_PDF) && HAVE(UIVIEW_RESERVED_REGION)
@@ -1506,6 +1527,10 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
         return nullptr;
 
     RetainPtr<NSString> displayName = self.window.screen.displayConfiguration.name;
+    // FIXME: WebAutomationSession::takeScreenshot() calls this from a presentation update callback, before Core Animation
+    // has committed the update's layer changes, so WebDriver screenshots can show the previous frame. On macOS,
+    // WebAutomationSession::platformCallAfterWindowServerDrawsView() waits until the changes are drawn. Here, that could be
+    // committing them and calling +[CATransaction synchronize], as -_snapshotRectAfterScreenUpdates:... does.
     CARenderServerSnapshot(MACH_PORT_NULL, @{
         kCASnapshotMode: kCASnapshotModeLayer,
         kCASnapshotDisplayName: displayName.get() ?: kCARenderServerDefaultDisplay,
@@ -2788,9 +2813,14 @@ static WebCore::FloatPoint constrainContentOffset(WebCore::FloatPoint contentOff
 - (BOOL)_updateScrollViewContentInsetsIfNecessary
 {
 #if PLATFORM(WATCHOS)
-    return [_scrollView _setContentScrollInsetInternal:self._safeAreaShouldAffectObscuredInsets ? self._contentInsetsFromSystemMinimumLayoutMargins : UIEdgeInsetsZero];
+    return [_scrollView _setContentScrollInsetInternal:UIEdgeInsetsAdd(UIEdgeInsetsZero, self._contentInsetsFromSystemMinimumLayoutMargins, self._edgesWithinSafeArea)];
 #else
-    return NO;
+    // The scroll view can only apply the safe area to all of its edges or to none of them, so when only some of the
+    // edges are within the safe area, apply it to those edges here instead.
+    auto edges = self._edgesWithinSafeArea;
+    if (edges == UIRectEdgeAll || [_scrollView _contentInsetAdjustmentBehaviorWasExternallyOverridden])
+        edges = UIRectEdgeNone;
+    return [_scrollView _setContentScrollInsetInternal:UIEdgeInsetsAdd(UIEdgeInsetsZero, self.safeAreaInsets, edges)];
 #endif
 }
 
@@ -3165,6 +3195,7 @@ static CGFloat liveResizeMinimumWidthDifference()
 {
     [super safeAreaInsetsDidChange];
 
+    [self _updateScrollViewContentInsetsIfNecessary];
     [self _scheduleVisibleContentRectUpdate];
     [_warningView setContentInset:[self _computedObscuredInsetForWarningView]];
 }
@@ -3959,7 +3990,7 @@ static WebCore::IntDegrees activeOrientation(WKWebView *webView)
 // FIXME: Likely we can remove this special case for watchOS.
 #if !PLATFORM(WATCHOS)
     if (![_scrollView _contentInsetAdjustmentBehaviorWasExternallyOverridden])
-        [_scrollView _setContentInsetAdjustmentBehaviorInternal:self._safeAreaShouldAffectObscuredInsets ? UIScrollViewContentInsetAdjustmentAlways : UIScrollViewContentInsetAdjustmentNever];
+        [_scrollView _setContentInsetAdjustmentBehaviorInternal:self._edgesWithinSafeArea == UIRectEdgeAll ? UIScrollViewContentInsetAdjustmentAlways : UIScrollViewContentInsetAdjustmentNever];
 #endif
 }
 
@@ -3971,42 +4002,44 @@ static WebCore::IntDegrees activeOrientation(WKWebView *webView)
 #endif
 }
 
-// The safe area affects the obscured insets, keeping the page within it, unless the page covers every edge.
-static bool coversEveryEdge(const WebCore::ViewportFitEdges& edges)
-{
-    return edges.top != WebCore::ViewportFitEdge::Contain
-        && edges.left != WebCore::ViewportFitEdge::Contain
-        && edges.bottom != WebCore::ViewportFitEdge::Contain
-        && edges.right != WebCore::ViewportFitEdge::Contain;
-}
-
 - (void)_setViewportFitEdges:(const WebCore::ViewportFitEdges&)viewportFitEdges
 {
     if (_viewportFitEdges == viewportFitEdges)
         return;
 
-    bool coveredEveryEdge = coversEveryEdge(_viewportFitEdges);
+    auto previousEdgesWithinSafeArea = edgesWithinSafeArea(_viewportFitEdges);
 
     [self willChangeValueForKey:@"_viewportFitEdges"];
     _viewportFitEdges = viewportFitEdges;
 
-    bool safeAreaShouldAffectObscuredInsetsChanged = coversEveryEdge(_viewportFitEdges) != coveredEveryEdge;
-    if (safeAreaShouldAffectObscuredInsetsChanged) {
+    auto newEdgesWithinSafeArea = edgesWithinSafeArea(_viewportFitEdges);
+    if (newEdgesWithinSafeArea != previousEdgesWithinSafeArea) {
+        // The scroll view applies the safe area when every edge is within it, and we
+        // apply it ourselves to some of the edges otherwise. Stop one before starting
+        // the other, so that it's never applied twice.
+        bool scrollViewAppliesSafeArea = newEdgesWithinSafeArea == UIRectEdgeAll;
+        if (!scrollViewAppliesSafeArea)
+            [self _updateScrollViewInsetAdjustmentBehavior];
+
         if ([self _updateScrollViewContentInsetsIfNecessary] && !self._shouldDeferGeometryUpdates && !_overriddenLayoutParameters)
             [self _dispatchSetViewLayoutSize:[self activeViewLayoutSize:self.bounds]];
 
-        [self _updateScrollViewInsetAdjustmentBehavior];
+        if (scrollViewAppliesSafeArea)
+            [self _updateScrollViewInsetAdjustmentBehavior];
+
         [self _scheduleVisibleContentRectUpdate];
     }
 
     [self didChangeValueForKey:@"_viewportFitEdges"];
 
-    if (!safeAreaShouldAffectObscuredInsetsChanged)
+    bool safeAreaAffectedObscuredInsets = previousEdgesWithinSafeArea != UIRectEdgeNone;
+    bool safeAreaShouldAffectObscuredInsets = newEdgesWithinSafeArea != UIRectEdgeNone;
+    if (safeAreaShouldAffectObscuredInsets == safeAreaAffectedObscuredInsets)
         return;
 
     id<WKUIDelegatePrivate> uiDelegate = (id<WKUIDelegatePrivate>)[self UIDelegate];
     if ([uiDelegate respondsToSelector:@selector(_webView:didChangeSafeAreaShouldAffectObscuredInsets:)])
-        [uiDelegate _webView:self didChangeSafeAreaShouldAffectObscuredInsets:!coversEveryEdge(_viewportFitEdges)];
+        [uiDelegate _webView:self didChangeSafeAreaShouldAffectObscuredInsets:safeAreaShouldAffectObscuredInsets];
 }
 
 - (BOOL)_haveSetObscuredInsets
@@ -4799,9 +4832,7 @@ static bool isLockdownModeWarningNeeded()
 
 - (BOOL)_safeAreaShouldAffectObscuredInsets
 {
-    if (![self usesStandardContentView])
-        return NO;
-    return !coversEveryEdge(_viewportFitEdges);
+    return self._edgesWithinSafeArea != UIRectEdgeNone;
 }
 
 static _WKViewportFitEdge wkViewportFitEdge(WebCore::ViewportFitEdge edge)

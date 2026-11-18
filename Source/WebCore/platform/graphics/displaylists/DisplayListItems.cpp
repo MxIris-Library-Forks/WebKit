@@ -52,6 +52,16 @@ void Restore::apply(GraphicsContext& context) const
     context.restore();
 }
 
+void SaveTransform::apply(GraphicsContext& context) const
+{
+    context.saveTransform();
+}
+
+void RestoreTransform::apply(GraphicsContext& context) const
+{
+    context.restoreTransform();
+}
+
 void Translate::apply(GraphicsContext& context) const
 {
     context.translate(m_x, m_y);
@@ -781,19 +791,6 @@ void EndTransparencyLayer::apply(GraphicsContext& context) const
     if (context.isInTransparencyLayer())
         context.endTransparencyLayer();
 }
-
-#if USE(CG)
-
-void ApplyStrokePattern::apply(GraphicsContext& context) const
-{
-    context.applyStrokePattern();
-}
-
-void ApplyFillPattern::apply(GraphicsContext& context) const
-{
-    context.applyFillPattern();
-}
-#endif
 
 void ApplyDeviceScaleFactor::apply(GraphicsContext& context) const
 {

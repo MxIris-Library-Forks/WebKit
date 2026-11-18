@@ -216,6 +216,7 @@ list(APPEND TestWebCore_SOURCES
     Tests/WebCore/cocoa/MediaRecorderPrivateWriterTests.cpp
     Tests/WebCore/cocoa/MediaSamplesDecoderTests.mm
     Tests/WebCore/cocoa/PaymentSummaryItemsCocoa.mm
+    Tests/WebCore/cocoa/PlanarImageConverterCVTests.mm
     Tests/WebCore/cocoa/PrivateClickMeasurementCocoa.mm
     Tests/WebCore/cocoa/ResourceMonitor.mm
     Tests/WebCore/cocoa/ScrollbarWidthCrash.mm
@@ -577,6 +578,7 @@ if (WEBKIT_PLATFORM_MAC)
 else ()
     list(APPEND TestWebKit_LIBRARIES
         "-framework AVKit"
+        "-framework CoreLocation"
         "-framework GameController"
         "-framework MobileCoreServices"
         "-framework PDFKit"
@@ -884,6 +886,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebExtensionWindow.swift
     Tests/WebKit/WKWebView/WKWebViewHitTestTests.swift
     Tests/WebKit/WKWebView/WKWebViewSwiftOverlayTests.swift
+    Tests/WebKit/WKWebView/WebAutomationWebExtensionPages.swift
 
     Tests/WebKit/WebPage/ControlledByExternalAgent.swift
     Tests/WebKit/WebPage/EditingFontSizeTests.swift

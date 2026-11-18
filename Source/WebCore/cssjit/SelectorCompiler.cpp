@@ -779,7 +779,7 @@ static FunctionType addNthChildType(const CSSSelector& selector, SelectorContext
         if (nthChildOfSelectorInfo.selectorList.isEmpty())
             return FunctionType::CannotMatchAnything;
 
-        filteredCases.append(nthChildOfSelectorInfo);
+        filteredCases.append(WTF::move(nthChildOfSelectorInfo));
         return globalFunctionType;
     }
 
@@ -1496,7 +1496,7 @@ static inline FunctionType addPseudoClassType(const CSSSelector& selector, Selec
             if (matchesList.isEmpty())
                 return FunctionType::CannotMatchAnything;
 
-            fragment.matchesFilters.append(matchesList);
+            fragment.matchesFilters.append(WTF::move(matchesList));
 
             return functionType;
         }
@@ -2656,7 +2656,7 @@ void SelectorCodeGenerator::generateElementMatchesSelectorList(Assembler::JumpLi
 
         unsigned selectorListSize = selectorList.size();
         unsigned selectorListLastIndex = selectorListSize - 1;
-        for (unsigned i = 0; i < selectorList.size(); ++i) {
+        for (unsigned i = 0; i < selectorListSize; ++i) {
             const SelectorFragmentList& nestedSelectorFragmentList = selectorList[i];
             Assembler::JumpList localSelectorFailureCases;
             generateSelectorCheckerExcludingPseudoElements(localSelectorFailureCases, nestedSelectorFragmentList);

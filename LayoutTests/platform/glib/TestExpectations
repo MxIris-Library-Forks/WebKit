@@ -890,6 +890,19 @@ imported/w3c/web-platform-tests/css/css-text-decor/text-decoration-inset-svg-fra
 imported/w3c/web-platform-tests/css/css-writing-modes/text-combine-upright-compression-006a.html [ Pass ]
 imported/w3c/web-platform-tests/webcodecs/video-encoder-canvasImageSource.https.html [ Pass ]
 
+imported/w3c/web-platform-tests/webcodecs/temporal-svc-encoding.https.any.html?av1 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/temporal-svc-encoding.https.any.worker.html?av1 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?av1 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?h264_annexb [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?h264_avc [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?vp8 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.html?vp9_p0 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?av1 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?h264_annexb [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?h264_avc [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?vp8 [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/video-encoder-rescaling.https.any.worker.html?vp9_p0 [ Failure ]
+
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of PASSING tests.
 #////////////////////////////////////////////////////////////////////////////////////////
@@ -1582,9 +1595,6 @@ webkit.org/b/179605 editing/execCommand/underline-selection-containing-image.htm
 editing/input/compositionend-after-clicking-outside-editable.html [ Failure ]
 editing/input/compositionend-data-after-aborting-composition.html [ Failure ]
 
-# Assertion failure if ASSERT_ENABLED
-webkit.org/b/286128 [ Release ] editing/inserting/insert-list-user-select-none-crash.html [ Crash Pass Timeout ]
-
 webkit.org/b/179261 editing/selection/drag-to-contenteditable-iframe.html [ Timeout ]
 
 webkit.org/b/312533 editing/selection/first-letter-selection-painting.html [ ImageOnlyFailure Pass ]
@@ -1604,6 +1614,8 @@ webkit.org/b/144690 editing/spelling/context-menu-suggestions-subword-selection.
 webkit.org/b/144690 editing/spelling/delete-into-misspelled-word.html [ Skip ]
 webkit.org/b/144690 editing/spelling/grammar-arrow-downstream-into-multiword-phrase.html [ Skip ]
 webkit.org/b/144690 editing/spelling/grammar-arrow-upstream-into-multiword-phrase.html [ Skip ]
+webkit.org/b/144690 editing/spelling/grammar-correction-shown-after-text-shifts-under-previous-caret.html [ Skip ]
+webkit.org/b/144690 editing/spelling/grammar-correction-shown-again-after-leaving-word.html [ Skip ]
 webkit.org/b/144690 editing/spelling/grammar-correction-shown-clicking-middle-of-word.html [ Skip ]
 webkit.org/b/144690 editing/spelling/grammar-correction-shown-clicking-multiword-phrase.html [ Skip ]
 webkit.org/b/144690 editing/spelling/grammar-edit-word.html [ Skip ]
@@ -2524,6 +2536,12 @@ webkit.org/b/139322 svg/stroke/non-scaling-stroke-gradient-text.html [ ImageOnly
 # 'text-rendering: geometricPrecision' different ligatures/kerning used in actual/expected reftest - probably a different font in the test could help, postponing for further investigation.
 webkit.org/b/139322 svg/zoom/page/non-scaling-stroke-textRendering-geometricPrecision.svg [ ImageOnlyFailure ]
 webkit.org/b/139322 svg/text/non-scaling-stroke-textRendering-geometricPrecision.svg [ ImageOnlyFailure ]
+
+# Pattern-filled and pattern-stroked text under a scaling transform does not match the
+# shapes reference on Skia.
+webkit.org/b/291897 svg/transforms/transformed-text-decoration-fill-pattern.html [ ImageOnlyFailure ]
+webkit.org/b/291897 svg/transforms/transformed-text-fill-pattern-tile-origin.html [ ImageOnlyFailure ]
+webkit.org/b/291897 svg/transforms/transformed-text-stroke-pattern.html [ ImageOnlyFailure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of SVG-related bugs

@@ -2459,6 +2459,15 @@ void WebPage::changeListType()
     protect(frame->editor())->changeSelectionListType();
 }
 
+void WebPage::applyBlockPresentationIntent(const BlockPresentationIntent& intent)
+{
+    RefPtr frame = corePage()->focusController().focusedOrMainFrame();
+    if (!frame)
+        return;
+
+    protect(frame->editor())->applyBlockPresentationIntent(intent);
+}
+
 void WebPage::setBaseWritingDirection(WritingDirection direction)
 {
     RefPtr frame = corePage()->focusController().focusedOrMainFrame();
@@ -4764,7 +4773,12 @@ void WebPage::requestFontAttributesAtSelectionStart(CompletionHandler<void(const
     RefPtr focusedOrMainFrame = corePage()->focusController().focusedOrMainFrame();
     if (!focusedOrMainFrame)
         return completionHandler({ });
-    completionHandler(protect(focusedOrMainFrame->editor())->fontAttributesAtSelectionStart());
+    Ref editor = focusedOrMainFrame->editor();
+    auto attributes = editor->fontAttributesAtSelectionStart();
+#if PLATFORM(COCOA)
+    attributes.blockPresentationIntents = editor->blockPresentationIntentsAtSelectionStart();
+#endif
+    completionHandler(attributes);
 }
 
 void WebPage::cancelCurrentInteractionInformationRequest()
@@ -6267,7 +6281,7 @@ void WebPage::isInFullscreenChanged(IsInFullscreenMode isInFullscreenMode)
     m_isInFullscreenMode = isInFullscreenMode;
 
 #if ENABLE(META_VIEWPORT)
-    resetViewportDefaultConfiguration(m_mainFrame.ptr(), m_isMobileDoctype);
+    resetViewportDefaultConfiguration(m_mainFrame.ptr());
 #endif
 }
 
@@ -8954,6 +8968,7 @@ void WebPage::didCommitLoad(WebFrame* frame)
 
     RefPtr coreFrame = frame->coreLocalFrame();
 #if ENABLE(META_VIEWPORT)
+    m_isMobileDoctype = false;
     resetViewportDefaultConfiguration(frame);
 
     bool viewportChanged = false;

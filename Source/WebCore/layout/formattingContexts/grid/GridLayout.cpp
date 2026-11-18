@@ -196,6 +196,19 @@ BorderBoxPositions GridLayout::performSelfAlignment(const PlacedGridItems& place
         auto& gridItem = placedGridItems[gridItemIndex];
 
         auto& [marginStart, marginEnd] = usedMargins[gridItemIndex];
+
+        // https://drafts.csswg.org/css-grid-1/#auto-margins
+        // "As defined for the inline axis of block layout (see CSS2§10.3.3), auto margins in either axis absorb
+        // positive free space prior to alignment via the box alignment properties, thereby disabling the effects
+        // of any self-alignment properties in that axis."
+        auto& axisSizes = alignmentAxis == LogicalBoxAxis::Inline ? gridItem.inlineAxisSizes() : gridItem.blockAxisSizes();
+        if (GridLayoutUtils::hasAutoMarginsForAxis(axisSizes)) {
+            // Set border box position using marginStart.
+            borderBoxPositions.append(marginStart);
+            // Skip alignment.
+            continue;
+        }
+
         auto marginBoxSize = marginStart + borderBoxSizes[gridItemIndex] + marginEnd;
         auto remainingSpace = gridAreaSizes[gridItemIndex] - marginBoxSize;
 
@@ -255,7 +268,7 @@ std::pair<UsedInlineSizes, UsedBlockSizes> GridLayout::layoutGridItems(const Pla
                 gridAreaInlineSize, gridAreaBlockSize, formattingContext);
             usedInlineSizes.append(inlineUsedSize);
             usedBlockSizes.append(blockUsedSize);
-            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, blockUsedSize, gridAreaInlineSize);
+            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, blockUsedSize, gridAreaInlineSize, gridAreaBlockSize);
             continue;
         }
 
@@ -268,10 +281,10 @@ std::pair<UsedInlineSizes, UsedBlockSizes> GridLayout::layoutGridItems(const Pla
         bool hasFitContentBlockSize = GridLayoutUtils::hasFitContentBlockSize(gridItem);
         if (!hasFitContentBlockSize) {
             auto usedBlockSize = GridLayoutUtils::blockUsedSize(gridItem, rowTrackSizingFunctions, blockBorderAndPadding, gridAreaBlockSize, formattingContext, gridAreaInlineSize);
-            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, usedBlockSize, gridAreaInlineSize);
+            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, usedBlockSize, gridAreaInlineSize, gridAreaBlockSize);
             usedBlockSizes.append(usedBlockSize);
         } else {
-            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, { }, gridAreaInlineSize);
+            integrationUtils.layoutGridItem(gridItem.layoutBox(), inlineUsedSize, { }, gridAreaInlineSize, gridAreaBlockSize);
             // The item's padding in its box geometry is resolved against the grid container rather than
             // the grid area, so only take the content box size from it.
             usedBlockSizes.append(formattingContext.geometryForGridItem(gridItem.layoutBox()).contentBoxHeight() + blockBorderAndPadding);

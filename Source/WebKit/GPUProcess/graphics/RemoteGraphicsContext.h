@@ -54,6 +54,8 @@ public:
 
     void save();
     void restore();
+    void saveTransform();
+    void restoreTransform();
     void translate(float x, float y);
     void rotate(float angle);
     void scale(const WebCore::FloatSize& scale);
@@ -155,10 +157,6 @@ public:
     void strokeEllipse(const WebCore::FloatRect&);
     void clearRect(const WebCore::FloatRect&);
     void drawControlPart(Ref<WebCore::ControlPart>&&, const WebCore::FloatRoundedRect& borderRect, float deviceScaleFactor, const WebCore::ControlStyle&);
-#if USE(CG)
-    void applyStrokePattern();
-    void applyFillPattern();
-#endif
     void applyDeviceScaleFactor(float);
     NODELETE std::optional<WebKit::SharedPreferencesForWebProcess> sharedPreferencesForWebProcess() const;
 #if HAVE(IOSURFACE)

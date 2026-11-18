@@ -72,6 +72,22 @@ public:
     void dump(TextStream&, OptionSet<AsTextFlag>) const { }
 };
 
+class SaveTransform {
+public:
+    static constexpr char name[] = "save-transform";
+
+    WEBCORE_EXPORT void apply(GraphicsContext&) const;
+    void dump(TextStream&, OptionSet<AsTextFlag>) const { }
+};
+
+class RestoreTransform {
+public:
+    static constexpr char name[] = "restore-transform";
+
+    WEBCORE_EXPORT void apply(GraphicsContext&) const;
+    void dump(TextStream&, OptionSet<AsTextFlag>) const { }
+};
+
 class Translate {
 public:
     static constexpr ASCIILiteral name = "translate"_s;
@@ -1381,26 +1397,6 @@ private:
     float m_deviceScaleFactor;
     ControlStyle m_style;
 };
-
-#if USE(CG)
-
-class ApplyStrokePattern {
-public:
-    static constexpr ASCIILiteral name = "apply-stroke-pattern"_s;
-
-    WEBCORE_EXPORT void apply(GraphicsContext&) const;
-    void dump(TextStream&, OptionSet<AsTextFlag>) const { }
-};
-
-class ApplyFillPattern {
-public:
-    static constexpr ASCIILiteral name = "apply-fill-pattern"_s;
-
-    WEBCORE_EXPORT void apply(GraphicsContext&) const;
-    void dump(TextStream&, OptionSet<AsTextFlag>) const { }
-};
-
-#endif
 
 class ApplyDeviceScaleFactor {
 public:

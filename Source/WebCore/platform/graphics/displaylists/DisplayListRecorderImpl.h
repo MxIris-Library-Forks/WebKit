@@ -55,7 +55,9 @@ public:
     WEBCORE_EXPORT Ref<const DisplayList> copyDisplayList();
 
     void save(GraphicsContextState::Purpose) final;
-    void restore(GraphicsContextState::Purpose) final;
+    bool restore(GraphicsContextState::Purpose) final;
+    void saveTransform() final;
+    bool restoreTransform() final;
     void translate(float x, float y) final;
     void rotate(float angle) final;
     void scale(const FloatSize&) final;
@@ -112,10 +114,6 @@ public:
     void strokePath(const Path&) final;
     void clearRect(const FloatRect&) final;
     void drawControlPart(ControlPart&, const FloatRoundedRect& borderRect, float deviceScaleFactor, const ControlStyle&) final;
-#if USE(CG)
-    void applyStrokePattern() final;
-    void applyFillPattern() final;
-#endif
     void applyDeviceScaleFactor(float) final;
 
     void beginPage(const FloatRect&) final;

@@ -54,13 +54,13 @@
 #include "LayoutIntegrationLineLayout.h"
 #include "LocalFrame.h"
 #include "LocalFrameView.h"
-#include "LogicalSelectionOffsetCachesInlines.h"
 #include "NativeImage.h"
 #include "NaturalDimensions.h"
 #include "Page.h"
 #include "PaintInfo.h"
 #include "PlatformRenderTheme.h"
 #include "PlatformScreen.h"
+#include "RenderBlockInlines.h"
 #include "RenderBoxInlines.h"
 #include "RenderBoxModelObjectInlines.h"
 #include "RenderChildIterator.h"
@@ -141,7 +141,7 @@ void RenderImage::collectSelectionGeometries(Vector<SelectionGeometry>& geometri
             lineExtentRect.setHeight(containingBlock->borderBoxHeight());
         }
     } else {
-        auto lineRect = run->lineBox().contentLogicalRectAdjustedForAdjacentLineBoxes();
+        auto lineRect = run->lineBox().contentAreaLogicalRectAdjustedForAdjacentLineBoxes();
         int selectionTop = !containingBlock->writingMode().isBlockFlipped() ? lineRect.y() - logicalTop() : logicalBottom() - lineRect.maxY();
         int selectionHeight = lineRect.height();
         imageRect = IntRect { 0,  selectionTop, logicalWidth(), selectionHeight };
@@ -149,9 +149,8 @@ void RenderImage::collectSelectionGeometries(Vector<SelectionGeometry>& geometri
         isLastOnLine = !run->nextLineRightwardOnLine();
         // An image on a line is laid out by the block that establishes its inline formatting context.
         CheckedRef formattingContextRoot = *LayoutIntegration::LineLayout::blockContainer(*this);
-        LogicalSelectionOffsetCaches cache(formattingContextRoot);
-        LayoutUnit leftOffset = formattingContextRoot->logicalLeftSelectionOffset(formattingContextRoot, LayoutUnit(run->logicalTop()), cache);
-        LayoutUnit rightOffset = formattingContextRoot->logicalRightSelectionOffset(formattingContextRoot, LayoutUnit(run->logicalTop()), cache);
+        LayoutUnit leftOffset = formattingContextRoot->logicalLeftOffsetForLine(LayoutUnit(run->logicalTop()));
+        LayoutUnit rightOffset = formattingContextRoot->logicalRightOffsetForLine(LayoutUnit(run->logicalTop()));
         lineExtentRect = IntRect(leftOffset - logicalLeft(), imageRect.y(), rightOffset - leftOffset, imageRect.height());
         if (!run->isHorizontal()) {
             imageRect = imageRect.transposedRect();
@@ -172,7 +171,7 @@ void RenderImage::collectSelectionGeometries(Vector<SelectionGeometry>& geometri
 
 using namespace HTMLNames;
 
-RenderImage::RenderImage(Type type, Element& element, Style::ComputedStyle&& style, OptionSet<ReplacedFlag> flags, Style::Image* styleImage, float currentPixelDensity)
+RenderImage::RenderImage(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, OptionSet<ReplacedFlag> flags, Style::Image* styleImage, float currentPixelDensity)
     : RenderReplaced(type, element, WTF::move(style), IntSize(), flags | ReplacedFlag::IsImage)
     , m_imageResource(makeUnique<RenderImageResource>(styleImage))
     , m_hasImageOverlay([&] {
@@ -192,12 +191,12 @@ RenderImage::RenderImage(Type type, Element& element, Style::ComputedStyle&& sty
 #endif
 }
 
-RenderImage::RenderImage(Type type, Element& element, Style::ComputedStyle&& style, Style::Image* styleImage, float currentPixelDensity)
+RenderImage::RenderImage(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, Style::Image* styleImage, float currentPixelDensity)
     : RenderImage(type, element, WTF::move(style), ReplacedFlag::IsImage, styleImage, currentPixelDensity)
 {
 }
 
-RenderImage::RenderImage(Type type, Document& document, Style::ComputedStyle&& style, Style::Image* styleImage)
+RenderImage::RenderImage(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style, Style::Image* styleImage)
     : RenderReplaced(type, document, WTF::move(style), IntSize(), ReplacedFlag::IsImage)
     , m_imageResource(makeUnique<RenderImageResource>(styleImage))
 {
@@ -496,6 +495,9 @@ RefPtr<ShareableBitmap> RenderImage::createShareableBitmap(const CreateShareable
         bitmapSize = scaledSize.width() < bitmapSize.width() ? scaledSize : bitmapSize;
     }
 
+    if (options.resultColorSpace == CreateShareableBitmapFromImageOptions::ResultColorSpace::FromImage)
+        colorSpaceForBitmap = styleImage->colorSpace().asRGBModelMayBeExtended().value_or(ColorSpace::SRGB());
+
     // FIXME: Only select ExtendedColor on images known to need wide gamut.
     auto sharedBitmap = ShareableBitmap::create({ IntSize(bitmapSize), WTF::move(colorSpaceForBitmap) });
     if (!sharedBitmap)
@@ -533,7 +535,9 @@ RefPtr<ShareableBitmap> RenderImage::createShareableBitmapForImageBitmapRequest(
 
 RefPtr<ShareableBitmap> RenderImage::createShareableBitmapForFullScreen() const
 {
-    return createShareableBitmap();
+    CreateShareableBitmapFromImageOptions options;
+    options.resultColorSpace = CreateShareableBitmapFromImageOptions::ResultColorSpace::FromImage;
+    return createShareableBitmap(options);
 }
 
 RefPtr<ShareableBitmap> RenderImage::createShareableBitmapForImageServices() const
@@ -765,10 +769,10 @@ void RenderImage::paintMissingImageState(PaintInfo& paintInfo, const LayoutPoint
         adjustedPaintOffset.setY(roundToDevicePixel(adjustedPaintOffset.y(), document().deviceScaleFactor()));
 
         auto rotationRect = LayoutRect { visualLeft, adjustedPaintOffset.y(), textWidth, contentLogicalHeight };
-        context.concatCTM(rotation(rotationRect, RotationDirection::Clockwise));
+        context.concatCTM(Paint::rotation(rotationRect, RotationDirection::Clockwise));
         auto textOrigin = LayoutPoint { visualLeft, adjustedPaintOffset.y() + fontCascade.metricsOfPrimaryFont().ascent() };
         context.drawBidiText(fontCascade, textRun, roundPointToDevicePixels(textOrigin, document().deviceScaleFactor()));
-        context.concatCTM(rotation(rotationRect, RotationDirection::Counterclockwise));
+        context.concatCTM(Paint::rotation(rotationRect, RotationDirection::Counterclockwise));
     }
 }
 

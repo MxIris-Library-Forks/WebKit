@@ -50,7 +50,7 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderMultiColumnSet);
 
-RenderMultiColumnSet::RenderMultiColumnSet(RenderFragmentedFlow& fragmentedFlow, Style::ComputedStyle&& style)
+RenderMultiColumnSet::RenderMultiColumnSet(RenderFragmentedFlow& fragmentedFlow, UniqueRef<Style::ComputedStyle>&& style)
     : RenderFragmentContainer(Type::MultiColumnSet, protect(fragmentedFlow.document()), WTF::move(style), &fragmentedFlow)
     , m_maxColumnHeight(RenderFragmentedFlow::maxLogicalHeight())
     , m_minSpaceShortage(RenderFragmentedFlow::maxLogicalHeight())
@@ -408,7 +408,7 @@ void RenderMultiColumnSet::prepareForLayout(bool initial)
     setNeedsLayout(MarkingBehavior::OnlyThis);
 }
 
-void RenderMultiColumnSet::beginFlow(RenderBlock* container)
+void RenderMultiColumnSet::beginFlow(RenderBox* container)
 {
     RenderMultiColumnFlow* fragmentedFlow = multiColumnFlow();
 
@@ -418,7 +418,7 @@ void RenderMultiColumnSet::beginFlow(RenderBlock* container)
     setLogicalTopInFragmentedFlow(logicalTopInFragmentedFlow);
 }
 
-void RenderMultiColumnSet::endFlow(RenderBlock* container, LayoutUnit bottomInContainer)
+void RenderMultiColumnSet::endFlow(RenderBox* container, LayoutUnit bottomInContainer)
 {
     RenderMultiColumnFlow* fragmentedFlow = multiColumnFlow();
 
@@ -796,7 +796,7 @@ void RenderMultiColumnSet::paintColumnRules(PaintInfo& paintInfo, const LayoutPo
     auto ruleThickness = parent()->usedStyle().columnRuleWidth();
     auto colGap = columnGap();
 
-    bool antialias = BorderPainter::shouldAntialiasLines(paintInfo.context());
+    bool antialias = Paint::BorderPainter::shouldAntialiasLines(paintInfo.context());
 
     if (fragmentedFlow->progressionIsInline()) {
         bool isLogicalLeftInlineStart = writingMode().isLogicalLeftInlineStart() ^ fragmentedFlow->progressionIsReversed();
@@ -825,7 +825,7 @@ void RenderMultiColumnSet::paintColumnRules(PaintInfo& paintInfo, const LayoutPo
                 LayoutUnit ruleTop = isHorizontalWritingMode() ? paintOffset.y() + borderTop() + paddingTop() : paintOffset.y() + ruleLogicalLeft - ruleThickness / 2 + ruleAdd;
                 LayoutUnit ruleBottom = isHorizontalWritingMode() ? ruleTop + contentBoxHeight() : ruleTop + ruleThickness;
                 IntRect pixelSnappedRuleRect = snappedIntRect(ruleLeft, ruleTop, ruleRight - ruleLeft, ruleBottom - ruleTop);
-                BorderPainter::drawLineForBoxSide(paintInfo.context(), protect(document()), pixelSnappedRuleRect, boxSide, ruleColor, ruleStyle, 0, 0, antialias);
+                Paint::BorderPainter::drawLineForBoxSide(paintInfo.context(), protect(document()), pixelSnappedRuleRect, boxSide, ruleColor, ruleStyle, 0, 0, antialias);
             }
             
             ruleLogicalLeft = currLogicalLeftOffset;
@@ -856,7 +856,7 @@ void RenderMultiColumnSet::paintColumnRules(PaintInfo& paintInfo, const LayoutPo
         for (unsigned i = 1; i < colCount; i++) {
             ruleRect.move(step);
             IntRect pixelSnappedRuleRect = snappedIntRect(ruleRect);
-            BorderPainter::drawLineForBoxSide(paintInfo.context(), protect(document()), pixelSnappedRuleRect, boxSide, ruleColor, ruleStyle, 0, 0, antialias);
+            Paint::BorderPainter::drawLineForBoxSide(paintInfo.context(), protect(document()), pixelSnappedRuleRect, boxSide, ruleColor, ruleStyle, 0, 0, antialias);
         }
     }
 }

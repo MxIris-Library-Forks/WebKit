@@ -5716,9 +5716,9 @@ void LocalFrameView::updateScrollCorner()
         m_scrollCorner = nullptr;
     else {
         if (CheckedPtr scrollCorner = m_scrollCorner.get())
-            scrollCorner->setStyle(WTF::move(*cornerStyle));
+            scrollCorner->setStyle(makeUniqueRefFromNonNullUniquePtr(WTF::move(cornerStyle)));
         else {
-            m_scrollCorner = createRenderer<RenderScrollbarPart>(protect(renderer->document()), WTF::move(*cornerStyle));
+            m_scrollCorner = createRenderer<RenderScrollbarPart>(protect(renderer->document()), makeUniqueRefFromNonNullUniquePtr(WTF::move(cornerStyle)));
             protect(m_scrollCorner)->initializeStyle();
         }
         invalidateScrollCorner(cornerRect);
@@ -5742,7 +5742,7 @@ void LocalFrameView::paintScrollCorner(GraphicsContext& context, const IntRect& 
     ScrollView::paintScrollCorner(context, cornerRect);
 }
 
-void LocalFrameView::paintScrollbar(GraphicsContext& context, Scrollbar& bar, const IntRect& rect)
+void LocalFrameView::paintScrollbar(GraphicsContext& context, Scrollbar& bar, const IntRect& rect, OptionSet<ScrollbarPaintBehavior> paintBehavior)
 {
     if (bar.isCustomScrollbar() && m_frame->isMainFrame()) {
         IntRect toFill = bar.frameRect();
@@ -5750,7 +5750,21 @@ void LocalFrameView::paintScrollbar(GraphicsContext& context, Scrollbar& bar, co
         context.fillRect(toFill, baseBackgroundColor());
     }
 
-    ScrollView::paintScrollbar(context, bar, rect);
+    ScrollView::paintScrollbar(context, bar, rect, paintBehavior);
+}
+
+OptionSet<ScrollbarPaintBehavior> LocalFrameView::scrollbarPaintBehavior() const
+{
+    auto paintBehavior = m_paintBehavior;
+    if (RefPtr parentView = parentFrameView())
+        paintBehavior.add(parentView->paintBehavior() & OptionSet { PaintBehavior::FlattenCompositingLayers, PaintBehavior::Snapshotting });
+
+    OptionSet<ScrollbarPaintBehavior> scrollbarPaintBehavior;
+    if (paintBehavior.contains(PaintBehavior::FlattenCompositingLayers))
+        scrollbarPaintBehavior.add(ScrollbarPaintBehavior::IncludeComposited);
+    if (paintBehavior.contains(PaintBehavior::Snapshotting))
+        scrollbarPaintBehavior.add(ScrollbarPaintBehavior::Snapshot);
+    return scrollbarPaintBehavior;
 }
 
 Color LocalFrameView::documentBackgroundColor() const

@@ -179,13 +179,13 @@ static bool canHaveBoxInfoInFragment(auto& renderer)
 }
 #endif
 
-RenderBox::RenderBox(Type type, Element& element, Style::ComputedStyle&& style, OptionSet<TypeFlag> flags, TypeSpecificFlags typeSpecificFlags)
+RenderBox::RenderBox(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> flags, TypeSpecificFlags typeSpecificFlags)
     : RenderBoxModelObject(type, element, WTF::move(style), flags | TypeFlag::IsBox, typeSpecificFlags)
 {
     ASSERT(isRenderBox());
 }
 
-RenderBox::RenderBox(Type type, Document& document, Style::ComputedStyle&& style, OptionSet<TypeFlag> flags, TypeSpecificFlags typeSpecificFlags)
+RenderBox::RenderBox(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> flags, TypeSpecificFlags typeSpecificFlags)
     : RenderBoxModelObject(type, document, WTF::move(style), flags | TypeFlag::IsBox, typeSpecificFlags)
 {
     ASSERT(isRenderBox());
@@ -1966,14 +1966,14 @@ bool RenderBox::getBackgroundPaintedExtent(const LayoutPoint& paintOffset, Layou
         return true;
     }
 
-    auto geometry = BackgroundPainter::calculateFillLayerImageGeometry(*this, nullptr, layers.usedFirst(), style().usedZoomForLength(), paintOffset, backgroundRect);
+    auto geometry = Paint::BackgroundPainter::calculateFillLayerImageGeometry(*this, nullptr, layers.usedFirst(), style().usedZoomForLength(), paintOffset, backgroundRect);
     paintedExtent = geometry.destinationRect;
     return !geometry.hasNonLocalGeometry;
 }
 
 bool RenderBox::backgroundIsKnownToBeOpaqueInRect(const LayoutRect& localRect) const
 {
-    if (!BackgroundPainter::paintsOwnBackground(*this))
+    if (!Paint::BackgroundPainter::paintsOwnBackground(*this))
         return false;
 
     Color backgroundColor = style().visitedDependentUsedBackgroundColorApplyingColorFilter();
@@ -2115,7 +2115,7 @@ LayoutRect RenderBox::maskClipRect(const LayoutPoint& paintOffset)
     for (auto& maskLayer : style().maskLayers().usedValues()) {
         if (maskLayer.hasImage()) {
             // Masks should never have fixed attachment, so it's OK for paintContainer to be null.
-            result.unite(BackgroundPainter::calculateFillLayerImageGeometry(*this, nullptr, maskLayer, zoom, paintOffset, borderBox).destinationRect);
+            result.unite(Paint::BackgroundPainter::calculateFillLayerImageGeometry(*this, nullptr, maskLayer, zoom, paintOffset, borderBox).destinationRect);
         }
     }
     return result;
@@ -2226,7 +2226,7 @@ bool RenderBox::repaintLayerRectsForImage(WrappedImagePtr image, const Layers& l
                 }
             }
             // FIXME: Figure out how to pass absolute position to calculateFillLayerImageGeometry (for pixel snapping)
-            auto geometry = BackgroundPainter::calculateFillLayerImageGeometry(*layerRenderer, nullptr, layer, zoom, LayoutPoint(), rendererRect);
+            auto geometry = Paint::BackgroundPainter::calculateFillLayerImageGeometry(*layerRenderer, nullptr, layer, zoom, LayoutPoint(), rendererRect);
             if (geometry.hasNonLocalGeometry) {
                 // Rather than incur the costs of computing the paintContainer for renderers with fixed backgrounds
                 // in order to get the right destRect, just repaint the entire renderer.
@@ -2449,11 +2449,6 @@ LayoutUnit RenderBox::containingBlockLogicalHeightForContent(AvailableLogicalHei
 
     ASSERT_NOT_REACHED();
     return 0_lu;
-}
-
-LayoutUnit RenderBox::containingBlockAvailableLineWidth() const
-{
-    return containingBlock()->availableLogicalWidthForLine(logicalTop(), availableLogicalHeight(AvailableLogicalHeightType::IncludeMarginBorderPadding));
 }
 
 LayoutUnit RenderBox::perpendicularContainingBlockLogicalHeight() const
@@ -2679,7 +2674,7 @@ void RenderBox::computeLogicalWidth(LogicalExtentComputedValues& computedValues)
         return;
     }
 
-    auto& containingBlock = *this->containingBlock();
+    const RenderBoxModelObject& containingBlock = *this->containingBlock();
     bool hasPerpendicularContainingBlock = containingBlock.isHorizontalWritingMode() != isHorizontalWritingMode();
 
     // Width calculations
@@ -2717,8 +2712,8 @@ void RenderBox::computeLogicalWidth(LogicalExtentComputedValues& computedValues)
         }
     } else {
         auto containerLogicalWidthForAutoMargins = containerLogicalWidth;
-        if (avoidsFloats() && containingBlock.containsFloats())
-            containerLogicalWidthForAutoMargins = containingBlockAvailableLineWidth();
+        if (CheckedPtr block = dynamicDowncast<RenderBlock>(containingBlock); block && avoidsFloats() && block->containsFloats())
+            containerLogicalWidthForAutoMargins = block->availableLogicalWidthForLine(logicalTop(), availableLogicalHeight(AvailableLogicalHeightType::IncludeMarginBorderPadding));
         bool hasInvertedDirection = containingBlock.writingMode().isInlineOpposing(writingMode());
         computeInlineDirectionMargins(containingBlock, containerLogicalWidth, containerLogicalWidthForAutoMargins, computedValues.extent,
             hasInvertedDirection ? computedValues.margins.end : computedValues.margins.start,
@@ -4250,13 +4245,16 @@ LayoutRange RenderBox::containingBlockRangeForPositioned(const RenderBoxModelObj
     }
 
     // Inline containing blocks are formed by positioned (e.g. relative, sticky) inline boxes and by inline boxes with (backdrop-)filter.
-    if (container.isInlineBox()) {
+    // A replaced element with children (e.g. a positioned canvas with drawable content) is a containing block as well.
+    if (container.isInlineBox() || is<RenderReplaced>(container)) {
         return isContainerInlineAxis
             ? LayoutRange(startEdge, container.paddingBoxLogicalWidth())
             : LayoutRange(startEdge, container.paddingBoxLogicalHeight());
     }
 
-    auto* containingBlock = dynamicDowncast<RenderBlock>(container) ? : container.containingBlock();
+    // The block that keeps this out-of-flow box: the container itself, or the nearest non-anonymous block for a container that
+    // is not a block (e.g. a positioned table section).
+    auto* containingBlock = container.nearestNonAnonymousContainingBlockIncludingSelf();
     if (!containingBlock) {
         ASSERT_NOT_REACHED();
         return { };
@@ -5539,15 +5537,13 @@ LayoutUnit RenderBox::offsetFromLogicalTopOfFirstPage() const
     if ((layoutState && !layoutState->isPaginated()) || (!layoutState && !enclosingFragmentedFlow()))
         return 0;
 
-    CheckedPtr containingBlock = this->containingBlock();
-    auto logicalTopInContainingBlock = logicalTop();
     if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(container()); inlineBox && inlineBox->isInlineBox() && isOutOfFlowPositioned()) {
-        // The box is positioned relative to the inline box, which is positioned in its own containing block.
+        // The box is positioned relative to the inline box, which is positioned in its block container.
         auto inlineBoxOffset = toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
-        logicalTopInContainingBlock += inlineBox->isHorizontalWritingMode() ? inlineBoxOffset.height() : inlineBoxOffset.width();
-        containingBlock = inlineBox->containingBlock();
+        auto logicalTopInBlockContainer = logicalTop() + (inlineBox->isHorizontalWritingMode() ? inlineBoxOffset.height() : inlineBoxOffset.width());
+        return protect(LayoutIntegration::LineLayout::blockContainer(*inlineBox))->offsetFromLogicalTopOfFirstPage() + logicalTopInBlockContainer;
     }
-    return containingBlock->offsetFromLogicalTopOfFirstPage() + logicalTopInContainingBlock;
+    return protect(containingBlock())->offsetFromLogicalTopOfFirstPage() + logicalTop();
 }
 
 LayoutBoxExtent RenderBox::scrollPaddingForViewportRect(const LayoutRect& viewportRect)

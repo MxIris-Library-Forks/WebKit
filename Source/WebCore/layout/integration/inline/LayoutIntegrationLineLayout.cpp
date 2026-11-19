@@ -519,17 +519,17 @@ static inline std::optional<Layout::BlockLayoutState::LineGrid> lineGrid(const R
 
 LineLayout::ExcludedMarkerList LineLayout::excludedMarkersForFirstFormattedLine(Layout::InlineLayoutState& layoutState)
 {
-    auto excludedMarkers = RenderListItem::excludedMarkersForContainer(protect(flow()), flow().view().frameView().layoutContext().excludedMarkers());
-    if (excludedMarkers.isEmpty())
+    auto listItems = RenderListItem::listItemsWithExcludedMarkerFor(protect(flow()), flow().view().frameView().layoutContext().listItemsWithExcludedMarker());
+    if (listItems.isEmpty())
         return { };
 
     auto layoutBounds = Vector<Layout::InlineLayoutState::AscentAndDescent> { };
-    layoutBounds.reserveInitialCapacity(excludedMarkers.size());
-    for (auto& marker : excludedMarkers)
-        layoutBounds.append(marker->layoutBounds());
+    layoutBounds.reserveInitialCapacity(listItems.size());
+    for (auto& listItem : listItems)
+        layoutBounds.append(listItem->markerLayoutBounds());
     layoutState.setExcludedMarkerLayoutBounds(WTF::move(layoutBounds));
 
-    return excludedMarkers;
+    return listItems;
 }
 
 void LineLayout::setExcludedMarkerPositions(const ExcludedMarkerList& excludedMarkers)
@@ -581,17 +581,25 @@ void LineLayout::setExcludedMarkerPositions(const ExcludedMarkerList& excludedMa
 
     auto contentBoxStartEdge = isLeftToRight ? 0.f : protect(flow())->contentBoxLogicalWidth().toFloat();
     auto isLineStartConstrainedByFloat = lineStartEdge != contentBoxStartEdge;
-    for (auto& marker : excludedMarkers) {
+    for (auto& listItem : excludedMarkers) {
+        CheckedPtr marker = listItem->markerBox();
+        if (!marker)
+            continue;
         auto markerLogicalTop = [&]() -> float {
             if (firstContentfulLine->baselineType() == FontBaseline::Ideographic)
                 return lineBoxLogicalRect.y() + (lineBoxLogicalRect.height() - marker->logicalHeight().toFloat()) / 2;
             auto markerAscent = marker->isImage() ? marker->logicalHeight().toFloat() : protect(marker->style())->metricsOfPrimaryFont().ascent(FontBaseline::Alphabetic);
             return lineBoxLogicalRect.y() + firstContentfulLine->baseline() - markerAscent;
         }();
-        auto markerMarginStart = marker->marginStart(flow().writingMode()).toFloat();
-        auto markerLogicalLeft = isLeftToRight ? lineStartEdge + markerMarginStart : lineStartEdge - markerMarginStart - marker->logicalWidth().toFloat();
+        // The marker goes on the inline start side of its list item, in the list item's writing mode (css-lists-3
+        // marker-side: match-self), which is the line's end side when the line runs the other way.
+        auto listItemIsLeftToRight = listItem->writingMode().isLogicalLeftInlineStart();
+        auto isOnLineStart = listItemIsLeftToRight == isLeftToRight;
+        auto markerEdge = isOnLineStart ? lineStartEdge : listItemIsLeftToRight ? lineBoxLogicalRect.x() : lineBoxLogicalRect.maxX();
+        auto markerMarginStart = marker->marginStart(listItem->writingMode()).toFloat();
+        auto markerLogicalLeft = listItemIsLeftToRight ? markerEdge + markerMarginStart : markerEdge - markerMarginStart - marker->logicalWidth().toFloat();
         auto topLeft = FloatPoint { markerLogicalLeft, markerLogicalTop };
-        marker->setExcludedPosition({ flow(), topLeft, isLineStartConstrainedByFloat });
+        listItem->setExcludedMarkerPosition({ flow(), topLeft, isOnLineStart && isLineStartConstrainedByFloat });
     }
 }
 
@@ -1679,13 +1687,13 @@ void LineLayout::shiftLinesByInBlockDirection(LayoutUnit blockShift)
     // An excluded marker is on one of these lines without being part of the content that moves with them, so the
     // position it was given has to move too (see RenderListItem::placeExcludedMarker). Nested list items can have
     // their markers on the same line.
-    for (auto& excludedMarker : flow().view().frameView().layoutContext().excludedMarkers()) {
-        CheckedPtr marker = excludedMarker.get();
-        auto excludedPosition = marker->excludedPosition();
+    for (auto& listItemWithExcludedMarker : flow().view().frameView().layoutContext().listItemsWithExcludedMarker()) {
+        CheckedPtr listItem = listItemWithExcludedMarker.get();
+        auto excludedPosition = listItem->excludedMarkerPosition();
         if (!excludedPosition || excludedPosition->firstFormattedLineRoot.get() != &flow())
             continue;
         excludedPosition->topLeft.move(0, blockShift.toFloat());
-        marker->setExcludedPosition(*excludedPosition);
+        listItem->setExcludedMarkerPosition(WTF::move(*excludedPosition));
     }
 
     auto deltaX = isHorizontalWritingMode ? 0_lu : blockShift;

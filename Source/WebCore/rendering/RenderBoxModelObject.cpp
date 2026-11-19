@@ -193,26 +193,26 @@ void RenderBoxModelObject::setSelectionState(HighlightState state)
         containingBlock->setSelectionState(state);
 }
 
-RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderLayerModelObject(type, element, WTF::move(style), baseTypeFlags | TypeFlag::IsBoxModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderBoxModelObject());
     setChildrenInline(isInlineBox());
 }
 
-RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderLayerModelObject(type, document, WTF::move(style), baseTypeFlags | TypeFlag::IsBoxModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderBoxModelObject());
     setChildrenInline(isInlineBox());
 }
 
-RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, Style::ComputedStyle&& style)
+RenderBoxModelObject::RenderBoxModelObject(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBoxModelObject(type, element, WTF::move(style), TypeFlag::IsInlineBox, { })
 {
 }
 
-RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, Style::ComputedStyle&& style)
+RenderBoxModelObject::RenderBoxModelObject(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBoxModelObject(type, document, WTF::move(style), TypeFlag::IsInlineBox, { })
 {
 }
@@ -417,7 +417,7 @@ DecodingMode RenderBoxModelObject::decodingModeForImageDraw(const Image& image, 
 }
 
 #if ASSERT_ENABLED
-static void verifyDefiniteHeightConsistencyBetweenStyleAndContainingBlockChain(const RenderBlock& containingBlock, bool hasDefiniteHeightByStyleOnly)
+static void verifyDefiniteHeightConsistencyBetweenStyleAndContainingBlockChain(const RenderBox& containingBlock, bool hasDefiniteHeightByStyleOnly)
 {
     // The fast path is more correct than the slow path for these cases.
     auto& logicalHeight = containingBlock.style().logicalHeight();
@@ -788,7 +788,7 @@ void RenderBoxModelObject::paintMaskForTextFillBox(GraphicsContext& context, con
         for (auto& box : inlineBox->leafDescendants()) {
             if (!box.isText())
                 continue;
-            TextBoxPainter { box.inlineContent(), box.displayBox(), box.displayBox().style(), maskInfo, paintOffset }.paint();
+            Paint::TextBoxPainter { box.inlineContent(), box.displayBox(), box.displayBox().style(), maskInfo, paintOffset }.paint();
         }
         return;
     }

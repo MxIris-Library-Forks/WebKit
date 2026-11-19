@@ -79,7 +79,7 @@ class RenderGrid final : public RenderBlock {
     WTF_MAKE_TZONE_ALLOCATED(RenderGrid);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(RenderGrid);
 public:
-    RenderGrid(Element&, Style::ComputedStyle&&);
+    RenderGrid(Element&, UniqueRef<Style::ComputedStyle>&&);
     virtual ~RenderGrid();
 
     Element& element() const { return downcast<Element>(nodeForNonAnonymous()); }
@@ -207,6 +207,7 @@ private:
 
     NODELETE WTF::Range<size_t> autoRepeatTracksRange(Style::GridTrackSizingDirection) const;
     std::unique_ptr<OrderedTrackIndexSet> computeEmptyTracksForAutoRepeat(Style::GridTrackSizingDirection) const;
+    std::unique_ptr<OrderedTrackIndexSet> computeEmptyTracksForGridLanesAutoFit(Style::GridTrackSizingDirection) const;
 
     enum class ShouldUpdateGridAreaLogicalSize : bool { No, Yes };
     void performPreLayoutForGridItems(const GridTrackSizingAlgorithm&, const ShouldUpdateGridAreaLogicalSize) const;
@@ -243,6 +244,7 @@ private:
 
     void layoutGridItems(RenderGridLayoutState&, GridLanesResultRef);
     void layoutGridLanesItems(RenderGridLayoutState&, const GridLanesResult&);
+    LayoutUnit gridLanesContentBoxLogicalHeightForMaxContent(const GridTrackSizingAlgorithm&) const;
 
     void populateGridPositionsForDirection(const GridTrackSizingAlgorithm&, Style::GridTrackSizingDirection, GridLanesResultRef);
 

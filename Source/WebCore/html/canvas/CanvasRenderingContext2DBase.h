@@ -324,10 +324,18 @@ public:
         State(State&&) = default;
         State& operator=(State&&) = default;
 
+        // If the current stroke/fill style is a color, this is the color string before
+        // parsing. We avoid re-parsing if the stroke/fill style is set to the same color.
+        // NOTE: they're set only if the color is cacheable (i.e anything not involving
+        // currentColor or color-scheme dependant colors). Otherwise it's null.
         String unparsedStrokeColor;
         String unparsedFillColor;
+
         CanvasStyle strokeStyle;
         CanvasStyle fillStyle;
+        // CanvasStyle::gradientPatternVersion() when the drawing context brushes were last set to match the fill and
+        // stroke styles, or no version after a style was set. The initial brushes match the initial styles.
+        Markable<CanvasStyleVersion> drawingContextStyleVersion { CanvasStyleVersion { } };
         double lineWidth;
         double miterLimit;
         FloatSize shadowOffset;
@@ -395,7 +403,11 @@ protected:
     AtomString effectiveLanguage() const;
 
     GraphicsContext* drawingContext() const;
-    GraphicsContext* effectiveDrawingContext() const;
+    // The drawing context, or the context of the target switcher, with the fill and stroke brushes set to match the
+    // fill and stroke styles.
+    GraphicsContext* effectiveDrawingContext();
+    // The same context without setting the brushes, for uses that don't depend on them.
+    GraphicsContext* effectiveDrawingContextNoSync() const;
     AffineTransform baseTransform() const;
 
     enum class WillUpdateContentsOption {
@@ -467,6 +479,7 @@ private:
     void applyLineDash() const;
     void invalidateCachedContents(OptionSet<WillUpdateContentsOption>);
     void notifyCanvasEntireContentsWillChange(ShouldApplyPostProcessingToDirtyRect);
+    GraphicsContext* effectiveDrawingContextSync();
     // For CanvasFilterContextSwitcher, which sets a target switcher for one draw and then sets back the previous
     // one. The draw does not save() or restore(), so the target switcher is set without realizeSaves(), in the
     // state that unrealized saves share with the level below.
@@ -598,6 +611,15 @@ private:
     PlatformDynamicRangeLimit m_dynamicRangeLimit { PlatformDynamicRangeLimit::initialValue() };
 #endif
 };
+
+// While the version matches, the brushes of the effective drawing context match the styles: a target switcher context
+// copies the brushes of the context it draws into, or draws into it.
+inline GraphicsContext* CanvasRenderingContext2DBase::effectiveDrawingContext()
+{
+    if (state().drawingContextStyleVersion == CanvasStyle::gradientPatternVersion()) [[likely]]
+        return effectiveDrawingContextNoSync();
+    return effectiveDrawingContextSync();
+}
 
 } // namespace WebCore
 

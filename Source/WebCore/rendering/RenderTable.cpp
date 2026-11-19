@@ -77,7 +77,7 @@ using namespace HTMLNames;
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderTable);
 
-RenderTable::RenderTable(Type type, Element& element, Style::ComputedStyle&& style)
+RenderTable::RenderTable(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBlock(type, element, WTF::move(style), { })
     , m_columnPos(FillWith { }, 1, 0)
 {
@@ -85,7 +85,7 @@ RenderTable::RenderTable(Type type, Element& element, Style::ComputedStyle&& sty
     ASSERT(isRenderTable());
 }
 
-RenderTable::RenderTable(Type type, Document& document, Style::ComputedStyle&& style)
+RenderTable::RenderTable(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBlock(type, document, WTF::move(style), { })
     , m_columnPos(FillWith { }, 1, 0)
 {
@@ -326,7 +326,7 @@ void RenderTable::updateLogicalWidth()
     if (!hasPerpendicularContainingBlock) {
         LayoutUnit containerLogicalWidthForAutoMargins = availableLogicalWidth;
         if (CheckedPtr block = dynamicDowncast<RenderBlock>(containingBlock); block && avoidsFloats() && block->containsFloats())
-            containerLogicalWidthForAutoMargins = containingBlockAvailableLineWidth();
+            containerLogicalWidthForAutoMargins = block->availableLogicalWidthForLine(logicalTop(), availableLogicalHeight(AvailableLogicalHeightType::IncludeMarginBorderPadding));
         ComputedMarginValues marginValues;
         bool hasSameDirection = !containingBlock->writingMode().isInlineOpposing(writingMode());
         computeInlineDirectionMargins(containingBlock, availableLogicalWidth, containerLogicalWidthForAutoMargins, logicalWidth(),
@@ -883,10 +883,10 @@ void RenderTable::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
 {
     PaintPhase paintPhase = paintInfo.phase;
     if ((paintPhase == PaintPhase::BlockBackground || paintPhase == PaintPhase::ChildBlockBackground) && hasVisibleBoxDecorations() && usedStyle().visibility() == UsedVisibility::Visible)
-        BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
+        Paint::BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
 
     if (paintPhase == PaintPhase::Mask) {
-        MaskPainter { *this, paintInfo, paintOffset }.paintMask();
+        Paint::MaskPainter { *this, paintInfo, paintOffset }.paintMask();
         return;
     }
 

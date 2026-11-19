@@ -1036,7 +1036,10 @@ public:
     unsigned inflightBeaconsCount() const;
 
     enum class PageOverlayType { View, Document };
-    ExceptionOr<Ref<MockPageOverlay>> installMockPageOverlay(PageOverlayType);
+    struct MockPageOverlayOptions {
+        bool associateWithLocalRoot { false };
+    };
+    ExceptionOr<Ref<MockPageOverlay>> installMockPageOverlay(PageOverlayType, const MockPageOverlayOptions&);
     ExceptionOr<String> pageOverlayLayerTreeAsText(unsigned short flags) const;
 
     void setPageMuted(StringView);
@@ -1647,6 +1650,7 @@ public:
 #if ENABLE(APP_HIGHLIGHTS)
     Vector<String> appHighlightContextMenuItemTitles() const;
     unsigned numberOfAppHighlights();
+    bool appHighlightsVisible();
 #endif
 
     Vector<Ref<AbstractRange>> textExtractionHighlightRanges() const;
@@ -1803,6 +1807,7 @@ public:
 
 #if ENABLE(SPATIAL_PORTAL)
     NODELETE unsigned numberOfHostedModelsInSpatialPortal(Element&);
+    unsigned numberOfHostedPromotedChildrenInSpatialPortal(Element&);
     NODELETE bool establishesSpatialPortal(Element&);
     NODELETE RefPtr<Element> spatialPortalAnchorForModel(HTMLModelElement&);
     NODELETE std::optional<Vector<double>> spatialPortalResolvedTransform(Element&);

@@ -86,7 +86,9 @@ class HitTestRequest;
 class HitTestResult;
 class HitTestingTransformState;
 class Region;
-class ClipPathPaintScope;
+namespace Paint {
+class ClipPathScope;
+}
 class RegionContext;
 class RenderFragmentedFlow;
 class RenderLayerBacking;
@@ -1260,7 +1262,7 @@ private:
 
     bool setupFontSubpixelQuantization(GraphicsContext&, bool& didQuantizeFonts);
 
-    void setupClipPath(std::optional<ClipPathPaintScope>&, GraphicsContext&, const LayerPaintingInfo&, OptionSet<PaintLayerFlag>&, const LayoutSize& offsetFromRoot);
+    void setupClipPath(std::optional<Paint::ClipPathScope>&, GraphicsContext&, const LayerPaintingInfo&, OptionSet<PaintLayerFlag>&, const LayoutSize& offsetFromRoot);
     void clearLayerClipPath();
 
     RenderLayerFilters& ensureLayerFilters();
@@ -1325,6 +1327,12 @@ private:
         const LayoutRect& hitTestRect, const HitTestLocation&,
         const HitTestingTransformState* containerTransformState,
         const LayoutSize& translationOffset = LayoutSize()) const;
+#if ENABLE(SPATIAL_PORTAL)
+    bool isHostedInSpatialPortalScene() const;
+    std::optional<TransformationMatrix> hostedPortalContentProjection(const RenderLayer& space) const;
+    HitLayer hitTestFrontmostHostedChild(RenderLayer* rootLayer, const HitTestRequest&, HitTestResult&,
+        const LayoutRect& hitTestRect, const HitTestLocation&, const HitTestingTransformState*);
+#endif
     
     bool hitTestContents(const HitTestRequest&, HitTestResult&, const LayoutRect& layerBounds, const HitTestLocation&, HitTestFilter) const;
     bool hitTestContentsForFragments(const LayerFragments&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, HitTestFilter, bool& insideClipRect) const;
@@ -1340,6 +1348,7 @@ private:
     NODELETE void dirtyAncestorChainVisibleDescendantStatus();
     
     bool computeHasVisibleContent() const;
+    void updateCompositingForViewportConstrainedLayerWithNoVisibleContent();
 
     bool has3DTransformedDescendant() const { ASSERT(!m_3DTransformedDescendantStatusDirty); return m_has3DTransformedDescendant; }
     bool has3DTransformedAncestor() const { return m_has3DTransformedAncestor; }
@@ -1360,7 +1369,7 @@ private:
     void createReflection();
     void removeReflection();
 
-    Style::ComputedStyle createReflectionStyle();
+    UniqueRef<Style::ComputedStyle> createReflectionStyle();
     bool paintingInsideReflection() const { return m_paintingInsideReflection; }
     void setPaintingInsideReflection(bool b) { m_paintingInsideReflection = b; }
 
@@ -1587,7 +1596,7 @@ private:
     };
     const std::unique_ptr<SVGData> m_svgData;
 
-    PaintFrequencyTracker m_paintFrequencyTracker;
+    Paint::FrequencyTracker m_paintFrequencyTracker;
 };
 
 inline void RenderLayer::clearZOrderLists()

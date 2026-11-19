@@ -740,29 +740,30 @@ RenderBlock* RenderObject::containingBlockForPositionType(PositionType positionT
         return containingBlockForObjectInFlow();
     }
 
+    // The containing block of an out-of-flow box is established by its nearest ancestor that can contain it, which maps to its nearest
+    // non-anonymous block (e.g. a relatively positioned inline box forwards its absolutely positioned descendants to its nearest non-anonymous
+    // containing block).
+    auto containingBlockForOutOfFlowBox = [](RenderElement* ancestor) -> RenderBlock* {
+        if (!ancestor)
+            return nullptr;
+        return ancestor->nearestNonAnonymousContainingBlockIncludingSelf();
+    };
+
     if (positionType == PositionType::Absolute) {
-        auto containingBlockForAbsolutePosition = [&] {
-            CheckedPtr ancestor = renderer.parent();
-            while (ancestor && !ancestor->canContainAbsolutelyPositionedObjects())
-                ancestor = ancestor->parent();
-            // Make sure we only return non-anonymous RenderBlock as containing block (e.g. a relatively positioned inline box
-            // forwards its absolute positioned descendants to its nearest non-anonymous containing block).
-            return ancestor ? ancestor->nearestNonAnonymousContainingBlockIncludingSelf() : nullptr;
-        };
-        return containingBlockForAbsolutePosition();
+        CheckedPtr ancestor = renderer.parent();
+        while (ancestor && !ancestor->canContainAbsolutelyPositionedObjects())
+            ancestor = ancestor->parent();
+        return containingBlockForOutOfFlowBox(ancestor.get());
     }
 
     if (positionType == PositionType::Fixed) {
-        auto containingBlockForFixedPosition = [&] () -> RenderBlock* {
-            CheckedPtr ancestor = renderer.parent();
-            while (ancestor && !ancestor->canContainFixedPositionObjects()) {
-                if (isInTopLayerOrBackdrop(ancestor->style(), ancestor->element()))
-                    return &renderer.view();
-                ancestor = ancestor->parent();
-            }
-            return ancestor ? ancestor->nearestNonAnonymousContainingBlockIncludingSelf() : nullptr;
-        };
-        return containingBlockForFixedPosition();
+        CheckedPtr ancestor = renderer.parent();
+        while (ancestor && !ancestor->canContainFixedPositionObjects()) {
+            if (isInTopLayerOrBackdrop(ancestor->style(), ancestor->element()))
+                return &renderer.view();
+            ancestor = ancestor->parent();
+        }
+        return containingBlockForOutOfFlowBox(ancestor.get());
     }
 
     ASSERT_NOT_REACHED();
@@ -850,7 +851,7 @@ void RenderObject::absoluteFocusRingQuads(Vector<FloatQuad>& quads)
     // implicitly assumes that. This doesn't work correctly with transformed
     // descendants.
     FloatPoint absolutePoint = localToAbsolute();
-    auto rects = OutlinePainter::collectFocusRingRects(*elementRenderer, flooredLayoutPoint(absolutePoint), nullptr);
+    auto rects = Paint::OutlinePainter::collectFocusRingRects(*elementRenderer, flooredLayoutPoint(absolutePoint), nullptr);
     float deviceScaleFactor = document().deviceScaleFactor();
     for (auto rect : rects) {
         rect.moveBy(LayoutPoint(-absolutePoint));
@@ -3261,6 +3262,11 @@ VisibleInViewportState RenderObject::imageFrameAvailable(CachedImage& image, Ima
 {
     imageChanged(static_cast<WrappedImagePtr>(&image), changeRect);
     return VisibleInViewportState::No;
+}
+
+bool RenderObject::isOutsideListMarker() const
+{
+    return isRenderListOutsideMarker();
 }
 
 bool RenderObject::isExcludedMarker() const

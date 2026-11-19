@@ -48,7 +48,7 @@ inline SVGTextPathElement::SVGTextPathElement(const QualifiedName& tagName, Docu
     static bool didRegistration = false;
     if (!didRegistration) [[unlikely]] {
         didRegistration = true;
-        PropertyRegistry::registerProperty<SVGNames::startOffsetAttr, &SVGTextPathElement::m_startOffset>();
+        PropertyRegistry::registerProperty<SVGNames::startOffsetAttr, &SVGTextPathElement::m_startOffset>(SVGLengthMode::Other);
         PropertyRegistry::registerProperty<SVGNames::methodAttr, SVGTextPathMethodType, &SVGTextPathElement::m_method>();
         PropertyRegistry::registerProperty<SVGNames::spacingAttr, SVGTextPathSpacingType, &SVGTextPathElement::m_spacing>();
         PropertyRegistry::registerProperty<SVGNames::pathAttr, &SVGTextPathElement::m_pathAttribute>();
@@ -137,7 +137,7 @@ Path SVGTextPathElement::pathForPathAttribute() const
     return Ref { m_pathAttribute }->currentPath();
 }
 
-RenderPtr<RenderElement> SVGTextPathElement::createElementRenderer(Style::ComputedStyle&& style, const RenderTreePosition&)
+RenderPtr<RenderElement> SVGTextPathElement::createElementRenderer(UniqueRef<Style::ComputedStyle>&& style, const RenderTreePosition&)
 {
     return createRenderer<RenderSVGTextPath>(*this, WTF::move(style));
 }

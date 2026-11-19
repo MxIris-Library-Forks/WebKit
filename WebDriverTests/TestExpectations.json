@@ -45,7 +45,7 @@
     "imported/w3c/webdriver/tests/classic/maximize_window/from_minimized_window.py": {
         "subtests": {
             "test_restore_from_minimized": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}, "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/277945"}}
+                "expected": {"mac": {"status": ["PASS", "FAIL"], "note": "Maximize sometimes reports the window frame before it settles"}, "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/277945"}}
             }
         }
     },
@@ -53,7 +53,7 @@
     "imported/w3c/webdriver/tests/classic/set_window_rect/from_minimized_window.py": {
         "subtests": {
             "test_restore_from_minimized": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}, "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/277945"}}
+                "expected": {"wpe": {"status": ["FAIL"], "bug": "webkit.org/b/277945"}}
             }
         }
     },
@@ -1732,14 +1732,14 @@
             "notes": "",
             "test_fullscreen_from_normal_window": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/279100"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
             },
             "test_fullscreen_from_maximized_window": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/279100"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
@@ -1757,7 +1757,7 @@
         "subtests": {
             "test_fullscreen_from_minimized_window": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"},
                     "wpe": {"status": ["FAIL"], "bug": "webkit.org/b/277945"}
                 }
@@ -1793,35 +1793,35 @@
             "notes": "Some WPE tests are skipped as they trigger failure or timeout regardless of the expectation if they are run. Also, some tests expect the browser to start in non fullscreen mode, which isn't happening in the headless backend.",
             "test_stress[0]": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["SKIP"], "bug": "webkit.org/b/330712"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
             },
             "test_stress[1]": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["SKIP"], "bug": "webkit.org/b/330712"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
             },
             "test_stress[2]": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["SKIP"], "bug": "webkit.org/b/330712"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
             },
             "test_stress[3]": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["SKIP"], "bug": "webkit.org/b/330712"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
             },
             "test_stress[4]": {
                 "expected": {
-                    "mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"},
+                    "mac": {"status": ["FAIL"], "note": "Fullscreen Window doesn't enter fullscreen", "bug": "webkit.org/b/331875"},
                     "wpe": {"status": ["SKIP"], "bug": "webkit.org/b/330712"},
                     "gtk": {"status": ["FAIL"], "bug": "webkit.org/b/320856"}
                 }
@@ -1938,122 +1938,48 @@
         "expected": { "wpe": { "status": ["SKIP"] } },
         "subtests": {
             "test_negative_x_y": {
-                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/180418"}, "gtk": {"status": ["PASS"]}}
+                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/180418"}, "gtk": {"status": ["PASS"]}, "mac": {"status": ["PASS"]}}
             },
             "test_height_width_smaller_than_minimum_browser_size": {
                 "expected": {"gtk": {"status": ["FAIL"], "bug": "webkit.org/b/205919"}}
             },
-            "test_height_as_current": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect0]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect1]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect2]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect3]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect4]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect5]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect6]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_partial_input[rect7]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
             "test_restore_from_fullscreen": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_restore_from_maximized": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_set_larger_than_screen_size": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_set_smaller_than_minimum_browser_size": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_set_to_available_size": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_set_to_screen_size": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_width_as_current": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "Depends on Fullscreen Window entering fullscreen", "bug": "webkit.org/b/331875"}}
             },
             "test_width_height_floats": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_x_as_current": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_x_y": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "Width 650.5 is reported as 651", "bug": "webkit.org/b/332000"}}
             },
             "test_x_y_floats": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_y_as_current": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "y 250.5 is reported as 251", "bug": "webkit.org/b/332000"}}
             },
             "test_partial_input[height]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[height_x]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[height_y]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[width]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[width_x]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[width_y]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[x]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             },
             "test_partial_input[y]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "WebDriver only sets the size when given both width and height, and the position when given both x and y", "bug": "webkit.org/b/332057"}}
             }
         }
     },
     "imported/w3c/webdriver/tests/classic/set_window_rect/user_prompts.py" : {
-        "expected": { "wpe": { "status": ["SKIP"] } },
-        "subtests": {
-            "test_accept[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[confirm-True]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[prompt-]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[confirm-False]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[prompt-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            }
-        }
+        "expected": { "wpe": { "status": ["SKIP"] } }
     },
 
     "imported/w3c/webdriver/tests/classic/is_element_enabled/enabled.py": {
@@ -2125,141 +2051,31 @@
     },
 
     "imported/w3c/webdriver/tests/classic/maximize_window/user_prompts.py" : {
-        "expected": { "wpe": { "status": ["SKIP"] } },
-        "subtests": {
-            "test_accept[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[confirm-True]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[prompt-]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[confirm-False]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[prompt-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            }
-        }
+        "expected": { "wpe": { "status": ["SKIP"] } }
     },
     "imported/w3c/webdriver/tests/classic/maximize_window/stress.py" : {
-        "expected": { "wpe": { "status": ["SKIP"] } },
-        "subtests": {
-            "test_stress[0]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[1]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[2]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[3]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[4]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            }
-        }
+        "expected": { "wpe": { "status": ["SKIP"] } }
     },
     "imported/w3c/webdriver/tests/classic/maximize_window/maximize.py" : {
         "expected": { "wpe": { "status": ["SKIP"] } },
         "subtests": {
             "test_fully_exit_fullscreen": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_maximize_from_normal_window": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_maximize_twice_is_idempotent": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_maximize_with_window_already_at_maximum_size": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_response_payload": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "Depends on Fullscreen Window entering fullscreen", "bug": "webkit.org/b/331875"}}
             }
         }
     },
 
     "imported/w3c/webdriver/tests/classic/minimize_window/user_prompts.py" : {
-        "expected": { "wpe": { "status": ["SKIP"] } },
-        "subtests": {
-            "test_accept[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[confirm-True]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept[prompt-]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_accept_and_notify[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL", "PASS"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_default[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL", "PASS"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[confirm-False]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss[prompt-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_dismiss_and_notify[alert-None]": {
-                "expected": {"mac": {"status": ["FAIL", "PASS"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_ignore[alert]": {
-                "expected": {"mac": {"status": ["FAIL", "PASS"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            }
-        }
+        "expected": { "wpe": { "status": ["SKIP"] } }
     },
     "imported/w3c/webdriver/tests/classic/minimize_window/stress.py" : {
-        "expected": { "wpe": { "status": ["SKIP"] } },
-        "subtests": {
-            "test_stress[0]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[1]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[2]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[3]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_stress[4]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            }
-        }
+        "expected": { "wpe": { "status": ["SKIP"] } }
     },
     "imported/w3c/webdriver/tests/classic/minimize_window/minimize.py" : {
         "expected": { "wpe": { "status": ["SKIP"] } },
         "subtests": {
-            "test_minimize_from_normal_window": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_minimize_twice_is_idempotent": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_response_payload": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
             "test_restore_from_fullscreen": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
-            },
-            "test_restore_from_maximized": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "MiniBrowser doesn't change window state under automation yet"}}
+                "expected": {"mac": {"status": ["FAIL"], "note": "Depends on Fullscreen Window entering fullscreen", "bug": "webkit.org/b/331875"}}
             }
         }
     },
@@ -4800,42 +4616,6 @@
             },
             "test_invalid_function": {
                 "expected": { "all": { "status": ["PASS"] }}
-            },
-            "test_exception_details[undefined-expected0]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[null-expected1]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[NaN-expected4]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[-0-expected5]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[Infinity-expected6]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[-Infinity-expected7]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[3-expected8]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[1.4-expected9]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[true-expected10]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[false-expected11]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[42n-expected12]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
-            },
-            "test_exception_details[(Symbol('foo'))-expected13]": {
-                "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/304548" }}
             }
         }
     },
@@ -5266,7 +5046,7 @@
     "imported/w3c/webdriver/tests/bidi/script/get_realms/get_realms.py": {
         "subtests": {
             "test_iframes": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
+                "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
             },
             "test_multiple_top_level_contexts[tab]": {
                 "expected": { "all": { "status": ["PASS", "FAIL"], "bug": "webkit.org/b/288061 - Passes individually, timing issues in parallel execution"}}
@@ -5288,7 +5068,7 @@
     "imported/w3c/webdriver/tests/bidi/script/get_realms/context.py": {
         "subtests": {
             "test_context": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
+                "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
             }
         }
     },
@@ -5314,7 +5094,7 @@
                 "expected": { "all": { "status": ["PASS"]}}
             },
             "test_iframe[cross_origin]": {
-                "expected": {"mac-site-isolation": {"status": ["FAIL"], "note": "With Site Isolation, there's no realmCreated event for a cross-origin iframe"}, "mac": {"status": ["PASS"]},  "all": { "status": ["FAIL"], "bug": "webkit.org/b/304305"}}
+                "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
             },
             "test_sandbox[evaluate]": {
                 "expected": {"mac": {"status": ["TIMEOUT"], "note": "Fails on Mac, not investigated yet"},  "all": { "status": ["FAIL"], "bug": "webkit.org/b/288067"}}
@@ -5372,14 +5152,8 @@
             "test_sandbox[call_function]": {
                 "expected": {"mac": {"status": ["TIMEOUT"], "note": "Fails on Mac, not investigated yet"},  "all": { "status": ["FAIL"], "bug": "webkit.org/b/288067"}}
             },
-            "test_iframe[same_origin]": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288067"}}
-            },
             "test_iframe[cross_origin]": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288067"}}
-            },
-            "test_iframe_destroy_parent": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288067"}}
+                "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770 - Cross-origin iframe stays at its initial empty document"}}
             },
             "test_dedicated_worker": {
                 "expected": { "all": { "status": ["PASS"]}}
@@ -6304,7 +6078,7 @@
     "imported/w3c/webdriver/tests/bidi/browsing_context/download_end/user_context_tentative.py": {
         "subtests": {
             "test_user_context[default]": {
-                "expected": {"mac": {"status": ["TIMEOUT"], "note": "Fails on Mac, not investigated yet"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/303211"}}
+                "expected": {"mac": {"status": ["TIMEOUT"], "bug": "webkit.org/b/303211"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/303211"}}
             },
             "test_user_context[new]": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/303211"}}
@@ -6315,7 +6089,7 @@
     "imported/w3c/webdriver/tests/bidi/browsing_context/download_will_begin/user_context_tentative.py": {
         "subtests": {
             "test_user_context[default]": {
-                "expected": {"mac": {"status": ["TIMEOUT"], "note": "Fails on Mac, not investigated yet"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/288338"}}
+                "expected": {"mac": {"status": ["TIMEOUT"], "bug": "webkit.org/b/288338"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/288338"}}
             },
             "test_user_context[new]": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/288338"}}
@@ -6440,6 +6214,9 @@
             },
             "test_wheel_scroll_dispatches_multiple_events": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "Simulated input fails on Mac"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/331469"}}
+            },
+            "test_pointer_moves_in_one_tick_are_dispatched_concurrently": {
+                "expected": {"glib": {"status": ["FAIL"], "bug": "webkit.org/b/281949"}}
             }
         }
     },

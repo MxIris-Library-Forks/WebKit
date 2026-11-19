@@ -694,7 +694,7 @@ void HTMLSelectElement::queuePickerClose(PickerCloseReason reason)
         auto message = reason == PickerCloseReason::Appearance
             ? "The select element's appearance property changed while its picker was open. The picker has been closed."_s
             : "The select element stopped being a dropdown box while its picker was open. The picker has been closed."_s;
-        protect(select->document())->addConsoleMessage(MessageSource::Other, MessageLevel::Warning, message);
+        protect(select->document())->addConsoleMessage(MessageSource::Rendering, MessageLevel::Warning, message);
         select->hidePickerPopoverElement();
     });
 }
@@ -944,7 +944,7 @@ bool HTMLSelectElement::supportsBaseAppearance(StyleAppearance appearance) const
     return (appearance == StyleAppearance::Base || appearance == StyleAppearance::BaseSelect) && canHaveBaseAppearance();
 }
 
-RenderPtr<RenderElement> HTMLSelectElement::createElementRenderer(Style::ComputedStyle&& style, const RenderTreePosition& position)
+RenderPtr<RenderElement> HTMLSelectElement::createElementRenderer(UniqueRef<Style::ComputedStyle>&& style, const RenderTreePosition& position)
 {
     if (isBaseListBox(&style))
         return HTMLElement::createElementRenderer(WTF::move(style), position);

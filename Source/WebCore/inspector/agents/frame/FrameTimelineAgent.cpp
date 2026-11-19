@@ -82,10 +82,11 @@ void FrameTimelineAgent::internalStop()
 
 bool FrameTimelineAgent::shouldToggleInstrument(Inspector::Protocol::Timeline::Instrument instrument) const
 {
+    // CPU stays off: its data covers the whole process, so the frontend picks which target in a process tracks it.
     // The other instruments belong to domains that frame targets do not have yet, so their getters would reach
     // the page's agents.
-    // FIXME: <https://webkit.org/b/329360> Also toggle ScriptProfiler once frame targets have that domain.
-    return instrument == Inspector::Protocol::Timeline::Instrument::Timeline;
+    return instrument == Inspector::Protocol::Timeline::Instrument::Timeline
+        || instrument == Inspector::Protocol::Timeline::Instrument::ScriptProfiler;
 }
 
 void FrameTimelineAgent::willInvalidateLayout(const RenderObject& renderer)

@@ -607,7 +607,7 @@ static bool canAccessAncestor(const SecurityOrigin& activeSecurityOrigin, Frame*
 static void printNavigationErrorMessage(Document& document, Frame& frame, const URL& activeURL, ASCIILiteral reason)
 {
     auto documentURL = frame.urlForConsoleLog();
-    protect(document.window())->printErrorMessage(makeString("Unsafe JavaScript attempt to initiate navigation for frame with URL '"_s, documentURL.string(), "' from frame with URL '"_s, activeURL.string(), "'. "_s, reason, '\n'));
+    protect(document.window())->printErrorMessage(makeString("Unsafe JavaScript attempt to initiate navigation for frame with URL '"_s, documentURL.string(), "' from frame with URL '"_s, activeURL.string(), "'. "_s, reason, '\n'), MessageSource::Security);
 }
 
 uint64_t Document::s_globalTreeVersion = 0;
@@ -3058,7 +3058,7 @@ auto Document::updateLayout(OptionSet<LayoutOptions> layoutOptions, const Elemen
     UpdateLayoutResult result = UpdateLayoutResult::NoChange;
 
     {
-        RenderView::RepaintRegionAccumulator repaintRegionAccumulator(renderView());
+        RenderView::RepaintRegionAccumulator repaintRegionAccumulator(protect(renderView()));
         ScriptDisallowedScope::InMainThread scriptDisallowedScope;
 
         if (!layoutOptions.contains(LayoutOptions::DoNotLayoutAncestorDocuments)) {
@@ -3161,12 +3161,11 @@ std::unique_ptr<Style::ComputedStyle> Document::styleForElementIgnoringPendingSt
     ASSERT(!pseudoElementIdentifier || parentStyleArg);
     ASSERT(Style::postResolutionCallbacksAreSuspended());
 
-    std::optional<Style::ComputedStyle> updatedDocumentStyle;
+    std::unique_ptr<Style::ComputedStyle> updatedDocumentStyle;
     CheckedPtr parentStyle = parentStyleArg;
     if (!parentStyle && m_needsFullStyleRebuild && renderTreeState() == RenderTreeState::Built) {
-        auto documentStyle = Style::resolveForDocument(*this);
-        updatedDocumentStyle.emplace(WTF::move(documentStyle));
-        parentStyle = &*updatedDocumentStyle;
+        updatedDocumentStyle = Style::resolveForDocument(*this).moveToUniquePtr();
+        parentStyle = updatedDocumentStyle.get();
     }
 
     SetForScope change(m_ignorePendingStylesheets, true);
@@ -3211,7 +3210,7 @@ bool Document::updateLayoutIfDimensionsOutOfDate(Element& element, OptionSet<Dim
         return true;
     }
 
-    RenderView::RepaintRegionAccumulator repaintRegionAccumulator(renderView());
+    RenderView::RepaintRegionAccumulator repaintRegionAccumulator(protect(renderView()));
 
     // Mimic the structure of updateLayout(), but at each step, see if we have been forced into doing a full layout.
     if (RefPtr owner = ownerElement()) {
@@ -3575,10 +3574,12 @@ void Document::destroyRenderTree()
 
     // FIXME: RenderObject::view() uses m_renderView and we can't null it before destruction is completed
     {
-        RenderTreeBuilder builder(*m_renderView);
+        RenderTreeBuilder builder(protect(*m_renderView));
         // FIXME: This is a workaround for leftover content (see webkit.org/b/182547).
-        while (WeakPtr child = m_renderView->firstChild())
-            builder.destroy(*child);
+        while (WeakPtr child = m_renderView->firstChild()) {
+            // destroy() deletes the renderer, so it cannot be protected.
+            SUPPRESS_UNCHECKED_ARG builder.destroy(*child);
+        }
 
         if (RefPtr view = this->view()) {
             CheckedRef layoutContext = view->layoutContext();
@@ -4526,7 +4527,7 @@ void Document::enqueuePaintTimingEntryIfNeeded()
         if (m_didEnqueueFirstContentfulPaint)
             return;
 
-        if (!ContentfulPaintChecker::qualifiesForContentfulPaint(*view))
+        if (!Paint::ContentfulPaintChecker::qualifiesForContentfulPaint(*view))
             return;
 
         WTFEmitSignpost(this, NavigationAndPaintTiming, "firstContentfulPaint");
@@ -4816,7 +4817,7 @@ const URL& Document::urlForBindings()
                 if (areSameSiteIgnoringPublicSuffix(sourceURL.host(), currentHost))
                     return false;
             }
-            addConsoleMessage(MessageSource::JS, MessageLevel::Info, makeLogMessage(m_url, ScriptTrackingPrivacyCategory::QueryParameters));
+            addConsoleMessage(MessageSource::Security, MessageLevel::Info, makeLogMessage(m_url, ScriptTrackingPrivacyCategory::QueryParameters));
 
             return true;
         };
@@ -5451,7 +5452,7 @@ void Document::processMetaHttpEquiv(const String& equiv, const AtomString& conte
 
     case HTTPHeaderName::SetCookie:
         if (isHTMLDocument())
-            addConsoleMessage(MessageSource::Security, MessageLevel::Error, "The Set-Cookie meta tag is obsolete and was ignored. Use the HTTP header Set-Cookie or document.cookie instead."_s);
+            addConsoleMessage(MessageSource::Storage, MessageLevel::Error, "The Set-Cookie meta tag is obsolete and was ignored. Use the HTTP header Set-Cookie or document.cookie instead."_s);
         break;
 
     case HTTPHeaderName::ContentLanguage:
@@ -5833,7 +5834,7 @@ void Document::processReferrerPolicy(const String& policy, ReferrerPolicySource 
     auto referrerPolicy = parseReferrerPolicy(policy, source);
     if (!referrerPolicy) {
         // Unknown policy values are ignored (https://w3c.github.io/webappsec-referrer-policy/#unknown-policy-values).
-        addConsoleMessage(MessageSource::Rendering, MessageLevel::Error, makeString("Failed to set referrer policy: The value '"_s, policy, "' is not one of 'no-referrer', 'no-referrer-when-downgrade', 'same-origin', 'origin', 'strict-origin', 'origin-when-cross-origin', 'strict-origin-when-cross-origin' or 'unsafe-url'."_s));
+        addConsoleMessage(MessageSource::Network, MessageLevel::Error, makeString("Failed to set referrer policy: The value '"_s, policy, "' is not one of 'no-referrer', 'no-referrer-when-downgrade', 'same-origin', 'origin', 'strict-origin', 'origin-when-cross-origin', 'strict-origin-when-cross-origin' or 'unsafe-url'."_s));
         return;
     }
     setReferrerPolicy(referrerPolicy.value());
@@ -7616,7 +7617,7 @@ HTMLFrameOwnerElement* Document::ownerElement() const
 
 std::optional<OwnerPermissionsPolicyData> Document::ownerPermissionsPolicy() const
 {
-    if (WeakPtr currentFrame = frame())
+    if (RefPtr currentFrame = frame())
         return currentFrame->ownerPermissionsPolicy();
 
     return std::nullopt;
@@ -8275,7 +8276,7 @@ void Document::logXSLTDeprecationWarningIfNeeded()
     if (m_hasLoggedXSLTDeprecationWarning)
         return;
     m_hasLoggedXSLTDeprecationWarning = true;
-    addConsoleMessage(MessageSource::JS, MessageLevel::Warning, "XSLT is deprecated and will be removed in a future version of WebKit."_s);
+    addConsoleMessage(MessageSource::XML, MessageLevel::Warning, "XSLT is deprecated and will be removed in a future version of WebKit."_s);
 }
 
 void Document::applyPendingXSLTransformsTimerFired()
@@ -8335,7 +8336,7 @@ void Document::logXMLExternalEntityDeprecationWarningIfNeeded()
     if (document->m_hasLoggedXMLExternalEntityDeprecationWarning)
         return;
     document->m_hasLoggedXMLExternalEntityDeprecationWarning = true;
-    document->addConsoleMessage(MessageSource::JS, MessageLevel::Warning, "XML external entities are deprecated and will be removed in a future version of WebKit."_s);
+    document->addConsoleMessage(MessageSource::XML, MessageLevel::Warning, "XML external entities are deprecated and will be removed in a future version of WebKit."_s);
 }
 
 String Document::designMode() const
@@ -10701,8 +10702,7 @@ void Document::removePlaybackTargetPickerClient(MediaPlaybackTargetClient& clien
     m_idToClientMap.remove(clientId);
     m_clientToIDMap.remove(client);
 
-    // Unable to ref the page as it may have started destruction.
-    if (WeakPtr page = this->page())
+    if (RefPtr page = this->page())
         page->removePlaybackTargetPickerClient(clientId);
 }
 

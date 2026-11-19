@@ -190,13 +190,13 @@ public:
 using RenderBlockRareDataMap = SingleThreadWeakHashMap<const RenderBlock, std::unique_ptr<RenderBlockRareData>>;
 static RenderBlockRareDataMap* gRareDataMap;
 
-RenderBlock::RenderBlock(Type type, Element& element, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderBlock::RenderBlock(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderBox(type, element, WTF::move(style), baseTypeFlags | TypeFlag::IsRenderBlock, typeSpecificFlags)
 {
     ASSERT(isRenderBlock());
 }
 
-RenderBlock::RenderBlock(Type type, Document& document, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderBlock::RenderBlock(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderBox(type, document, WTF::move(style), baseTypeFlags | TypeFlag::IsRenderBlock, typeSpecificFlags)
 {
     ASSERT(isRenderBlock());
@@ -1186,7 +1186,7 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
     // 1. paint background, borders etc
     if ((paintPhase == PaintPhase::BlockBackground || paintPhase == PaintPhase::ChildBlockBackground) && usedStyle().visibility() == UsedVisibility::Visible) {
         if (hasVisibleBoxDecorations())
-            BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
+            Paint::BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
         paintDebugBoxShadowIfApplicable(paintInfo.context(), { paintOffset, borderBoxSize() });
     }
     
@@ -1195,12 +1195,12 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
         paintExcludedChildrenInBorder(paintInfo, paintOffset);
     
     if (paintPhase == PaintPhase::Mask && usedStyle().visibility() == UsedVisibility::Visible) {
-        MaskPainter { *this, paintInfo, paintOffset }.paintMask();
+        Paint::MaskPainter { *this, paintInfo, paintOffset }.paintMask();
         return;
     }
 
     if (paintPhase == PaintPhase::ClippingMask && usedStyle().visibility() == UsedVisibility::Visible) {
-        MaskPainter { *this, paintInfo, paintOffset }.paintClippingMask();
+        Paint::MaskPainter { *this, paintInfo, paintOffset }.paintClippingMask();
         return;
     }
 
@@ -1241,12 +1241,6 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
         needsTraverseDescendants |= document->hasWheelEventHandlers() || document->mayHaveListBoxes();
         LOG_WITH_STREAM(EventRegions, stream << "  has wheel event handlers: " << document->hasWheelEventHandlers() << " may have list boxes: " << document->mayHaveListBoxes());
 #endif
-#if ENABLE(TOUCH_EVENT_REGIONS)
-        if (document->shouldUseTouchEventRegions()) {
-            needsTraverseDescendants |= document->hasTouchEventHandlers();
-            LOG_WITH_STREAM(EventRegions, stream << "  has touch event handlers: " << document->hasTouchEventHandlers());
-        }
-#endif
 
 #if ENABLE(EDITABLE_REGION)
         // We treat the entire text control as editable to match users' expectation even
@@ -1260,6 +1254,27 @@ void RenderBlock::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOffs
 
 #if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
         needsTraverseDescendants |= page().shouldBuildInteractionRegions();
+#endif
+
+#if ENABLE(TOUCH_EVENT_REGIONS)
+        ASSERT_IMPLIES(!needsTraverseDescendants, !hasVisualOverflow() && !containsFloats());
+
+        // Skip traversing descendants of this block when building event regions if:
+        //
+        // 1. This block has no visual overflow or floats, so all descendants paint inside its
+        //    border box.
+        // 2. No descendant is a touch event target (e.g. an element with its own touch listener).
+        //    Since listener types are inherited, every descendant has this block's touch listener
+        //    types, and we don't have to traverse descendants to discover differing types.
+        // 3. The touch listener regions already cover the clipped border box for those types. By
+        //    (1) and (2), they then also cover each descendant's touch rect, so we don't have to
+        //    traverse descendants to discover their touch rects.
+        if (!needsTraverseDescendants && document->shouldUseTouchEventRegions() && document->hasTouchEventHandlers()) {
+            CheckedRef eventRegionContext = *paintInfo.eventRegionContext();
+            needsTraverseDescendants = eventRegionContext->mayHaveDescendantTouchEventTargets(*this)
+                || !eventRegionContext->touchEventListenerRegionsContain(enclosingIntRect(borderRect), style().eventListenerRegionTypes());
+            LOG_WITH_STREAM(EventRegions, stream << "  needs to traverse descendants for touch event listeners: " << needsTraverseDescendants);
+        }
 #endif
 
         if (!needsTraverseDescendants)
@@ -1438,7 +1453,7 @@ GapRects RenderBlock::selectionGapRectsForRepaint(const RenderLayerModelObject* 
 #if ENABLE(TEXT_SELECTION)
     ASSERT(isSelectionRoot());
 #endif
-    LogicalSelectionOffsetCaches cache(*this);
+    LogicalSelectionOffsetCaches cache;
     LayoutUnit lastTop;
     LayoutUnit lastLeft = logicalLeftSelectionOffset(*this, lastTop, cache);
     LayoutUnit lastRight = logicalRightSelectionOffset(*this, lastTop, cache);
@@ -1451,7 +1466,7 @@ void RenderBlock::paintSelection(PaintInfo& paintInfo, const LayoutPoint& paintO
 #if ENABLE(TEXT_SELECTION)
     if (shouldPaintSelectionGaps() && paintInfo.phase == PaintPhase::Foreground) {
         ASSERT(isSelectionRoot());
-        LogicalSelectionOffsetCaches cache(*this);
+        LogicalSelectionOffsetCaches cache;
         LayoutUnit lastTop;
         LayoutUnit lastLeft = logicalLeftSelectionOffset(*this, lastTop, cache);
         LayoutUnit lastRight = logicalRightSelectionOffset(*this, lastTop, cache);

@@ -79,7 +79,7 @@ struct SameSizeAsRenderTableCell : public RenderBlockFlow {
 static_assert(sizeof(RenderTableCell) == sizeof(SameSizeAsRenderTableCell), "RenderTableCell should stay small");
 static_assert(sizeof(CollapsedBorderValue) <= 24, "CollapsedBorderValue should stay small");
 
-RenderTableCell::RenderTableCell(Element& element, Style::ComputedStyle&& style)
+RenderTableCell::RenderTableCell(Element& element, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBlockFlow(Type::TableCell, element, WTF::move(style))
 {
     // We only update the flags when notified of DOM changes in colSpanOrRowSpanChanged()
@@ -88,7 +88,7 @@ RenderTableCell::RenderTableCell(Element& element, Style::ComputedStyle&& style)
     ASSERT(isRenderTableCell());
 }
 
-RenderTableCell::RenderTableCell(Document& document, Style::ComputedStyle&& style)
+RenderTableCell::RenderTableCell(Document& document, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBlockFlow(Type::TableCell, document, WTF::move(style))
 {
     ASSERT(isRenderTableCell());
@@ -1485,11 +1485,11 @@ void RenderTableCell::paintCollapsedBorders(PaintInfo& paintInfo, const LayoutPo
     borders.addBorder(leftVal, BoxSide::Left, renderLeft, borderRect.x(), borderRect.y(), borderRect.x() + leftWidth, borderRect.maxY(), leftStyle);
     borders.addBorder(rightVal, BoxSide::Right, renderRight, borderRect.maxX() - rightWidth, borderRect.y(), borderRect.maxX(), borderRect.maxY(), rightStyle);
 
-    bool antialias = BorderPainter::shouldAntialiasLines(graphicsContext);
+    bool antialias = Paint::BorderPainter::shouldAntialiasLines(graphicsContext);
     
     for (CollapsedBorder* border = borders.nextBorder(); border; border = borders.nextBorder()) {
         if (border->borderValue.isSameIgnoringColor(*table()->currentBorderValue()))
-            BorderPainter::drawLineForBoxSide(graphicsContext, protect(document()), LayoutRect(LayoutPoint(border->x1, border->y1), LayoutPoint(border->x2, border->y2)), border->side,
+            Paint::BorderPainter::drawLineForBoxSide(graphicsContext, protect(document()), LayoutRect(LayoutPoint(border->x1, border->y1), LayoutPoint(border->x2, border->y2)), border->side,
                 border->borderValue.color(), border->style, 0, 0, antialias);
     }
 }
@@ -1611,7 +1611,7 @@ void RenderTableCell::paintBackgroundsBehindCell(PaintInfo& paintInfo, LayoutPoi
 
     auto compositeOp = protect(document())->compositeOperatorForBackgroundColor(color, *this);
 
-    BackgroundPainter painter { *this, paintInfo };
+    Paint::BackgroundPainter painter { *this, paintInfo };
 
     bool hasBackgroundClipText = false;
     for (auto& backgroundLayer : style.backgroundLayers().usedValues()) {

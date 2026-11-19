@@ -124,7 +124,7 @@ public:
     void collectLayerFragments(LayerFragments&, const LayoutRect& layerBoundingBox, const LayoutRect& dirtyRect) const;
     LayoutRect fragmentsBoundingBox(const LayoutRect& layerBoundingBox) const;
 
-    LayoutUnit offsetFromLogicalTopOfFirstFragment(const RenderBlock*) const;
+    LayoutUnit offsetFromLogicalTopOfFirstFragment(const RenderBox*) const;
     void clearRenderBoxFragmentInfo(const RenderBox&, const RenderFragmentContainer*, const RenderFragmentContainer*, const RenderFragmentContainer*, const RenderFragmentContainer*);
 
     void addFragmentsVisualEffectOverflow(const RenderBox&);
@@ -162,7 +162,7 @@ private:
     bool requiresLayer() const final { return true; }
 
 protected:
-    RenderFragmentedFlow(Type, Document&, Style::ComputedStyle&&);
+    RenderFragmentedFlow(Type, Document&, UniqueRef<Style::ComputedStyle>&&);
 
     RenderFragmentedFlow* locateEnclosingFragmentedFlow() const override { return const_cast<RenderFragmentedFlow*>(this); }
 

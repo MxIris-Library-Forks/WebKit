@@ -103,7 +103,7 @@ static void moveWidgetToParentSoon(Widget& child, LocalFrameView* parent)
     WidgetHierarchyUpdatesSuspensionScope::scheduleWidgetToMove(child, parent);
 }
 
-RenderWidget::RenderWidget(Type type, HTMLFrameOwnerElement& element, Style::ComputedStyle&& style)
+RenderWidget::RenderWidget(Type type, HTMLFrameOwnerElement& element, UniqueRef<Style::ComputedStyle>&& style)
     : RenderReplaced(type, element, WTF::move(style), ReplacedFlag::IsWidget)
 {
     setInline(false);
@@ -367,10 +367,10 @@ void RenderWidget::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
     LayoutPoint adjustedPaintOffset = paintOffset + location();
 
     if (hasVisibleBoxDecorations() && (paintInfo.phase == PaintPhase::Foreground || paintInfo.phase == PaintPhase::Selection))
-        BoxDecorationPainter { *this, paintInfo, adjustedPaintOffset }.paintBoxDecorations();
+        Paint::BoxDecorationPainter { *this, paintInfo, adjustedPaintOffset }.paintBoxDecorations();
 
     if (paintInfo.phase == PaintPhase::Mask) {
-        MaskPainter { *this, paintInfo, adjustedPaintOffset }.paintMask();
+        Paint::MaskPainter { *this, paintInfo, adjustedPaintOffset }.paintMask();
         return;
     }
 

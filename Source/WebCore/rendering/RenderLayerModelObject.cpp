@@ -79,13 +79,13 @@ bool RenderLayerModelObject::s_hadLayer = false;
 bool RenderLayerModelObject::s_wasTransformed = false;
 bool RenderLayerModelObject::s_layerWasSelfPainting = false;
 
-RenderLayerModelObject::RenderLayerModelObject(Type type, Element& element, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderLayerModelObject::RenderLayerModelObject(Type type, Element& element, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderElement(type, element, WTF::move(style), baseTypeFlags | TypeFlag::IsLayerModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderLayerModelObject());
 }
 
-RenderLayerModelObject::RenderLayerModelObject(Type type, Document& document, Style::ComputedStyle&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
+RenderLayerModelObject::RenderLayerModelObject(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style, OptionSet<TypeFlag> baseTypeFlags, TypeSpecificFlags typeSpecificFlags)
     : RenderElement(type, document, WTF::move(style), baseTypeFlags | TypeFlag::IsLayerModelObject, typeSpecificFlags)
 {
     ASSERT(isRenderLayerModelObject());
@@ -207,21 +207,6 @@ void RenderLayerModelObject::styleDidChange(Style::Difference diff, const Style:
     // fill/stroke, and the cache must survive those to be worthwhile.
     if (!oldStyle || oldStyle->fill() != style().fill() || oldStyle->stroke() != style().stroke())
         invalidateSVGPaintServerCache();
-
-    // When an out-of-flow-positioned element changes its display between block and inline-block,
-    // then an incremental layout on the element's containing block lays out the element through
-    // LayoutPositionedObjects, which skips laying out the element's parent.
-    // The element's parent needs to relayout so that it calls
-    // RenderBlockFlow::setStaticInlinePositionForChild with the out-of-flow-positioned child, so
-    // that when it's laid out, its RenderBox::computeOutOfFlowPositionedLogicalWidth/Height takes into
-    // account its new inline/block position rather than its old block/inline position.
-    // Position changes and other types of display changes are handled elsewhere.
-    if ((oldStyle && isOutOfFlowPositioned() && parent() && (parent() != containingBlock()))
-        && (style().position() == oldStyle->position())
-        && (style().originalDisplay().isInlineType() != oldStyle->originalDisplay().isInlineType())
-        && (style().originalDisplay().isBlockType() || style().originalDisplay().isInlineType())
-        && (oldStyle->originalDisplay().isBlockType() || oldStyle->originalDisplay().isInlineType()))
-            parent()->setChildNeedsLayout();
 
     bool gainedOrLostLayer = false;
     if (requiresLayer()) {

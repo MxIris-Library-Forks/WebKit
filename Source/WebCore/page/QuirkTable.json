@@ -1126,6 +1126,13 @@
             "behaviors": [{ "id": "ShouldDisableScrollAnchoringQuirk", "documentSelector": "#sink-it-back-to-top" }]
         },
         {
+            "bugs": ["rdar://192757830"],
+            "matches": ["*://*.reddit.com/*"],
+            "available": "iOS",
+            "environment": "SmallScreen",
+            "behaviors": [{ "id": "ShouldDisableElementFullscreenQuirk" }]
+        },
+        {
             "bugs": ["rdar://61733101"],
             "matches": ["*://*.roblox.com/*"],
             "behaviors": [{ "id": "NeedsIPadMiniUserAgentQuirk" }]
@@ -1399,6 +1406,13 @@
             "bugs": ["rdar://139689157"],
             "matches": ["*://*.weather.com/*"],
             "behaviors": [{ "id": "NeedsFormControlToBeMouseFocusableQuirk" }]
+        },
+        {
+            "bugs": ["rdar://192913439"],
+            "matches": ["*://*.weather.com/*", "*://weather.com/*"],
+            "environment": "SmallScreen",
+            "available": "iOS",
+            "behaviors": [{ "id": "ShouldDisableElementFullscreenQuirk" }]
         },
         {
             "matches": ["*://*.webex.com/*"],

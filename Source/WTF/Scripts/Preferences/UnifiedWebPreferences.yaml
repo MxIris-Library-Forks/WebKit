@@ -617,6 +617,15 @@ AttachmentElementEnabled:
     WebKitLegacy: WebKit::defaultAttachmentElementEnabled()
   sharedPreferenceForWebProcess: true
 
+AttachmentInlineProgressEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "Attachment inline download progress"
+  humanReadableDescription: "Use the inline download progress design for wide-layout attachments"
+  condition: ENABLE(ATTACHMENT_ELEMENT)
+  defaultValue: false
+
 AttachmentWideLayoutEnabled:
   type: bool
   status: embedder
@@ -978,7 +987,7 @@ CSSFieldSizingEnabled:
 
 CSSFitContentFunctionEnabled:
   type: bool
-  status: testable
+  status: preview
   category: css
   humanReadableName: "CSS fit-content() sizing function"
   humanReadableDescription: "Enable support for CSS fit-content() in the sizing properties"
@@ -1293,7 +1302,7 @@ CSSSizeShorthandEnabled:
 
 CSSStretchFunctionEnabled:
   type: bool
-  status: testable
+  status: preview
   category: css
   humanReadableName: "CSS stretch() sizing function"
   humanReadableDescription: "Enable support for CSS stretch() in the sizing properties"
@@ -1667,7 +1676,9 @@ CompressionDictionaryEnabled:
   category: networking
   humanReadableName: "Compression Dictionary Transport"
   humanReadableDescription: "Enable compression dictionary transport"
-  defaultValue: false
+  defaultValue:
+    default: false
+    WebKit: defaultCompressionDictionaryEnabled()
   sharedPreferenceForWebProcess: true
 
 CompressionStreamEnabled:
@@ -5148,6 +5159,14 @@ PreferSpatialAudioExperience:
     WebKit: WebKit::defaultPreferSpatialAudioExperience()
   defaultsOverridable: true
   sharedPreferenceForWebProcess: true
+
+PrioritizedTaskSchedulingEnabled:
+  type: bool
+  status: unstable
+  category: dom
+  humanReadableName: "Prioritized Task Scheduling API"
+  humanReadableDescription: "Enable the Prioritized Task Scheduling API (scheduler.postTask() and scheduler.yield())"
+  defaultValue: false
 
 PrivateClickMeasurementDebugModeEnabled:
   type: bool

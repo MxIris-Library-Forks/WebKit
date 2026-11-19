@@ -40,13 +40,13 @@
 #include "InlineRunAndOffset.h"
 #include "LayoutInlineTextBox.h"
 #include "LayoutIntegrationLineLayout.h"
-#include "LogicalSelectionOffsetCachesInlines.h"
 #include "LineSelection.h"
 #include "LocalFrame.h"
 #include "LocalFrameView.h"
 #include "MathVariant.h"
 #include "Range.h"
 #include "RenderBlockFlowInlines.h"
+#include "RenderBlockInlines.h"
 #include "RenderElementInlines.h"
 #include "RenderLayer.h"
 #include "RenderObjectInlines.h"
@@ -389,7 +389,7 @@ static LayoutRect selectionRectForTextBox(const InlineIterator::TextBox& textBox
     }
 
     auto lineBox = textBox.lineBox();
-    auto lineRect = lineExtent == LineExtent::Selection ? LineSelection::logicalRect(lineBox) : lineBox.contentLogicalRectAdjustedForAdjacentLineBoxes();
+    auto lineRect = lineExtent == LineExtent::Selection ? LineSelection::logicalRect(lineBox) : lineBox.contentAreaLogicalRectAdjustedForAdjacentLineBoxes();
     auto selectionRect = LayoutRect { 0, lineRect.y(), textBox.logicalWidth(), lineRect.height() };
 
     auto textRun = textBox.textRun();
@@ -428,7 +428,7 @@ static FontCascade::CodePath computeFontCodePath(const String& text, bool contai
 inline RenderText::RenderText(Type type, Node& node, const String& text, std::optional<SynthesizedGlyph> contentGlyph)
     : RenderObject(type, node, TypeFlag::IsText, { })
     // The initial values of an anonymous inline box. The inherited ones come on attach, see inheritStyleFromParent().
-    , Layout::InlineTextBox(Style::ComputedStyle::create(), contentGlyph)
+    , Layout::InlineTextBox(Style::ComputedStyle::defaultStyleSingleton(), contentGlyph)
     , m_text(text)
     , m_containsOnlyASCII(text.impl()->containsOnlyASCII())
     , m_fontCodePath(std::to_underlying(computeFontCodePath(m_text, m_containsOnlyASCII)))
@@ -501,7 +501,7 @@ void RenderText::inheritStyleFromParent()
         LayoutIntegration::BoxTreeUpdater::updateSimplifiedMeasuring(*this);
 }
 
-void RenderText::setStyleInheritedFromDisplayContentsParent(Style::ComputedStyle&& style)
+void RenderText::setStyleInheritedFromDisplayContentsParent(UniqueRef<Style::ComputedStyle>&& style)
 {
     bool didChangeStyleSource = !inheritsStyleFromDisplayContentsParent();
     setInheritsStyleFromDisplayContentsParent(true);
@@ -685,9 +685,8 @@ void RenderText::collectSelectionGeometries(Vector<SelectionGeometry>& rects, un
         }
 
         // Map rect, extended left to leftOffset, and right to rightOffset, through transforms to get minX and maxX.
-        LogicalSelectionOffsetCaches cache(formattingContextRoot);
-        LayoutUnit leftOffset = formattingContextRoot->logicalLeftSelectionOffset(formattingContextRoot, LayoutUnit(textBox->logicalTop()), cache);
-        LayoutUnit rightOffset = formattingContextRoot->logicalRightSelectionOffset(formattingContextRoot, LayoutUnit(textBox->logicalTop()), cache);
+        LayoutUnit leftOffset = formattingContextRoot->logicalLeftOffsetForLine(LayoutUnit(textBox->logicalTop()));
+        LayoutUnit rightOffset = formattingContextRoot->logicalRightOffsetForLine(LayoutUnit(textBox->logicalTop()));
         LayoutRect extentsRect = rect;
         if (textBox->isHorizontal()) {
             extentsRect.setX(leftOffset);
@@ -803,7 +802,7 @@ static Vector<LayoutRect> characterRects(const InlineIterator::TextBox& run, uns
         });
     }
 
-    auto lineRect = run.lineBox().contentLogicalRectAdjustedForAdjacentLineBoxes();
+    auto lineRect = run.lineBox().contentAreaLogicalRectAdjustedForAdjacentLineBoxes();
     auto selectionRect = LayoutRect { run.logicalLeftIgnoringInlineDirection(), lineRect.y(), run.logicalWidth(), lineRect.height() };
     return run.fontCascade().characterSelectionRectsForText(run.textRun(), selectionRect, clampedStart, clampedEnd).map([&](auto& characterRect) {
         return snappedSelectionRect(characterRect, run.logicalRightIgnoringInlineDirection(), run.writingMode());
@@ -1334,7 +1333,7 @@ void RenderText::setRenderedText(const String& newText)
         break;
 #if !PLATFORM(IOS_FAMILY)
     // We use the same characters here as for list markers.
-    // See the listMarkerText function in RenderListOutsideMarker.cpp.
+    // See listMarkerTextContent() in RenderListItem.cpp.
     case TextSecurity::Circle:
         secureText(whiteBullet);
         break;

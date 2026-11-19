@@ -287,10 +287,9 @@ messages -> WebPage WantsAsyncDispatchMessage {
     GetRenderTreeExternalRepresentation() -> (String string)
     GetSelectionOrContentsAsString(WebCore::FrameIdentifier frameID) -> (String string)
     GetSourceForFrame(WebCore::FrameIdentifier frameID) -> (String string)
-    GetWebArchiveOfFrameWithFileName(WebCore::FrameIdentifier frameID, Vector<WebCore::MarkupExclusionRule> markupExclusionRules, String fileName) -> (std::optional<IPC::SharedBufferReference> dataReference)
 #if PLATFORM(COCOA)
     GetWebArchiveData() -> (std::optional<IPC::SharedBufferReference> dataReference)
-    GetWebArchivesForFrames(Vector<WebCore::FrameIdentifier> frameIdentifiers) -> (HashMap<WebCore::FrameIdentifier, Ref<WebCore::LegacyWebArchive>> frameArchives)
+    GetWebArchivesForFrames(Vector<WebCore::FrameIdentifier> frameIdentifiers, Vector<WebCore::MarkupExclusionRule> markupExclusionRules, String mainResourceFileName) -> (HashMap<WebCore::FrameIdentifier, Ref<WebCore::LegacyWebArchive>> frameArchives)
     GetContentsAsAttributedStringForFrames(Vector<WebCore::FrameIdentifier> frameIdentifiers) -> (HashMap<WebCore::FrameIdentifier, WebCore::AttributedString> frameAttributedStrings)
 #endif
 
@@ -331,6 +330,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 
     Close() -> ()
     TryClose() -> (bool shouldClose)
+    CloseFromRemoteFrame()
     DispatchPendingNavigateEventForProcessSwap(WebCore::FrameIdentifier frameID, WebCore::PendingNavigateEventIdentifier pendingNavigateEventID) -> (bool cancelled)
     DispatchCrossOriginBeforeUnloadCheckForFrame(WebCore::FrameIdentifier frameID, WebCore::SecurityOriginData navigatingFrameOrigin)
 
@@ -471,7 +471,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
 #if ENABLE(CONTEXT_MENUS)
     # Context menu.
     DidDismissContextMenu()
-    DidSelectItemFromActiveContextMenu(WebKit::WebContextMenuItemData menuItem)
+    DidSelectItemFromActiveContextMenu(WebKit::WebContextMenuItemData menuItem) -> ()
     ContextMenuForKeyEvent()
 #endif
 
@@ -934,7 +934,7 @@ messages -> WebPage WantsAsyncDispatchMessage {
     ApplyTextExtractionFilter(String input) -> (String output)
 
 #if PLATFORM(IOS_FAMILY)
-    ShouldDismissKeyboardAfterTapAtPoint(WebCore::FloatPoint point) -> (bool shouldDismiss)
+    ShouldDismissKeyboardAfterTapAtPoint(std::optional<WebCore::FrameIdentifier> frameID, WebCore::FloatPoint point, std::optional<float> unobscuredContentWidth) -> (Variant<bool, WebCore::RemoteUserInputEventData> result)
 #endif
 
 #if ENABLE(EXTENSION_CAPABILITIES)

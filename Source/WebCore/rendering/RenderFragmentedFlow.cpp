@@ -32,6 +32,7 @@
 
 #include "HitTestRequest.h"
 #include "HitTestResult.h"
+#include "LayoutIntegrationLineLayout.h"
 #include "Node.h"
 #include "RenderBoxFragmentInfo.h"
 #include "RenderBoxInlines.h"
@@ -71,7 +72,7 @@ static void forEachFragmentInRange(FragmentList& fragmentList, const RenderFragm
     }
 }
 
-RenderFragmentedFlow::RenderFragmentedFlow(Type type, Document& document, Style::ComputedStyle&& style)
+RenderFragmentedFlow::RenderFragmentedFlow(Type type, Document& document, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBlockFlow(type, document, WTF::move(style), BlockFlowFlag::IsFragmentedFlow)
     , m_fragmentsInvalidated(false)
     , m_fragmentsHaveUniformLogicalHeight(true)
@@ -638,12 +639,12 @@ LayoutRect RenderFragmentedFlow::fragmentsBoundingBox(const LayoutRect& layerBou
     return result;
 }
 
-LayoutUnit RenderFragmentedFlow::offsetFromLogicalTopOfFirstFragment(const RenderBlock* currentBlock) const
+LayoutUnit RenderFragmentedFlow::offsetFromLogicalTopOfFirstFragment(const RenderBox* box) const
 {
     // As a last resort, take the slow path.
     // Use container() rather than containingBlock() since containingBlock()
     // skips non-RenderBlock ancestors like RenderTableSection.
-    CheckedPtr<const RenderBox> currentBox = currentBlock;
+    CheckedPtr currentBox = box;
     LayoutRect blockRect(0_lu, 0_lu, currentBox->borderBoxWidth(), currentBox->borderBoxHeight());
     auto nextBoxContainer = [](const RenderElement& renderer) -> const RenderElement* {
         auto* container = renderer.container();
@@ -701,22 +702,23 @@ LayoutRect RenderFragmentedFlow::mapFromLocalToFragmentedFlow(const RenderBox* b
     LayoutRect boxRect = localRect;
 
     while (box && box != this) {
-        RenderBlock* containerBlock = box->containingBlock();
+        LayoutPoint currentBoxLocation = box->location();
+        CheckedPtr<const RenderBlock> containerBlock;
+        if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(box->container()); inlineBox && inlineBox->isInlineBox() && box->isOutOfFlowPositioned()) {
+            // The box is positioned relative to the inline box, which is positioned in its block container.
+            currentBoxLocation += toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
+            containerBlock = LayoutIntegration::LineLayout::blockContainer(*inlineBox);
+        } else
+            containerBlock = box->containingBlock();
         ASSERT(containerBlock);
         if (!containerBlock)
             return LayoutRect();
-        LayoutPoint currentBoxLocation = box->location();
-        if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(box->container()); inlineBox && inlineBox->isInlineBox() && box->isOutOfFlowPositioned()) {
-            // The box is positioned relative to the inline box, which is positioned in its own containing block.
-            currentBoxLocation += toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
-            containerBlock = inlineBox->containingBlock();
-        }
 
         if (containerBlock->writingMode().blockDirection() != box->writingMode().blockDirection())
             box->blockStartRelativeToPhysical(boxRect);
 
         boxRect.moveBy(currentBoxLocation);
-        box = containerBlock;
+        box = containerBlock.get();
     }
 
     return boxRect;
@@ -729,17 +731,18 @@ LayoutRect RenderFragmentedFlow::mapFromFragmentedFlowToLocal(const RenderBox* b
     if (box == this)
         return localRect;
 
-    RenderBlock* containerBlock = box->containingBlock();
+    LayoutPoint currentBoxLocation = box->location();
+    CheckedPtr<const RenderBlock> containerBlock;
+    if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(box->container()); inlineBox && inlineBox->isInlineBox() && box->isOutOfFlowPositioned()) {
+        // The box is positioned relative to the inline box, which is positioned in its block container.
+        currentBoxLocation += toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
+        containerBlock = LayoutIntegration::LineLayout::blockContainer(*inlineBox);
+    } else
+        containerBlock = box->containingBlock();
     ASSERT(containerBlock);
     if (!containerBlock)
         return LayoutRect();
-    LayoutPoint currentBoxLocation = box->location();
-    if (CheckedPtr inlineBox = dynamicDowncast<RenderBoxModelObject>(box->container()); inlineBox && inlineBox->isInlineBox() && box->isOutOfFlowPositioned()) {
-        // The box is positioned relative to the inline box, which is positioned in its own containing block.
-        currentBoxLocation += toLayoutSize(inlineBox->blockStartRelativeFirstFragmentBorderBoxRect().location());
-        containerBlock = inlineBox->containingBlock();
-    }
-    localRect = mapFromFragmentedFlowToLocal(containerBlock, localRect);
+    localRect = mapFromFragmentedFlowToLocal(containerBlock.get(), localRect);
 
     localRect.moveBy(-currentBoxLocation);
 

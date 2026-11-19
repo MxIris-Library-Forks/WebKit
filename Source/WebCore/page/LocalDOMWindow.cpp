@@ -132,6 +132,7 @@
 #include "ResourceLoadInfo.h"
 #include "ResourceLoadObserver.h"
 #include "ScheduledAction.h"
+#include "Scheduler.h"
 #include "Screen.h"
 #include "ScrollAnimator.h"
 #include "ScrollToOptions.h"
@@ -783,6 +784,14 @@ Crypto& LocalDOMWindow::crypto() const
     return *m_crypto;
 }
 
+Scheduler& LocalDOMWindow::scheduler() const
+{
+    if (!m_scheduler)
+        m_scheduler = Scheduler::create(protect(document()).get());
+    ASSERT(m_scheduler->scriptExecutionContext() == document());
+    return *m_scheduler;
+}
+
 BarProp& LocalDOMWindow::locationbar()
 {
     if (!m_locationbar)
@@ -1250,7 +1259,7 @@ void LocalDOMWindow::alert(const String& message)
 
     RefPtr document = this->document();
     if (document->isSandboxed(SandboxFlag::Modals)) {
-        printErrorMessage("Use of window.alert is not allowed in a sandboxed frame when the allow-modals flag is not set."_s);
+        printErrorMessage("Use of window.alert is not allowed in a sandboxed frame when the allow-modals flag is not set."_s, MessageSource::Security);
         return;
     }
 
@@ -1279,7 +1288,7 @@ bool LocalDOMWindow::confirmForBindings(const String& message)
 
     RefPtr document = this->document();
     if (document->isSandboxed(SandboxFlag::Modals)) {
-        printErrorMessage("Use of window.confirm is not allowed in a sandboxed frame when the allow-modals flag is not set."_s);
+        printErrorMessage("Use of window.confirm is not allowed in a sandboxed frame when the allow-modals flag is not set."_s, MessageSource::Security);
         return false;
     }
 
@@ -1308,7 +1317,7 @@ String LocalDOMWindow::prompt(const String& message, const String& defaultValue)
 
     RefPtr document = this->document();
     if (document->isSandboxed(SandboxFlag::Modals)) {
-        printErrorMessage("Use of window.prompt is not allowed in a sandboxed frame when the allow-modals flag is not set."_s);
+        printErrorMessage("Use of window.prompt is not allowed in a sandboxed frame when the allow-modals flag is not set."_s, MessageSource::Security);
         return String();
     }
 
@@ -2375,7 +2384,7 @@ void LocalDOMWindow::startListeningForDeviceOrientationIfNecessary()
     String innerMessage;
     if (!isAllowedToUseDeviceOrientation(innerMessage) || !hasPermissionToReceiveDeviceMotionOrOrientationEvents(innerMessage)) {
         if (RefPtr document = this->document())
-            document->addConsoleMessage(MessageSource::JS, MessageLevel::Warning, makeString("No device orientation events will be fired, reason: "_s, innerMessage, '.'));
+            document->addConsoleMessage(MessageSource::Security, MessageLevel::Warning, makeString("No device orientation events will be fired, reason: "_s, innerMessage, '.'));
         return;
     }
 
@@ -2404,7 +2413,7 @@ void LocalDOMWindow::startListeningForDeviceMotionIfNecessary()
     if (!isAllowedToUseDeviceMotion(innerMessage) || !hasPermissionToReceiveDeviceMotionOrOrientationEvents(innerMessage)) {
         failedToRegisterDeviceMotionEventListener();
         if (RefPtr document = this->document())
-            document->addConsoleMessage(MessageSource::JS, MessageLevel::Warning, makeString("No device motion events will be fired, reason: "_s, innerMessage, '.'));
+            document->addConsoleMessage(MessageSource::Security, MessageLevel::Warning, makeString("No device motion events will be fired, reason: "_s, innerMessage, '.'));
         return;
     }
 

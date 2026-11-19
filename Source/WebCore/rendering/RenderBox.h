@@ -559,7 +559,6 @@ public:
     LayoutUnit containingBlockLogicalWidthForContent() const override;
     LayoutUnit containingBlockLogicalHeightForContent(AvailableLogicalHeightType) const;
     LayoutRange containingBlockRangeForPositioned(const RenderBoxModelObject& containingBlock, BoxAxis physicalAxis) const;
-    LayoutUnit containingBlockAvailableLineWidth() const;
     LayoutUnit perpendicularContainingBlockLogicalHeight() const;
 
     RenderFragmentContainer* clampToStartAndEndFragments(RenderFragmentContainer*) const;
@@ -619,8 +618,8 @@ public:
     NODELETE bool requiresLayerWithScrollableArea() const;
 
 protected:
-    RenderBox(Type, Element&, Style::ComputedStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
-    RenderBox(Type, Document&, Style::ComputedStyle&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
+    RenderBox(Type, Element&, UniqueRef<Style::ComputedStyle>&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
+    RenderBox(Type, Document&, UniqueRef<Style::ComputedStyle>&&, OptionSet<TypeFlag> = { }, TypeSpecificFlags = { });
 
     void styleWillChange(Style::Difference, const Style::ComputedStyle& newStyle) override;
     void styleDidChange(Style::Difference, const Style::ComputedStyle* oldStyle) override;

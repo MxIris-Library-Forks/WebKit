@@ -66,7 +66,7 @@ WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderSVGRoot);
 const int defaultWidth = 300;
 const int defaultHeight = 150;
 
-RenderSVGRoot::RenderSVGRoot(SVGSVGElement& element, Style::ComputedStyle&& style)
+RenderSVGRoot::RenderSVGRoot(SVGSVGElement& element, UniqueRef<Style::ComputedStyle>&& style)
     : RenderReplaced(Type::SVGRoot, element, WTF::move(style))
 {
     ASSERT(isRenderSVGRoot());
@@ -373,7 +373,7 @@ void RenderSVGRoot::paintObject(PaintInfo& paintInfo, const LayoutPoint& paintOf
 {
     if ((paintInfo.phase == PaintPhase::BlockBackground || paintInfo.phase == PaintPhase::ChildBlockBackground) && usedStyle().visibility() == UsedVisibility::Visible) {
         if (hasVisibleBoxDecorations())
-            BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
+            Paint::BoxDecorationPainter { *this, paintInfo, paintOffset }.paintBoxDecorations();
     }
 
     if (paintInfo.phase == PaintPhase::Mask && usedStyle().visibility() == UsedVisibility::Visible) {

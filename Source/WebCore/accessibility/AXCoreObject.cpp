@@ -597,6 +597,18 @@ AXCoreObject::AccessibilityChildrenVector AXCoreObject::crossFrameChildrenInclud
     return result;
 }
 
+// Choosing between crossFrameChildrenIncludingIgnored() (a new vector) and childrenIncludingIgnored() (a reference) with a
+// conditional expression copies the children even when not crossing frames, which makes pre-order traversals of wide subtrees
+// (e.g. tables, whose rows are all children of the table) quadratic. Only make that copy when crossing frames.
+static const AXCoreObject::AccessibilityChildrenVector& childrenIncludingIgnoredMaybeCrossFrame(AXCoreObject& object, bool updateChildrenIfNeeded, bool includeCrossFrame, AXCoreObject::AccessibilityChildrenVector& crossFrameChildren)
+{
+    if (!includeCrossFrame)
+        return object.childrenIncludingIgnored(updateChildrenIfNeeded);
+
+    crossFrameChildren = object.crossFrameChildrenIncludingIgnored(updateChildrenIfNeeded);
+    return crossFrameChildren;
+}
+
 bool AXCoreObject::crossFrameIsAncestorOfObject(const AXCoreObject& axObject) const
 {
     return this == &axObject || axObject.crossFrameIsDescendantOfObject(*this);
@@ -699,7 +711,8 @@ RefPtr<AXCoreObject> AXCoreObject::nextInPreOrder(bool updateChildrenIfNeeded, A
 
 RefPtr<AXCoreObject> AXCoreObject::nextInPreOrder(bool updateChildrenIfNeeded , AXCoreObject* stayWithin, bool includeCrossFrame)
 {
-    const auto& children = includeCrossFrame ? crossFrameChildrenIncludingIgnored(updateChildrenIfNeeded) : childrenIncludingIgnored(updateChildrenIfNeeded);
+    AccessibilityChildrenVector crossFrameChildren;
+    const auto& children = childrenIncludingIgnoredMaybeCrossFrame(*this, updateChildrenIfNeeded, includeCrossFrame, crossFrameChildren);
 
     if (!children.isEmpty()) {
         auto role = this->role();
@@ -727,7 +740,8 @@ RefPtr<AXCoreObject> AXCoreObject::nextInPreOrder(bool updateChildrenIfNeeded , 
 #endif
 
         if (parent) {
-            const auto& siblings = includeCrossFrame ? parent->crossFrameChildrenIncludingIgnored(updateChildrenIfNeeded) : parent->childrenIncludingIgnored(updateChildrenIfNeeded);
+            AccessibilityChildrenVector crossFrameSiblings;
+            const auto& siblings = childrenIncludingIgnoredMaybeCrossFrame(*parent, updateChildrenIfNeeded, includeCrossFrame, crossFrameSiblings);
             size_t indexOfCurrent = current->indexInSiblings(siblings);
             if (indexOfCurrent != notFound && indexOfCurrent + 1 < siblings.size())
                 return siblings[indexOfCurrent + 1].copyRef();
@@ -846,7 +860,8 @@ AXCoreObject* AXCoreObject::nextSiblingIncludingIgnored(bool updateChildrenIfNee
     if (!parent)
         return nullptr;
 
-    const auto& siblings = includeCrossFrame ? parent->crossFrameChildrenIncludingIgnored(updateChildrenIfNeeded) : parent->childrenIncludingIgnored(updateChildrenIfNeeded);
+    AccessibilityChildrenVector crossFrameSiblings;
+    const auto& siblings = childrenIncludingIgnoredMaybeCrossFrame(*parent, updateChildrenIfNeeded, includeCrossFrame, crossFrameSiblings);
     size_t indexOfThis = indexInSiblings(siblings);
     if (indexOfThis == notFound)
         return nullptr;
@@ -2255,7 +2270,7 @@ LineDecorationStyle::LineDecorationStyle(RenderObject& renderer)
     const CheckedRef style = renderer.style();
     auto decor = style->textDecorationLineInEffect();
     if (decor.containsAny({ Style::TextDecorationLine::Flag::Underline, Style::TextDecorationLine::Flag::LineThrough })) {
-        auto decorationStyles = TextDecorationPainter::stylesForRenderer(renderer, decor);
+        auto decorationStyles = Paint::TextDecorationPainter::stylesForRenderer(renderer, decor);
         if (decor.hasUnderline()) {
             hasUnderline = true;
             underlineColor = decorationStyles.underline.color;

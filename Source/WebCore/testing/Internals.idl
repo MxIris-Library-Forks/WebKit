@@ -225,6 +225,12 @@ enum AutoplayPolicy {
 
 [
     ExportMacro=WEBCORE_TESTSUPPORT_EXPORT,
+] dictionary MockPageOverlayOptions {
+    boolean associateWithLocalRoot = false;
+};
+
+[
+    ExportMacro=WEBCORE_TESTSUPPORT_EXPORT,
     Conditional=MODEL_PROCESS,
     ImplementedAs=ModelSceneGraphAsTextOptions,
 ] dictionary ModelSceneGraphAsTextOptions {
@@ -1240,7 +1246,7 @@ enum LayerType {
     [Conditional=VIDEO] double effectiveRate(HTMLMediaElement element);
     [Conditional=VIDEO] undefined forceStereoDecoding(HTMLMediaElement element);
 
-    MockPageOverlay installMockPageOverlay(PageOverlayType type);
+    MockPageOverlay installMockPageOverlay(PageOverlayType type, optional MockPageOverlayOptions options = {});
     DOMString pageOverlayLayerTreeAsText(optional unsigned short flags = 0);
 
     undefined setPageMuted(DOMString mutedState);
@@ -1576,6 +1582,7 @@ enum LayerType {
 
     [Conditional=APP_HIGHLIGHTS] readonly attribute sequence<DOMString> appHighlightContextMenuItemTitles;
     [Conditional=APP_HIGHLIGHTS] unsigned long numberOfAppHighlights();
+    [Conditional=APP_HIGHLIGHTS] boolean appHighlightsVisible();
 
     readonly attribute sequence<AbstractRange> textExtractionHighlightRanges;
 
@@ -1677,6 +1684,7 @@ enum LayerType {
     [Conditional=MODEL_PROCESS] Promise<DOMString> modelSceneGraphAsText(Element element, optional ModelSceneGraphAsTextOptions options = {});
 
     [Conditional=SPATIAL_PORTAL] unsigned long numberOfHostedModelsInSpatialPortal(Element element);
+    [Conditional=SPATIAL_PORTAL] unsigned long numberOfHostedPromotedChildrenInSpatialPortal(Element element);
     [Conditional=SPATIAL_PORTAL] boolean establishesSpatialPortal(Element element);
     [Conditional=SPATIAL_PORTAL] Element? spatialPortalAnchorForModel(HTMLModelElement model);
     [Conditional=SPATIAL_PORTAL] sequence<unrestricted double>? spatialPortalResolvedTransform(Element element);

@@ -1,4 +1,3 @@
-dom/Position.cpp
 rendering/AutoTableLayout.cpp
 rendering/CounterNode.cpp
 rendering/FixedTableLayout.cpp
@@ -27,7 +26,6 @@ rendering/RenderLayerModelObject.cpp
 rendering/RenderLayerScrollableArea.cpp
 rendering/RenderLayoutState.cpp
 rendering/RenderListItem.cpp
-rendering/RenderListOutsideMarker.cpp
 rendering/RenderMultiColumnFlow.cpp
 rendering/RenderMultiColumnSet.cpp
 rendering/RenderObject.cpp
@@ -59,7 +57,6 @@ rendering/svg/SVGPathFromElement.cpp
 rendering/svg/SVGRenderSupport.cpp
 rendering/svg/SVGRenderingContext.cpp
 rendering/svg/SVGTextBoxPainter.cpp
-rendering/svg/SVGTextMetrics.cpp
 rendering/svg/legacy/LegacyRenderSVGContainer.cpp
 rendering/svg/legacy/LegacyRenderSVGPath.cpp
 rendering/svg/legacy/LegacyRenderSVGResource.cpp

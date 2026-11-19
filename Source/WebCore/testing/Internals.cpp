@@ -667,6 +667,7 @@ void Internals::resetToConsistentState(Page& page)
 
     CachedMatchFinder::setMaximumRunCountForTesting(std::nullopt);
     UserGestureToken::setMaximumIntervalForUserGestureForwardingForFetchForTesting(std::nullopt);
+    Style::GridPosition::setMaxPositionForTesting(std::nullopt);
 
     if (auto enabled = std::exchange(trackingPreventionEnabledBeforeTest(), std::nullopt))
         DeprecatedGlobalSettings::setTrackingPreventionEnabled(*enabled);
@@ -830,7 +831,7 @@ void Internals::resetToConsistentState(Page& page)
     setOverrideEnhanceTextLegibility(false);
 #endif
 
-    TextPainter::setForceUseGlyphDisplayListForTesting(false);
+    Paint::TextPainter::setForceUseGlyphDisplayListForTesting(false);
 
 #if ENABLE(DAMAGE_TRACKING)
     page.chrome().client().resetDamageHistoryForTesting();
@@ -4366,12 +4367,12 @@ ExceptionOr<String> Internals::replayDisplayListForElement(Element& element, uns
 
 void Internals::setForceUseGlyphDisplayListForTesting(bool enabled)
 {
-    TextPainter::setForceUseGlyphDisplayListForTesting(enabled);
+    Paint::TextPainter::setForceUseGlyphDisplayListForTesting(enabled);
 }
 
 void Internals::clearGlyphDisplayListCacheForTesting()
 {
-    TextPainter::clearGlyphDisplayListCacheForTesting();
+    Paint::TextPainter::clearGlyphDisplayListCacheForTesting();
 }
 
 ExceptionOr<String> Internals::cachedGlyphDisplayListsForTextNode(Node& node, unsigned short flags)
@@ -4389,7 +4390,7 @@ ExceptionOr<String> Internals::cachedGlyphDisplayListsForTextNode(Node& node, un
     if (!node.renderer())
         return Exception { ExceptionCode::InvalidAccessError };
 
-    return TextPainter::cachedGlyphDisplayListsForTextNodeAsText(*textNode, toDisplayListFlags(flags));
+    return Paint::TextPainter::cachedGlyphDisplayListsForTextNodeAsText(*textNode, toDisplayListFlags(flags));
 }
 
 ExceptionOr<void> Internals::garbageCollectDocumentResources() const
@@ -6491,13 +6492,23 @@ bool Internals::isMonitoringWirelessRoutes() const
     return false;
 }
 
-ExceptionOr<Ref<MockPageOverlay>> Internals::installMockPageOverlay(PageOverlayType type)
+ExceptionOr<Ref<MockPageOverlay>> Internals::installMockPageOverlay(PageOverlayType type, const MockPageOverlayOptions& options)
 {
     RefPtr document = contextDocument();
     if (!document || !document->page())
         return Exception { ExceptionCode::InvalidAccessError };
 
-    return MockPageOverlayClient::singleton().installOverlay(protect(*document->page()), type == PageOverlayType::View ? PageOverlay::OverlayType::View : PageOverlay::OverlayType::Document);
+    RefPtr<LocalFrame> rootFrame;
+    if (options.associateWithLocalRoot) {
+        if (type != PageOverlayType::Document)
+            return Exception { ExceptionCode::NotSupportedError };
+        RefPtr frame { document->frame() };
+        if (!frame)
+            return Exception { ExceptionCode::InvalidAccessError };
+        rootFrame = &frame->rootFrame();
+    }
+
+    return MockPageOverlayClient::singleton().installOverlay(protect(*document->page()), type == PageOverlayType::View ? PageOverlay::OverlayType::View : PageOverlay::OverlayType::Document, rootFrame);
 }
 
 ExceptionOr<String> Internals::pageOverlayLayerTreeAsText(unsigned short flags) const
@@ -6506,9 +6517,13 @@ ExceptionOr<String> Internals::pageOverlayLayerTreeAsText(unsigned short flags) 
     if (!document || !document->page())
         return Exception { ExceptionCode::InvalidAccessError };
 
+    RefPtr frame { document->frame() };
+    if (!frame)
+        return Exception { ExceptionCode::InvalidAccessError };
+
     document->updateLayout(LayoutOptions::IgnorePendingStylesheets);
 
-    return MockPageOverlayClient::singleton().layerTreeAsText(protect(*document->page()), toLayerTreeAsTextOptions(flags));
+    return MockPageOverlayClient::singleton().layerTreeAsText(protect(*document->page()), protect(frame->rootFrame()), toLayerTreeAsTextOptions(flags));
 }
 
 void Internals::setPageMuted(StringView statesString)
@@ -8708,6 +8723,12 @@ unsigned Internals::numberOfAppHighlights()
         numHighlights += highlight.value->highlightRanges().size();
     return numHighlights;
 }
+
+bool Internals::appHighlightsVisible()
+{
+    RefPtr document = contextDocument();
+    return document && protect(document->appHighlightRegistry())->highlightsVisibility() == HighlightVisibility::Visible;
+}
 #endif
 
 Vector<Ref<AbstractRange>> Internals::textExtractionHighlightRanges() const
@@ -9659,6 +9680,12 @@ unsigned Internals::numberOfHostedModelsInSpatialPortal(Element& element)
 {
     CheckedPtr controller = element.spatialPortalController();
     return controller ? controller->numberOfHostedModels() : 0;
+}
+
+unsigned Internals::numberOfHostedPromotedChildrenInSpatialPortal(Element& element)
+{
+    CheckedPtr controller = element.spatialPortalController();
+    return controller ? controller->numberOfHostedPromotedChildren() : 0;
 }
 
 bool Internals::establishesSpatialPortal(Element& element)

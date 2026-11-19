@@ -2867,7 +2867,7 @@ Style::Resolver& Element::styleResolver()
     if (RefPtr shadowRoot = containingShadowRoot())
         return protect(shadowRoot->styleScope())->resolver();
 
-    return document().styleScope().resolver();
+    return protect(document().styleScope())->resolver();
 }
 
 Style::UnadjustedStyle Element::resolveStyle(const Style::ResolutionContext& resolutionContext)
@@ -3167,10 +3167,8 @@ void Element::updateEffectiveLangState()
         return;
     }
 
-    if (hasLangAttrKnownToMatchDocumentElement()) {
-        // Unable to protect the document as it may have started destruction.
-        document().removeElementWithLangAttrMatchingDocumentElement(*this);
-    }
+    if (hasLangAttrKnownToMatchDocumentElement())
+        protect(document())->removeElementWithLangAttrMatchingDocumentElement(*this);
 
     setEffectiveLangKnownToMatchDocumentElement(false);
     ensureElementRareData().setEffectiveLang(lang);
@@ -3229,7 +3227,7 @@ bool Element::rendererIsNeeded(const Style::ComputedStyle& style)
     return style.display().doesGenerateBox();
 }
 
-RenderPtr<RenderElement> Element::createElementRenderer(Style::ComputedStyle&& style, const RenderTreePosition&)
+RenderPtr<RenderElement> Element::createElementRenderer(UniqueRef<Style::ComputedStyle>&& style, const RenderTreePosition&)
 {
     return RenderElement::createFor(*this, WTF::move(style));
 }
@@ -4848,8 +4846,7 @@ void Element::removeFromTopLayer()
         }
     }
 
-    // Unable to protect the document as it may have started destruction.
-    document().removeTopLayerElement(*this);
+    protect(document())->removeTopLayerElement(*this);
     clearEventTargetFlag(EventTargetFlag::IsInTopLayer);
 
     // User-action pseudo-classes should now propagate past this element since it is

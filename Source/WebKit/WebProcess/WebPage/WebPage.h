@@ -1193,6 +1193,7 @@ public:
     Awaitable<std::optional<WebCore::FrameIdentifier>> commitPotentialTap(std::optional<WebCore::FrameIdentifier>, OptionSet<WebKit::WebEventModifier>, TransactionID lastLayerTreeTransactionId, WebCore::PointerID, CompletesDoubleClick);
     void cancelPotentialTap();
     void cancelPotentialTapInFrame(WebFrame&);
+    void clearPotentialTap();
     void commitPotentialTapFailed(WebCore::LocalFrame* localRootFrame);
     void didHandleTapAsHover(WebCore::Node& nodeRespondingToClick);
 #if HAVE(APPKIT_GESTURES_SUPPORT)
@@ -1657,7 +1658,7 @@ public:
 
     bool canShowWhileLocked() const;
 
-    void shouldDismissKeyboardAfterTapAtPoint(WebCore::FloatPoint, CompletionHandler<void(bool)>&&);
+    void shouldDismissKeyboardAfterTapAtPoint(std::optional<WebCore::FrameIdentifier>, WebCore::FloatPoint, std::optional<float> unobscuredContentWidth, CompletionHandler<void(Variant<bool, WebCore::RemoteUserInputEventData>&&)>&&);
 #endif
 
 #if ENABLE(CONTENT_CHANGE_OBSERVER)
@@ -2475,6 +2476,7 @@ private:
 
     // Actions
     void tryClose(CompletionHandler<void(bool)>&&);
+    void closeFromRemoteFrame();
     void dispatchPendingNavigateEventForProcessSwap(WebCore::FrameIdentifier, WebCore::PendingNavigateEventIdentifier, CompletionHandler<void(bool)>&&);
     void dispatchCrossOriginBeforeUnloadCheckForFrame(WebCore::FrameIdentifier, WebCore::SecurityOriginData&&);
     void platformDidReceiveLoadParameters(const LoadParameters&);
@@ -2588,10 +2590,9 @@ private:
     void getSourceForFrame(WebCore::FrameIdentifier, CompletionHandler<void(const String&)>&&);
 #if PLATFORM(COCOA)
     void getWebArchiveData(CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
-    void getWebArchivesForFrames(const Vector<WebCore::FrameIdentifier>& frameIdentifiers, CompletionHandler<void(HashMap<WebCore::FrameIdentifier, Ref<WebCore::LegacyWebArchive>>&&)>&&);
+    void getWebArchivesForFrames(const Vector<WebCore::FrameIdentifier>& frameIdentifiers, const Vector<WebCore::MarkupExclusionRule>&, const String& mainResourceFileName, CompletionHandler<void(HashMap<WebCore::FrameIdentifier, Ref<WebCore::LegacyWebArchive>>&&)>&&);
     void getContentsAsAttributedStringForFrames(const Vector<WebCore::FrameIdentifier>& frameIdentifiers, CompletionHandler<void(HashMap<WebCore::FrameIdentifier, WebCore::AttributedString>&&)>&&);
 #endif
-    void getWebArchiveOfFrameWithFileName(WebCore::FrameIdentifier, const Vector<WebCore::MarkupExclusionRule>&, const String& fileName, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&&);
     void runJavaScript(WebFrame*, RunJavaScriptParameters&&, ContentWorldIdentifier, bool, CompletionHandler<void(RunJavaScriptResult&&)>&&);
     void runJavaScriptInFrameInScriptWorld(RunJavaScriptParameters&&, std::optional<WebCore::FrameIdentifier>, const ContentWorldData&, bool, CompletionHandler<void(RunJavaScriptResult&&)>&&);
     void clearContentWorld(ContentWorldIdentifier, CompletionHandler<void()>&&);
@@ -2748,7 +2749,7 @@ private:
     NODELETE void setCanUseCredentialStorage(bool);
 
 #if ENABLE(CONTEXT_MENUS)
-    void didSelectItemFromActiveContextMenu(const WebContextMenuItemData&);
+    void didSelectItemFromActiveContextMenu(const WebContextMenuItemData&, CompletionHandler<void()>&&);
 #endif
 
     void changeSelectedIndex(int32_t index);

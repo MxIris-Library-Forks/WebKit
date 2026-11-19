@@ -54,7 +54,6 @@
 #include "CSSFilterRenderer.h"
 #include "CSSPropertyNames.h"
 #include "Chrome.h"
-#include "ClipPathPaintScope.h"
 #include "ContainerNodeInlines.h"
 #include "DebugPageOverlays.h"
 #include "DisplayListRecorderImpl.h"
@@ -101,6 +100,8 @@
 #include "Logging.h"
 #include "OverlapTestRequestClient.h"
 #include "Page.h"
+#include "PaintClipPathScope.h"
+#include "PaintTransformScope.h"
 #include "PlatformMouseEvent.h"
 #include "PositionedLayoutConstraints.h"
 #include "ReferencedSVGResources.h"
@@ -157,6 +158,7 @@
 #include "Settings.h"
 #include "ShadowRoot.h"
 #include "SourceGraphic.h"
+#include "SpatialPortalController.h"
 #include "StyleAdjuster.h"
 #include "StyleAttributeMutationScope.h"
 #include "StyleComputedStyle+SettersInlines.h"
@@ -169,7 +171,6 @@
 #include "StyleTranslateTransformFunction.h"
 #include "Styleable.h"
 #include "TransformOperationData.h"
-#include "TransformPaintScope.h"
 #include "TransformationMatrix.h"
 #include "ViewTransition.h"
 #include "WheelEventTestMonitor.h"
@@ -2142,6 +2143,15 @@ void RenderLayer::updateAncestorDependentState()
     updateSelfPaintingLayer();
 }
 
+// A fixed layer is not composited while it has nothing to paint (RenderLayerCompositor::requiresCompositingForPosition()).
+// When it gains visible content or a visible descendant, it needs to be reevaluated; otherwise it keeps painting into
+// its ancestor's backing store and does not stay fixed during rubberbanding.
+void RenderLayer::updateCompositingForViewportConstrainedLayerWithNoVisibleContent()
+{
+    if (viewportConstrainedNotCompositedReason() == NotCompositedForNoVisibleContent)
+        setNeedsPostLayoutCompositingUpdate();
+}
+
 void RenderLayer::updateDescendantDependentFlags()
 {
     if (m_visibleDescendantStatusDirty || m_hasSelfPaintingLayerDescendantDirty || hasNotIsolatedBlendingDescendantsStatusDirty() || m_hasAlwaysIncludedInZOrderListsDescendantsStatusDirty || m_hasViewportConstrainedDescendantStatusDirty) {
@@ -2170,6 +2180,7 @@ void RenderLayer::updateDescendantDependentFlags()
             m_hasVisibleDescendant = hasVisibleDescendant;
             if (!isNormalFlowOnly())
                 dirtyHiddenStackingContextAncestorZOrderLists();
+            updateCompositingForViewportConstrainedLayerWithNoVisibleContent();
         }
         m_visibleDescendantStatusDirty = false;
         m_hasSelfPaintingLayerDescendant = hasSelfPaintingLayerDescendant;
@@ -2195,6 +2206,7 @@ void RenderLayer::updateDescendantDependentFlags()
                 // collected.
                 dirtyHiddenStackingContextAncestorZOrderLists();
             }
+            updateCompositingForViewportConstrainedLayerWithNoVisibleContent();
         }
         m_visibleContentStatusDirty = false;
     }
@@ -3686,7 +3698,7 @@ bool RenderLayer::setupFontSubpixelQuantization(GraphicsContext& context, bool& 
     return false;
 }
 
-void RenderLayer::setupClipPath(std::optional<ClipPathPaintScope>& clipPathScope, GraphicsContext& context, const LayerPaintingInfo& paintingInfo, OptionSet<PaintLayerFlag>& paintFlags, const LayoutSize& offsetFromRoot)
+void RenderLayer::setupClipPath(std::optional<Paint::ClipPathScope>& clipPathScope, GraphicsContext& context, const LayerPaintingInfo& paintingInfo, OptionSet<PaintLayerFlag>& paintFlags, const LayoutSize& offsetFromRoot)
 {
     bool isCollectingEventRegion = paintFlags.contains(PaintLayerFlag::CollectingEventRegion);
     if (!renderer().hasClipPath() || (context.paintingDisabled() && !isCollectingEventRegion) || paintingInfo.paintDirtyRect.isEmpty())
@@ -3696,7 +3708,7 @@ void RenderLayer::setupClipPath(std::optional<ClipPathPaintScope>& clipPathScope
         return;
 
     auto clippedContentBounds = calculateLayerBounds(paintingInfo.rootLayer, offsetFromRoot, { UseLocalClipRectIfPossible });
-    clipPathScope.emplace(context, paintingInfo.regionContext, renderer(), offsetFromRoot, paintingInfo.subpixelOffset, clippedContentBounds, isCollectingEventRegion, ClipPathPaintScope::CoordinateMode::LayerPaint);
+    clipPathScope.emplace(context, paintingInfo.regionContext, renderer(), offsetFromRoot, paintingInfo.subpixelOffset, clippedContentBounds, isCollectingEventRegion, Paint::ClipPathScope::CoordinateMode::LayerPaint);
 }
 
 void RenderLayer::clearLayerClipPath()
@@ -3890,7 +3902,7 @@ void RenderLayer::paintLayerContents(GraphicsContext& context, const LayerPainti
     if (renderer().enclosingFragmentedFlow() && (renderer().hasClipPath() || shouldHaveFiltersForPainting(context, paintFlags, paintingInfo.paintBehavior)))
         columnAwareOffsetFromRoot = toLayoutSize(convertToLayerCoords(paintingInfo.rootLayer, LayoutPoint(), AdjustForColumns));
 
-    std::optional<ClipPathPaintScope> clipPathScope;
+    std::optional<Paint::ClipPathScope> clipPathScope;
     if (shouldApplyClipPath(paintingInfo.paintBehavior, localPaintFlags))
         setupClipPath(clipPathScope, context, paintingInfo, localPaintFlags, columnAwareOffsetFromRoot);
 
@@ -4208,7 +4220,7 @@ void RenderLayer::paintLayerByApplyingTransform(GraphicsContext& context, const 
     if (rendererNeedsPixelSnapping(renderer()) && !renderer().isRenderSVGRoot())
         adjustedSubpixelOffset = offsetForThisLayer - LayoutSize(alignedOffsetForThisLayer);
 
-    TransformPaintScope scope(context, paintingInfo, transform, snappingScaleFactor, adjustedSubpixelOffset, this);
+    Paint::TransformScope scope(context, paintingInfo, transform, snappingScaleFactor, adjustedSubpixelOffset, this);
 
     paintFlags.remove(PaintLayerFlag::PaintingOverflowContents);
     paintLayerContentsAndReflection(context, scope.transformedPaintingInfo(), paintFlags);
@@ -4830,6 +4842,11 @@ Ref<HitTestingTransformState> RenderLayer::createLocalTransformState(RenderLayer
     }
     offset += translationOffset;
 
+#if ENABLE(SPATIAL_PORTAL)
+    if (auto projection = hostedPortalContentProjection(containerTransformState ? *containerLayer : *rootLayer))
+        transformState->applyTransform(*projection);
+#endif
+
     if (renderer().shouldUseTransformFromContainer(containerLayer ? &containerLayer->renderer() : nullptr)) {
         TransformationMatrix containerTransform;
         renderer().getTransformFromContainer(offset, containerTransform);
@@ -4840,6 +4857,28 @@ Ref<HitTestingTransformState> RenderLayer::createLocalTransformState(RenderLayer
     
     return transformState.releaseNonNull();
 }
+
+#if ENABLE(SPATIAL_PORTAL)
+bool RenderLayer::isHostedInSpatialPortalScene() const
+{
+    return m_backing && m_backing->hostingSpatialPortalController();
+}
+
+std::optional<TransformationMatrix> RenderLayer::hostedPortalContentProjection(const RenderLayer& space) const
+{
+    CheckedPtr controller = m_backing ? m_backing->hostingSpatialPortalController() : nullptr;
+    CheckedPtr portalLayer = parent();
+    if (!controller || !portalLayer)
+        return std::nullopt;
+
+    auto portalOffset = offsetFromAncestor(&space) - offsetFromAncestor(portalLayer.get());
+    TransformationMatrix projection;
+    projection.translate(portalOffset.width(), portalOffset.height());
+    projection.multiply(controller->hostedContentProjection());
+    projection.translate(-portalOffset.width(), -portalOffset.height());
+    return projection;
+}
+#endif
 
 static RefPtr<Element> flattenedParent(Element* element)
 {
@@ -4949,8 +4988,13 @@ RenderLayer::HitLayer RenderLayer::hitTestLayer(RenderLayer* rootLayer, RenderLa
 
     // The natural thing would be to keep HitTestingTransformState on the stack, but it's big, so we heap-allocate.
 
+    bool hasTransform = transform();
+#if ENABLE(SPATIAL_PORTAL)
+    hasTransform = hasTransform || isHostedInSpatialPortalScene();
+#endif
+
     // Apply a transform if we have one.
-    if (transform() && !appliedTransform) {
+    if (hasTransform && !appliedTransform) {
         if (enclosingPaginationLayer(IncludeCompositedPaginatedLayers))
             return hitTestTransformedLayerInFragments(rootLayer, containerLayer, request, result, hitTestRect, hitTestLocation, transformState, zOffset);
 
@@ -5273,6 +5317,13 @@ RenderLayer::HitLayer RenderLayer::hitTestList(LayerList layerIterator, RenderLa
         HitTestResult tempResult(result.hitTestLocation());
         auto hitLayer = childLayer->hitTestLayer(rootLayer, this, request, tempResult, hitTestRect, hitTestLocation, false, transformStateForChild, zOffsetForDescendants);
 
+#if ENABLE(SPATIAL_PORTAL)
+        if (hitLayer.layer && !depthSortDescendants && !request.resultIsElementList() && childLayer->isHostedInSpatialPortalScene()) {
+            if (auto frontmost = hitTestFrontmostHostedChild(rootLayer, request, tempResult, hitTestRect, hitTestLocation, transformStateForChild); frontmost.layer)
+                hitLayer = frontmost;
+        }
+#endif
+
         // If it is a list-based test, we can safely append the temporary result since it might had hit
         // nodes but not necessarily had hitLayer set.
         ASSERT(!result.isRectBasedTest() || request.resultIsElementList());
@@ -5297,6 +5348,34 @@ RenderLayer::HitLayer RenderLayer::hitTestList(LayerList layerIterator, RenderLa
 
     return resultLayer;
 }
+
+#if ENABLE(SPATIAL_PORTAL)
+RenderLayer::HitLayer RenderLayer::hitTestFrontmostHostedChild(RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result, const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation, const HitTestingTransformState* transformState)
+{
+    static constexpr double coplanarTolerance = 0.01;
+
+    auto frontmost = HitLayer { nullptr, -std::numeric_limits<double>::infinity() };
+    for (auto layers : { negativeZOrderLayers(), normalFlowLayers(), positiveZOrderLayers() }) {
+        for (auto* childLayer : layers) {
+            if (!childLayer->isHostedInSpatialPortalScene())
+                continue;
+
+            HitTestResult childResult(result.hitTestLocation());
+            auto hitLayer = childLayer->hitTestLayer(rootLayer, this, request, childResult, hitTestRect, hitTestLocation, false, transformState, nullptr);
+            if (!hitLayer.layer)
+                continue;
+
+            auto depth = computeZOffset(childLayer->createLocalTransformState(rootLayer, this, hitTestRect, hitTestLocation, transformState).get());
+            if (frontmost.layer && depth < frontmost.zOffset - coplanarTolerance)
+                continue;
+
+            frontmost = { hitLayer.layer, depth };
+            result = childResult;
+        }
+    }
+    return frontmost;
+}
+#endif
 
 RenderLayer::HitLayer RenderLayer::hitTestPositiveAndNormalFlowLists(RenderLayer* rootLayer, const HitTestRequest& request, HitTestResult& result, const LayoutRect& hitTestRect, const HitTestLocation& hitTestLocation, const HitTestingTransformState* transformState, double* zOffsetForDescendants, bool depthSortDescendants, HitLayer& candidateLayer)
 {
@@ -6624,37 +6703,37 @@ void RenderLayer::removeReflection()
     m_reflection = nullptr;
 }
 
-Style::ComputedStyle RenderLayer::createReflectionStyle()
+UniqueRef<Style::ComputedStyle> RenderLayer::createReflectionStyle()
 {
     auto newStyle = Style::ComputedStyle::create();
-    newStyle.inheritFrom(renderer().style());
+    newStyle->inheritFrom(renderer().style());
     
     auto reflection = renderer().style().boxReflect().tryReflection();
 
     switch (reflection->direction) {
     case ReflectionDirection::Below:
-        newStyle.setTransform({
+        newStyle->setTransform({
             { Style::TranslateTransformFunction::create(0_css_px, 100_css_percentage, Style::TransformFunctionType::Translate) },
             { Style::TranslateTransformFunction::create(0_css_px, reflection->offset, Style::TransformFunctionType::Translate) },
             { Style::ScaleTransformFunction::create(1_css_number, -1_css_number, Style::TransformFunctionType::Scale) },
         });
         break;
     case ReflectionDirection::Above:
-        newStyle.setTransform({
+        newStyle->setTransform({
             { Style::ScaleTransformFunction::create(1_css_number, -1_css_number, Style::TransformFunctionType::Scale) },
             { Style::TranslateTransformFunction::create(0_css_px, 100_css_percentage, Style::TransformFunctionType::Translate) },
             { Style::TranslateTransformFunction::create(0_css_px, reflection->offset, Style::TransformFunctionType::Translate) },
         });
         break;
     case ReflectionDirection::Right:
-        newStyle.setTransform({
+        newStyle->setTransform({
             { Style::TranslateTransformFunction::create(100_css_percentage, 0_css_px, Style::TransformFunctionType::Translate) },
             { Style::TranslateTransformFunction::create(reflection->offset, 0_css_px, Style::TransformFunctionType::Translate) },
             { Style::ScaleTransformFunction::create(-1_css_number, 1_css_number, Style::TransformFunctionType::Scale) },
         });
         break;
     case ReflectionDirection::Left:
-        newStyle.setTransform({
+        newStyle->setTransform({
             { Style::ScaleTransformFunction::create(-1_css_number, 1_css_number, Style::TransformFunctionType::Scale) },
             { Style::TranslateTransformFunction::create(100_css_percentage, 0_css_px, Style::TransformFunctionType::Translate) },
             { Style::TranslateTransformFunction::create(reflection->offset, 0_css_px, Style::TransformFunctionType::Translate) },
@@ -6663,10 +6742,10 @@ Style::ComputedStyle RenderLayer::createReflectionStyle()
     }
 
     // Map in our mask.
-    newStyle.setMaskBorder(Style::MaskBorder { reflection->mask });
+    newStyle->setMaskBorder(Style::MaskBorder { reflection->mask });
 
     // Style has transform and mask, so needs to be stacking context.
-    newStyle.setUsedZIndex(0);
+    newStyle->setUsedZIndex(0);
 
     return newStyle;
 }

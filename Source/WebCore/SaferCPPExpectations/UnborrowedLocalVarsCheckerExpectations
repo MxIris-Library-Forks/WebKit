@@ -262,7 +262,6 @@ layout/formattingContexts/flex/FlexFormattingContext.cpp
 layout/formattingContexts/grid/AutoRepeatResolver.cpp
 layout/formattingContexts/grid/ExtraSpaceDistributor.cpp
 layout/formattingContexts/grid/GridFormattingContext.cpp
-layout/formattingContexts/grid/GridItemPlacer.cpp
 layout/formattingContexts/grid/GridLayout.cpp
 layout/formattingContexts/grid/GridLayoutUtils.cpp
 layout/formattingContexts/grid/GridSizer.cpp
@@ -294,30 +293,6 @@ layout/integration/inline/LayoutIntegrationInlineContent.cpp
 layout/integration/inline/LayoutIntegrationInlineContentBuilder.cpp
 layout/integration/inline/LayoutIntegrationLineLayout.cpp
 layout/integration/inline/LayoutIntegrationPagination.cpp
-loader/ContentFilter.cpp
-loader/CrossOriginAccessControl.cpp
-loader/CustomHeaderFields.cpp
-loader/DocumentLoader.cpp
-loader/FrameLoader.cpp
-loader/HistoryController.cpp
-loader/ImageLoader.cpp
-loader/IntegrityPolicy.cpp
-loader/MediaResourceLoader.cpp
-loader/PrivateClickMeasurement.cpp
-loader/ResourceLoader.cpp
-loader/ResourceMonitorChecker.cpp
-loader/SpeculationRules.cpp
-loader/SubresourceIntegrity.cpp
-loader/TextResourceDecoder.cpp
-loader/archive/Archive.cpp
-loader/archive/cf/LegacyWebArchive.cpp
-loader/cache/CachedRawResource.cpp
-loader/cache/CachedResource.cpp
-loader/cache/CachedResourceLoader.cpp
-loader/cache/KeepaliveRequestTracker.cpp
-loader/cache/MemoryCache.cpp
-loader/images/bitmap/BitmapImageSource.cpp
-loader/images/svg/SVGImageInstanceCache.h
 page/Chrome.cpp
 [ macOS ] page/ContextMenuController.cpp
 page/DebugPageOverlays.cpp
@@ -555,10 +530,10 @@ rendering/RenderView.cpp
 rendering/StyledMarkedText.cpp
 rendering/SubtreeScrollbarChangesState.cpp
 rendering/cocoa/RenderThemeCocoa.mm
-rendering/paint/OutlinePainter.cpp
-rendering/paint/TextBoxPainter.cpp
 [ iOS ] rendering/ios/RenderThemeIOS.mm
 rendering/mathml/MathOperator.cpp
+rendering/paint/OutlinePainter.cpp
+rendering/paint/TextBoxPainter.cpp
 rendering/shapes/PathLayoutShape.cpp
 rendering/svg/RenderSVGPath.cpp
 rendering/svg/RenderSVGResourceContainer.cpp

@@ -1439,11 +1439,8 @@ void WebPage::frameGeometryChangedInAnotherProcess(Vector<FrameGeometryUpdate>&&
         if (!coreFrame)
             continue;
 
-        if (update.viewportInfo) {
+        if (update.viewportInfo)
             coreFrame->updateFrameTreeSyncData(FrameTreeSyncSerializationData { WTF::move(*update.viewportInfo) });
-            if (RefPtr view = coreFrame->virtualView())
-                view->scrollTo(coreFrame->frameTreeSyncData().frameViewportInfo.scrollPosition);
-        }
 
         if (update.geometry) {
             coreFrame->updateFrameTreeSyncData(FrameTreeSyncSerializationData { WTF::move(*update.geometry) });
@@ -2639,6 +2636,16 @@ void WebPage::tryClose(CompletionHandler<void(bool)>&& completionHandler)
     completionHandler(coreFrame->loader().shouldClose());
 }
 
+void WebPage::closeFromRemoteFrame()
+{
+    RefPtr localMainFrame = this->localMainFrame();
+    if (!localMainFrame)
+        return;
+
+    if (RefPtr window = localMainFrame->window())
+        window->close();
+}
+
 void WebPage::dispatchCrossOriginBeforeUnloadCheckForFrame(WebCore::FrameIdentifier frameID, WebCore::SecurityOriginData&& navigatingFrameOrigin)
 {
     RefPtr webFrame = WebProcess::singleton().webFrame(frameID);
@@ -2657,7 +2664,7 @@ void WebPage::dispatchCrossOriginBeforeUnloadCheckForFrame(WebCore::FrameIdentif
     if (frameOrigin->isSameOriginDomain(navigatingFrameOrigin.securityOrigin()))
         return;
 
-    document->addConsoleMessage(MessageSource::JS, MessageLevel::Error, "Blocked attempt to show beforeunload confirmation dialog on behalf of a frame with different security origin. Protocols, domains, and ports must match."_s);
+    document->addConsoleMessage(MessageSource::Security, MessageLevel::Error, "Blocked attempt to show beforeunload confirmation dialog on behalf of a frame with different security origin. Protocols, domains, and ports must match."_s);
 }
 
 void WebPage::sendClose()
@@ -5041,8 +5048,10 @@ void WebPage::setBackgroundColor(const std::optional<WebCore::Color>& background
 
     m_backgroundColor = backgroundColor;
 
-    if (RefPtr frameView = localMainFrameView())
-        frameView->updateBackgroundRecursively(backgroundColor);
+    for (Ref rootFrame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames())) {
+        if (RefPtr frameView = rootFrame->view())
+            frameView->updateBackgroundRecursively(backgroundColor);
+    }
 
     RefPtr drawingArea = m_drawingArea;
 #if USE(COORDINATED_GRAPHICS) || USE(TEXTURE_MAPPER)
@@ -5665,20 +5674,6 @@ void WebPage::getResourceDataFromFrame(FrameIdentifier frameID, const String& re
     }
 
     callback(IPC::SharedBufferReference(WTF::move(buffer)));
-}
-
-void WebPage::getWebArchiveOfFrameWithFileName(WebCore::FrameIdentifier frameID, const Vector<WebCore::MarkupExclusionRule>& exclusionRules, const String& fileName, CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&& completionHandler)
-{
-    std::optional<IPC::SharedBufferReference> result;
-#if PLATFORM(COCOA)
-    if (RefPtr frame = WebProcess::singleton().webFrame(frameID)) {
-        if (RetainPtr<CFDataRef> data = frame->webArchiveData(nullptr, nullptr, exclusionRules, fileName))
-            result = IPC::SharedBufferReference(SharedBuffer::create(data.get()));
-    }
-#else
-    UNUSED_PARAM(frameID);
-#endif
-    completionHandler(result);
 }
 
 void WebPage::getAccessibilityTreeData(CompletionHandler<void(const std::optional<IPC::SharedBufferReference>&)>&& callback)
@@ -7147,10 +7142,11 @@ void WebPage::failedToShowPopupMenu()
 #endif
 
 #if ENABLE(CONTEXT_MENUS)
-void WebPage::didSelectItemFromActiveContextMenu(const WebContextMenuItemData& item)
+void WebPage::didSelectItemFromActiveContextMenu(const WebContextMenuItemData& item, CompletionHandler<void()>&& completionHandler)
 {
     if (auto contextMenu = std::exchange(m_contextMenu, nullptr))
         contextMenu->itemSelected(item);
+    completionHandler();
 }
 #endif
 
@@ -7318,7 +7314,7 @@ void WebPage::setMainFrameIsScrollable(bool isScrollable)
     m_mainFrameIsScrollable = isScrollable;
     protect(drawingArea())->mainFrameScrollabilityChanged(isScrollable);
 
-    if (RefPtr frameView = m_mainFrame->coreLocalFrame()->view()) {
+    if (RefPtr frameView = localMainFrameView()) {
         frameView->setCanHaveScrollbars(isScrollable);
         frameView->setProhibitsScrolling(!isScrollable);
     }
@@ -7867,18 +7863,14 @@ void WebPage::drawFrameToSnapshot(FrameIdentifier frameID, const IntRect& rectRe
     FloatSize recordingScale { recordingScaleComponent(scale.width()), recordingScaleComponent(scale.height()) };
 
     bool recorded = recordRemoteSnapshot(snapshotIdentifier, frameID, RemoteSnapshotRole::Frame, renderingMode, rectRelativeToVisibleContent, recordingScale, { }, MainRunLoopSuccessCallbackAggregator::create([](bool) { }), [&](GraphicsContext& context) {
-        LocalFrameView::SelectionInSnapshot shouldPaintSelection = LocalFrameView::IncludeSelection;
-        LocalFrameView::CoordinateSpaceForSnapshot coordinateSpace = LocalFrameView::DocumentCoordinates;
-
-        // Map the rect into the document with the frame's current scroll position (see paintRemoteFrameContents()),
-        // as ScrollView::paint() does. Layout can change it.
-        frameView->updateLayoutAndStyleIfNeededRecursive();
-        auto scrollPosition = frameView->scrollPosition();
+        // Painting in view coordinates applies the current scroll position (see paintRemoteFrameContents()) and paints the
+        // scroll bars. The frame view is at the location of the frame in its parent, and the rect is relative to the frame.
+        auto location = frameView->location();
         GraphicsContextStateSaver stateSaver(context);
-        context.translate(-scrollPosition.x(), -scrollPosition.y());
-        IntRect documentRect { { saturatingSum(rectRelativeToVisibleContent.x(), scrollPosition.x()), saturatingSum(rectRelativeToVisibleContent.y(), scrollPosition.y()) }, rectRelativeToVisibleContent.size() };
+        context.translate(-location.x(), -location.y());
+        IntRect viewRect { { saturatingSum(rectRelativeToVisibleContent.x(), location.x()), saturatingSum(rectRelativeToVisibleContent.y(), location.y()) }, rectRelativeToVisibleContent.size() };
 
-        frameView->paintContentsForSnapshot(context, documentRect, nullptr, shouldPaintSelection, coordinateSpace);
+        frameView->paintContentsForSnapshot(context, viewRect, nullptr, LocalFrameView::IncludeSelection, LocalFrameView::ViewCoordinates);
     });
     if (!recorded)
         abandon();
@@ -8628,7 +8620,10 @@ void WebPage::setAlwaysShowsHorizontalScroller(bool alwaysShowsHorizontalScrolle
 
     m_alwaysShowsHorizontalScroller = alwaysShowsHorizontalScroller;
 
-    RefPtr view = protect(protect(corePage())->mainFrame())->virtualView();
+    RefPtr view = localMainFrameView();
+    if (!view)
+        return;
+
     if (!alwaysShowsHorizontalScroller)
         view->setHorizontalScrollbarLock(false);
     view->setHorizontalScrollbarMode(alwaysShowsHorizontalScroller ? ScrollbarMode::AlwaysOn : m_mainFrameIsScrollable ? ScrollbarMode::Auto : ScrollbarMode::AlwaysOff, alwaysShowsHorizontalScroller || !m_mainFrameIsScrollable);
@@ -8641,7 +8636,10 @@ void WebPage::setAlwaysShowsVerticalScroller(bool alwaysShowsVerticalScroller)
 
     m_alwaysShowsVerticalScroller = alwaysShowsVerticalScroller;
 
-    RefPtr view = protect(protect(corePage())->mainFrame())->virtualView();
+    RefPtr view = localMainFrameView();
+    if (!view)
+        return;
+
     if (!alwaysShowsVerticalScroller)
         view->setVerticalScrollbarLock(false);
     view->setVerticalScrollbarMode(alwaysShowsVerticalScroller ? ScrollbarMode::AlwaysOn : m_mainFrameIsScrollable ? ScrollbarMode::Auto : ScrollbarMode::AlwaysOff, alwaysShowsVerticalScroller || !m_mainFrameIsScrollable);
@@ -10994,12 +10992,14 @@ void WebPage::restoreAppHighlightsAndScrollToIndex(Vector<SharedMemory::Handle>&
 void WebPage::setAppHighlightsVisibility(WebCore::HighlightVisibility appHighlightVisibility)
 {
     m_appHighlightsVisible = appHighlightVisibility;
-    for (RefPtr<Frame> frame = m_mainFrame->coreLocalFrame(); frame; frame = frame->tree().traverseNextRendered()) {
-        RefPtr localFrame = dynamicDowncast<LocalFrame>(frame.get());
-        if (!localFrame)
-            continue;
-        if (RefPtr document = localFrame->document())
-            protect(document->appHighlightRegistry())->setHighlightVisibility(appHighlightVisibility);
+    for (Ref rootFrame : copyToVectorOf<Ref<LocalFrame>>(m_page->rootFrames())) {
+        for (RefPtr<Frame> frame = rootFrame.ptr(); frame; frame = frame->tree().traverseNextRendered(rootFrame.ptr())) {
+            RefPtr localFrame = dynamicDowncast<LocalFrame>(frame);
+            if (!localFrame)
+                continue;
+            if (RefPtr document = localFrame->document())
+                protect(document->appHighlightRegistry())->setHighlightVisibility(appHighlightVisibility);
+        }
     }
 }
 

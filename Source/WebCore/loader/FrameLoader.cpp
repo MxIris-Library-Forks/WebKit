@@ -160,6 +160,7 @@
 #include "WindowFeatures.h"
 #include "XMLDocumentParser.h"
 #include <ranges>
+#include <wtf/Borrow.h>
 #include <wtf/CheckedPtr.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/Ref.h>
@@ -2827,7 +2828,7 @@ void FrameLoader::commitProvisionalLoad()
                 targetFrames.append(localChild.releaseNonNull());
         }
 
-        for (auto& frame : targetFrames)
+        for (auto& frame : borrow(targetFrames))
             frame->loader().checkCompleted();
     } else
         didOpenURL();
@@ -3531,7 +3532,7 @@ void FrameLoader::detachChildren()
         if (RefPtr localChild = dynamicDowncast<LocalFrame>(child))
             childrenToDetach.append(localChild.releaseNonNull());
     }
-    for (auto& child : childrenToDetach)
+    for (auto& child : borrow(childrenToDetach))
         child->loader().detachFromParent();
 }
 
@@ -4402,7 +4403,7 @@ bool FrameLoader::dispatchBeforeUnloadEvent(Chrome& chrome, FrameLoader* frameLo
             if (!parentDocument)
                 return true;
             if (RefPtr document = m_frame->document(); !document || !protect(document->securityOrigin())->isSameOriginDomain(protect(parentDocument->securityOrigin()))) {
-                document->addConsoleMessage(MessageSource::JS, MessageLevel::Error, "Blocked attempt to show beforeunload confirmation dialog on behalf of a frame with different security origin. Protocols, domains, and ports must match."_s);
+                document->addConsoleMessage(MessageSource::Security, MessageLevel::Error, "Blocked attempt to show beforeunload confirmation dialog on behalf of a frame with different security origin. Protocols, domains, and ports must match."_s);
                 return true;
             }
             
@@ -4805,10 +4806,10 @@ bool FrameLoader::shouldInterruptLoadForXFrameOptions(const String& content, con
     case XFrameOptionsDisposition::AllowAll:
         return false;
     case XFrameOptionsDisposition::Conflict:
-        protect(m_frame->document())->addConsoleMessage(MessageSource::JS, MessageLevel::Error, makeString("Multiple 'X-Frame-Options' headers with conflicting values ('"_s, content, "') encountered when loading '"_s, url.stringCenterEllipsizedToLength(), "'. Falling back to 'DENY'."_s), requestIdentifier.toUInt64());
+        protect(m_frame->document())->addConsoleMessage(MessageSource::Security, MessageLevel::Error, makeString("Multiple 'X-Frame-Options' headers with conflicting values ('"_s, content, "') encountered when loading '"_s, url.stringCenterEllipsizedToLength(), "'. Falling back to 'DENY'."_s), requestIdentifier.toUInt64());
         return true;
     case XFrameOptionsDisposition::Invalid:
-        protect(m_frame->document())->addConsoleMessage(MessageSource::JS, MessageLevel::Error, makeString("Invalid 'X-Frame-Options' header encountered when loading '"_s, url.stringCenterEllipsizedToLength(), "': '"_s, content, "' is not a recognized directive. The header will be ignored."_s), requestIdentifier.toUInt64());
+        protect(m_frame->document())->addConsoleMessage(MessageSource::Security, MessageLevel::Error, makeString("Invalid 'X-Frame-Options' header encountered when loading '"_s, url.stringCenterEllipsizedToLength(), "': '"_s, content, "' is not a recognized directive. The header will be ignored."_s), requestIdentifier.toUInt64());
         return false;
     case XFrameOptionsDisposition::None:
         return false;
@@ -5304,7 +5305,7 @@ void FrameLoader::dispatchDidClearWindowObjectsInAllWorlds()
 
     Vector<Ref<DOMWrapperWorld>> worlds;
     ScriptController::getAllWorlds(worlds);
-    for (auto& world : worlds)
+    for (auto& world : borrow(worlds))
         dispatchDidClearWindowObjectInWorld(world);
 }
 
@@ -5326,7 +5327,7 @@ void FrameLoader::dispatchGlobalObjectAvailableInAllWorlds()
 {
     Vector<Ref<DOMWrapperWorld>> worlds;
     ScriptController::getAllWorlds(worlds);
-    for (auto& world : worlds)
+    for (auto& world : borrow(worlds))
         m_client->dispatchGlobalObjectAvailable(world);
 }
 
@@ -5370,7 +5371,7 @@ void FrameLoader::tellClientAboutPastMemoryCacheLoads()
     Vector<ResourceRequest> pastLoads;
     documentLoader->takeMemoryCacheLoadsForClientNotification(pastLoads);
 
-    for (auto& pastLoad : pastLoads) {
+    for (auto& pastLoad : borrow(pastLoads)) {
         RefPtr resource = MemoryCache::singleton().resourceForRequest(pastLoad, page->sessionID());
 
         // FIXME: These loads, loaded from cache, but now gone from the cache by the time

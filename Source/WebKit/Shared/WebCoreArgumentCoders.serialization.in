@@ -2148,7 +2148,7 @@ class WebCore::TransformOperations {
     float angleRadians;
 };
 
-[RefCounted, AdditionalEncoder=StreamConnectionEncoder] class WebCore::Gradient {
+[RefCounted=Const, AdditionalEncoder=StreamConnectionEncoder] class WebCore::Gradient {
     Variant<WebCore::Gradient::LinearData, WebCore::Gradient::RadialData, WebCore::Gradient::ConicData> data();
     WebCore::ColorInterpolationMethod colorInterpolationMethod();
     WebCore::GradientSpreadMethod spreadMethod();
@@ -7348,6 +7348,20 @@ header: <WebCore/PortalTransform.h>
     bool fitsContent;
     WebCore::TransformationMatrix transformBeforeAuto;
     WebCore::TransformationMatrix transformAfterAuto;
+};
+
+header: <WebCore/PortalTransform.h>
+[CustomHeader] struct WebCore::PortalHostedLayer {
+    WebCore::NodeIdentifier nodeID;
+    WebCore::NodeIdentifier rootNodeID;
+    WebCore::FloatRect quadRectInChildSpace;
+    WebCore::FloatPoint childOriginInPortal;
+    WebCore::FloatSize childSize;
+    WebCore::TransformationMatrix transform;
+    bool isOpaque;
+#if ENABLE(INTERACTION_REGIONS_IN_EVENT_REGION)
+    Vector<WebCore::InteractionRegion> interactionRegions;
+#endif
 };
 
 header: <WebCore/PortalAction.h>

@@ -31,99 +31,43 @@ class RenderBlockFlow;
 class RenderListItem;
 class StyleRuleCounterStyle;
 
-enum class ListMarkerIncludeSuffix : bool { No, Yes };
-
-struct ListMarkerTextContent {
-    String textWithSuffix;
-    uint32_t textWithoutSuffixLength { 0 };
-    bool isEmpty() const
-    {
-        return textWithSuffix.isEmpty();
-    }
-
-    StringView textWithoutSuffix() const LIFETIME_BOUND
-    {
-        return StringView { textWithSuffix }.left(textWithoutSuffixLength);
-    }
-};
-
 // Used to render the list item's marker.
 // The RenderListOutsideMarker always has to be a child of a RenderListItem.
 class RenderListOutsideMarker final : public RenderBox {
     WTF_MAKE_TZONE_ALLOCATED(RenderListOutsideMarker);
     WTF_OVERRIDE_DELETE_FOR_CHECKED_PTR(RenderListOutsideMarker);
 public:
-    RenderListOutsideMarker(RenderListItem&, Style::ComputedStyle&&);
+    RenderListOutsideMarker(RenderListItem&, UniqueRef<Style::ComputedStyle>&&);
     virtual ~RenderListOutsideMarker();
 
-    bool isDisclosureMarker() const;
-    bool synthesizesGlyph() const;
-
-    void updateContent();
-
     bool isImage() const final;
-
-    // True when the ::marker's `content` property generates the marker box contents (css-lists-3 §3.3),
-    // rather than list-style-image/type.
-    bool hasContentProperty() const;
 
     NODELETE RenderBlockFlow* contentContainer() const;
 
     NODELETE RenderListItem* listItem() const;
 
-    std::pair<float, float> layoutBounds() const { return m_layoutBounds; }
-
-    struct ExcludedPosition {
-        SingleThreadWeakPtr<RenderBlockFlow> firstFormattedLineRoot;
-        FloatPoint topLeft;
-        bool isLineStartConstrainedByFloat { false };
-    };
-    void setExcludedPosition(ExcludedPosition);
-    std::optional<ExcludedPosition> excludedPosition() const { return m_excludedPosition; }
-
-    void invalidateExcludedMarkerContainer();
-
 private:
-    void willBeDestroyed() final;
     ASCIILiteral renderName() const final { return "RenderListMarker"_s; }
     std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidthContributions() final;
     bool canHaveChildren() const final { return true; }
     bool canHaveGeneratedChildren() const final { return true; }
     void paint(PaintInfo&, const LayoutPoint&) final;
     void layout() final;
-    void imageChanged(WrappedImagePtr, const IntRect*) final;
-    void forEachStyleImage(NOESCAPE const ScopedLambda<void(Style::Image&)>&) override final;
     NODELETE LayoutRect selectionRectForRepaint(const RenderLayerModelObject* repaintContainer, bool clipToVisibleContent) final;
     bool canBeSelectionLeaf() const final { return true; }
     void styleWillChange(Style::Difference, const Style::ComputedStyle& newStyle) final;
     void styleDidChange(Style::Difference, const Style::ComputedStyle* oldStyle) final;
     Node* nodeForHitTest() const final;
     std::pair<LayoutUnit, LayoutUnit> computeIntrinsicLogicalWidths() const override { ASSERT_NOT_REACHED(); return { }; }
-    std::pair<float, float> layoutBoundForTextContent(String) const;
 
     void element() const = delete;
 
     std::pair<LayoutUnit, LayoutUnit> inlineMargins() const;
-    LayoutSize markerImageSize(const Style::Image&) const;
-    void updateContentContainerText(const ListMarkerTextContent&);
-    void setContentContainerImageSize(LayoutSize);
     void layoutContentContainer(RenderBlockFlow&);
 
 private:
     SingleThreadWeakPtr<RenderListItem> m_listItem;
-    std::pair<float, float> m_layoutBounds;
-    std::optional<ExcludedPosition> m_excludedPosition;
 };
-
-// The room an image marker keeps between itself and the content it labels.
-constexpr int listMarkerImagePadding = 7;
-ListMarkerTextContent listMarkerTextContent(const Style::ComputedStyle& markerStyle, RenderListItem&);
-NODELETE bool listMarkerHasContent(const Style::ComputedStyle& markerStyle, Document&);
-bool listMarkerSynthesizesGlyph(const Style::ComputedStyle& markerStyle, Document&);
-RefPtr<Style::Image> listMarkerImage(const Style::ComputedStyle& markerStyle);
-bool listMarkerIsDisclosure(const Style::ComputedStyle& markerStyle, Document&);
-bool listMarkerIsDisclosure(const RenderElement*);
-void setListMarkerInlineMargins(Style::ComputedStyle& markerStyle, WritingMode listItemWritingMode, LayoutUnit marginStart, LayoutUnit marginEnd);
 
 } // namespace WebCore
 

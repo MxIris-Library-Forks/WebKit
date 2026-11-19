@@ -40,7 +40,7 @@ namespace WebCore {
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(RenderReplica);
 
-RenderReplica::RenderReplica(Document& document, Style::ComputedStyle&& style)
+RenderReplica::RenderReplica(Document& document, UniqueRef<Style::ComputedStyle>&& style)
     : RenderBox(Type::Replica, document, WTF::move(style))
 {
     // This is a hack. Replicas are synthetic, and don't pick up the attributes of the
@@ -83,7 +83,7 @@ void RenderReplica::paint(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
         OptionSet<RenderLayer::PaintLayerFlag> flags { RenderLayer::PaintLayerFlag::HaveTransparency, RenderLayer::PaintLayerFlag::AppliedTransform, RenderLayer::PaintLayerFlag::TemporaryClipRects, RenderLayer::PaintLayerFlag::PaintingReflection };
         layer()->parent()->paintLayer(paintInfo.context(), paintingInfo, flags);
     } else if (paintInfo.phase == PaintPhase::Mask)
-        MaskPainter { *this, paintInfo, adjustedPaintOffset }.paintMask();
+        Paint::MaskPainter { *this, paintInfo, adjustedPaintOffset }.paintMask();
 }
 
 } // namespace WebCore

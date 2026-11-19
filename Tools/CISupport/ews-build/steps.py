@@ -1568,7 +1568,37 @@ class CheckChangeRelevance(AnalyzeChange):
         'webdriver': webdriver_path_regexes,
     }
 
+    # A change that only touches these paths has no build inputs, so queues created with
+    # skip_if_no_build_inputs skip it. Anything not listed here, or mixed with it, still builds.
+    no_build_inputs_path_regexes = [
+        re.compile(rb'^Websites/', re.IGNORECASE),
+        re.compile(rb'^docs/', re.IGNORECASE),
+        re.compile(rb'^metadata/', re.IGNORECASE),
+        re.compile(rb'^Tools/CISupport/(ews-build|build-webkit-org|ews-app)/', re.IGNORECASE),
+        re.compile(rb'^(?!Source/).*\.md$', re.IGNORECASE),
+    ]
+
+    def __init__(self, skip_if_no_build_inputs=False):
+        self.skip_if_no_build_inputs = skip_if_no_build_inputs
+        super().__init__()
+
+    def _has_build_inputs(self, changed_files):
+        files = changed_files.splitlines()
+        if not files:
+            return True
+        for line in files:
+            # '--- path' is a removed or renamed file, and a rename only lists the new path.
+            if line.startswith(b'--- '):
+                return True
+            path = line[4:] if line.startswith(b'+++ ') else line
+            if not any(regex.search(path) for regex in self.no_build_inputs_path_regexes):
+                return True
+        return False
+
     def _change_is_relevant(self, changed_files, builderName, timeout=30):
+        if self.skip_if_no_build_inputs:
+            return self._has_build_inputs(changed_files)
+
         group = [group for group in self.group_to_paths_mapping.keys() if group.lower() in builderName.lower()]
         if not group:
             # This builder doesn't have paths defined, all changes are relevant.
@@ -3392,25 +3422,44 @@ class AnalyzeCompileWebKitResults(buildstep.BuildStep, AddToLogMixin, GitHubMixi
     name = 'analyze-compile-webkit-results'
     description = ['analyze-compile-webkit-results']
     descriptionDone = ['analyze-compile-webkit-results']
+    DISK_FULL_ERROR = 'No space left on device'
 
     @defer.inlineCallbacks
     def run(self):
         self.error_logs = {}
         self.compile_webkit_step = CompileWebKit.name
+        self.compile_without_change_step = CompileWebKitWithoutChange.name
         if shouldBuildJSCOnly(self.getProperty('group'), self.getProperty('platform')):
             self.compile_webkit_step = CompileJSC.name
+            self.compile_without_change_step = CompileJSCWithoutChange.name
         yield self.getResults(self.compile_webkit_step)
+        yield self.getResults(self.compile_without_change_step)
         rc = yield self.analyzeResults()
         defer.returnValue(rc)
 
+    def ran_out_of_disk_space(self, compile_without_change_result):
+        steps_to_check = [self.compile_webkit_step]
+        if compile_without_change_result == FAILURE:
+            steps_to_check.append(self.compile_without_change_step)
+        for step_name in steps_to_check:
+            for line in (self.error_logs.get(step_name) or '').splitlines():
+                if self.DISK_FULL_ERROR in line and 'error' in line.lower():
+                    return True
+        return False
+
     @defer.inlineCallbacks
     def analyzeResults(self):
-        compile_without_change_step = CompileWebKitWithoutChange.name
-        if shouldBuildJSCOnly(self.getProperty('group'), self.getProperty('platform')):
-            compile_without_change_step = CompileJSCWithoutChange.name
-        compile_without_change_result = self.getStepResult(compile_without_change_step)
+        compile_without_change_result = self.getStepResult(self.compile_without_change_step)
 
         pr_number = self.getProperty('github.number')
+
+        if self.ran_out_of_disk_space(compile_without_change_result):
+            message = 'Ran out of disk space, retrying build'
+            self.descriptionDone = message
+            yield self.send_email_for_disk_full()
+            self.build.workerforbuilder.worker.putInQuarantine()
+            self.build.buildFinished([message], RETRY)
+            return defer.returnValue(FAILURE)
 
         if compile_without_change_result == FAILURE:
             if pr_number and self.getProperty('github.base.ref') != 'main':
@@ -3552,6 +3601,19 @@ class AnalyzeCompileWebKitResults(buildstep.BuildStep, AddToLogMixin, GitHubMixi
             send_email_to_bot_watchers(email_subject, email_text, builder_name, reference)
         except Exception as e:
             yield self._addToLog('stdio', f'Error in sending email for build failure: {e}')
+
+    @defer.inlineCallbacks
+    def send_email_for_disk_full(self):
+        try:
+            builder_name = self.getProperty('buildername', '')
+            worker_name = self.getProperty('workername', '')
+            build_url = f'{self.master.config.buildbotURL}#/builders/{self.build._builderid}/builds/{self.build.number}'
+            email_subject = f'{worker_name} ran out of disk space while building WebKit'
+            email_text = f'{worker_name} ran out of disk space while building WebKit.'
+            email_text += f'\n\nBuild: {build_url}\n\nBuilder: {builder_name}\n'
+            send_email_to_bot_watchers(email_subject, email_text, builder_name, f'disk-full-{worker_name}')
+        except Exception as e:
+            yield self._addToLog('stdio', f'Error in sending email for disk full: {e}')
 
 
 class CompileJSC(CompileWebKit):
@@ -6908,6 +6970,142 @@ class RunAPITestsParallelSafety(RunAPITests):
             return {'step': status}
 
         return super().getResultSummary()
+
+
+class FindChangedAPITests(shell.ShellCommand):
+    name = 'find-changed-api-tests'
+    description = ['finding changed api tests']
+    descriptionDone = ['Found changed API tests']
+    RE_CHANGED_TEST = re.compile(r'^    (?P<test>\S+) \((?P<path>\S+)\)$')
+
+    def __init__(self, **kwargs):
+        super().__init__(logEnviron=False, timeout=5 * 60, **kwargs)
+
+    @defer.inlineCallbacks
+    def run(self):
+        self.log_observer = logobserver.BufferLogObserver()
+        self.addLogObserver('stdio', self.log_observer)
+
+        platform = self.getProperty('platform')
+        base = f"remotes/{self.getProperty('remote', 'origin')}/{self.getProperty('github.base.ref', DEFAULT_BRANCH)}"
+        self.command = ['python3', f'Tools/Scripts/run-{platform}-tests', f"--{self.getProperty('configuration')}", '--changed-since', base, '-l']
+
+        rc = yield super().run()
+        changed_tests = {}
+        if rc == SUCCESS:
+            for line in self.log_observer.getStdout().splitlines():
+                if match := self.RE_CHANGED_TEST.match(line):
+                    changed_tests[match.group('test')] = match.group('path')
+        self.setProperty('changed_api_tests', changed_tests)
+
+        if rc != SUCCESS:
+            return defer.returnValue(WARNINGS)
+        return defer.returnValue(SUCCESS if changed_tests else SKIPPED)
+
+    def hideStepIf(self, results, step):
+        return results == SKIPPED
+
+    def getResultSummary(self):
+        changed_tests = self.getProperty('changed_api_tests', {})
+        if self.results == SUCCESS:
+            return {'step': f'Found {len(changed_tests)} changed API test(s)'}
+        if self.results == SKIPPED:
+            return {'step': 'No API tests changed'}
+        if self.results == WARNINGS:
+            return {'step': 'Unable to find changed API tests'}
+        return super().getResultSummary()
+
+
+class RunAPITestsInStressMode(RunAPITests):
+    name = 'run-api-tests-in-stress-mode'
+    description = ['running changed API tests in stress mode']
+    suffix = 'api_stress_mode'
+    haltOnFailure = True
+    REPEAT_EACH = 20
+
+    def doStepIf(self, step):
+        return bool(self.getProperty('changed_api_tests', {}))
+
+    def hideStepIf(self, results, step):
+        return not self.doStepIf(step)
+
+    def changed_expectations(self):
+        tests = set()
+        for test, path in self.getProperty('changed_api_tests', {}).items():
+            if path.endswith('TestExpectations.json'):
+                program, separator, test_case = test.partition(':')
+                tests.add(f'{program}.{test_case}' if separator and not test_case.startswith('/') else test)
+        return tests
+
+    def has_changed_expectation(self, failure):
+        tests = self.changed_expectations()
+        return failure in tests or any(failure.startswith((f'{test}:', f'{test}.')) for test in tests)
+
+    @defer.inlineCallbacks
+    def run(self):
+        self.log_observer_json = logobserver.BufferLogObserver()
+        self.addLogObserver('json', self.log_observer_json)
+        self.log_observer = ParseByLineLogObserver(self.parseOutputLine)
+        self.addLogObserver('stdio', self.log_observer)
+
+        platform = self.getProperty('platform')
+        changed_tests = sorted(self.getProperty('changed_api_tests', {}))
+        self.command = ['python3', f'Tools/Scripts/run-{platform}-tests', f"--{self.getProperty('configuration')}",
+                        f'--json-output={self.jsonFileName}', '--repeat-each', str(self.REPEAT_EACH)] + [quote(test) for test in changed_tests]
+        if SHOULD_FILTER_LOGS is True:
+            self.command = self.shell_command(' '.join(self.command) + ' 2>&1 | Tools/Scripts/filter-test-logs api')
+
+        rc = yield shell.Test.run(self)
+        failures = yield self.parse_and_set_failures()
+        if rc not in [SUCCESS, WARNINGS] and not failures:
+            message = f'{RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE}, but its results could not be parsed'
+            self.descriptionDone = message
+            self.setProperty('build_summary', message)
+        elif failures:
+            yield self._addToLog(self.test_failures_log_name, '\n'.join(failures))
+            excusable = [failure for failure in failures if not self.has_changed_expectation(failure)]
+            excused_flakes = set()
+            if excusable:
+                yield self.filter_api_test_failures_using_results_db(excusable)
+                if remaining := set(self.failing_tests_filtered):
+                    excused_flakes = yield self.pre_existing_flakes_using_results_db(remaining)
+                    self.pre_existing_flakes_in_results_db = {test: self.pre_existing_flakes_in_results_db[test] for test in excused_flakes}
+            excused = set(self.pre_existing_failures_in_results_db) | excused_flakes
+            if blamed := sorted(set(failures) - excused):
+                message = f"{RunWebKitTestsInStressMode.FAILURE_MSG_IN_STRESS_MODE}: {', '.join(blamed[:self.NUM_FAILURES_TO_DISPLAY])}"
+                if len(blamed) > self.NUM_FAILURES_TO_DISPLAY:
+                    message += ' ...'
+                self.descriptionDone = message
+                self.setProperty('build_summary', message)
+                rc = FAILURE
+            else:
+                self.descriptionDone = self.results_db_ignore_message()
+                rc = SUCCESS
+        else:
+            self.descriptionDone = f'Passed {len(changed_tests)} changed API test(s) {self.REPEAT_EACH} times'
+
+        if SHOULD_FILTER_LOGS is True:
+            self.steps_to_add += [
+                GenerateS3URL(
+                    f"{self.getProperty('fullPlatform')}-{self.getProperty('archForUpload')}-{self.getProperty('configuration')}-{self.name}",
+                    extension='txt',
+                    additions=f'{self.build.number}',
+                    content_type='text/plain',
+                    alwaysRun=True,
+                ), UploadFileToS3(
+                    'logs.txt',
+                    links={self.name: 'Full logs'},
+                    content_type='text/plain',
+                    alwaysRun=True,
+                )
+            ]
+        self.build.addStepsAfterCurrentStep(self.steps_to_add)
+        defer.returnValue(rc)
+
+    def getResultSummary(self):
+        if self.cancelled_due_to_huge_logs:
+            return {'step': MSG_FOR_EXCESSIVE_LOGS, 'build': MSG_FOR_EXCESSIVE_LOGS}
+        return {'step': self.descriptionDone if isinstance(self.descriptionDone, str) else self.name}
 
 
 class ArchiveTestResults(shell.ShellCommand):

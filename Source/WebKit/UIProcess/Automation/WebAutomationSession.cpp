@@ -62,6 +62,7 @@
 #include <JavaScriptCore/ConsoleTypes.h>
 #include <JavaScriptCore/InspectorBackendDispatcher.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
+#include <JavaScriptCore/MathCommon.h>
 #include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/MIMETypeRegistry.h>
 #include <WebCore/PointerEventTypeNames.h>
@@ -87,6 +88,7 @@
 
 #if ENABLE(WEBDRIVER_BIDI)
 #include "BidiBrowserAgent.h"
+#include "BidiEmulationAgent.h"
 #include "BidiEventNames.h"
 #include "BidiInputAgent.h"
 #include "BidiScriptAgent.h"
@@ -117,6 +119,17 @@ String AutomationCommandError::toProtocolString()
 // §8. Sessions
 // https://www.w3.org/TR/webdriver/#dfn-session-page-load-timeout
 static const Seconds defaultPageLoadTimeout = 300_s;
+
+// JSON can't represent an infinite timeout, so WebDriver sends the maximum safe integer for a null page load timeout.
+static Seconds pageLoadTimeoutFromProtocol(std::optional<double> optionalPageLoadTimeout)
+{
+    if (!optionalPageLoadTimeout)
+        return defaultPageLoadTimeout;
+    if (*optionalPageLoadTimeout >= JSC::maxSafeInteger())
+        return Seconds::infinity();
+    return Seconds::fromMilliseconds(*optionalPageLoadTimeout);
+}
+
 // How long Close Window waits for the client to close the page before completing anyway.
 static constexpr Seconds closeBrowsingContextTimeout = 5_s;
 // https://www.w3.org/TR/webdriver/#dfn-page-loading-strategy
@@ -534,6 +547,20 @@ bool WebAutomationSession::isValidUserContext(const String& userContextID) const
 {
     return m_bidiProcessor->browserAgent().isValidUserContext(userContextID);
 }
+
+std::expected<String, AutomationCommandError> WebAutomationSession::nodeHandleForSharedReference(const JSON::Object& sharedReference) const
+{
+    // https://w3c.github.io/webdriver-bidi/#type-script-SharedReference
+    RefPtr sharedId = sharedReference.getValue("sharedId"_s);
+    if (!sharedId || sharedId->type() != JSON::Value::Type::String)
+        return makeUnexpected(AUTOMATION_COMMAND_ERROR_WITH_NAME_AND_MESSAGE(InvalidParameter, "The 'sharedId' parameter must be a string"_s));
+
+    RefPtr handle = sharedReference.getValue("handle"_s);
+    if (handle && handle->type() != JSON::Value::Type::String)
+        return makeUnexpected(AUTOMATION_COMMAND_ERROR_WITH_NAME_AND_MESSAGE(InvalidParameter, "The 'handle' parameter must be a string"_s));
+
+    return sharedId->asString();
+}
 #endif
 
 // Platform-independent Commands.
@@ -768,7 +795,7 @@ void WebAutomationSession::waitForNavigationToComplete(const Inspector::Protocol
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
     auto pageLoadStrategy = optionalPageLoadStrategy.value_or(defaultPageLoadStrategy);
-    auto pageLoadTimeout = optionalPageLoadTimeout ? Seconds::fromMilliseconds(*optionalPageLoadTimeout) : defaultPageLoadTimeout;
+    auto pageLoadTimeout = pageLoadTimeoutFromProtocol(optionalPageLoadTimeout);
 
     // If page is loading and there's an active JavaScript dialog is probably because the
     // dialog was started in an onload handler, so in case of normal page load strategy the
@@ -823,7 +850,7 @@ void WebAutomationSession::waitForNavigationToCompleteOnPage(WebPageProxy& page,
         return;
     }
 
-    m_loadTimer.startOneShot(timeout);
+    startLoadTimer(timeout);
     switch (loadStrategy) {
     case Inspector::Protocol::Automation::PageLoadStrategy::Normal:
         addPendingNavigationCallback(m_pendingNormalNavigationInBrowsingContextCallbacksPerPage, page.identifier(), PendingPageNavigationCallback { WTF::move(navigation), sameDocumentNavigation == SameDocumentNavigation::Yes, false, WTF::move(callback) });
@@ -844,7 +871,7 @@ void WebAutomationSession::waitForNavigationToCompleteOnFrame(WebFrameProxy& fra
         return;
     }
 
-    m_loadTimer.startOneShot(timeout);
+    startLoadTimer(timeout);
     switch (loadStrategy) {
     case Inspector::Protocol::Automation::PageLoadStrategy::Normal:
         addPendingNavigationCallback(m_pendingNormalNavigationInBrowsingContextCallbacksPerFrame, frame.frameID(), WTF::move(callback));
@@ -892,6 +919,18 @@ void WebAutomationSession::respondToPendingFrameNavigationCallbacksWithTimeout(H
                 callback(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(Timeout)));
         }
     }
+}
+
+void WebAutomationSession::startLoadTimer(Seconds timeout)
+{
+    // The timer is shared by every pending wait, classic and BiDi, so the latest wait's timeout applies to all of them.
+    // An infinite timeout (a null page load timeout) stops the timer, so no pending wait times out.
+    // FIXME https://webkit.org/b/323980 Support separate timers, one for each callback
+    if (timeout.isInfinity()) {
+        m_loadTimer.stop();
+        return;
+    }
+    m_loadTimer.startOneShot(timeout);
 }
 
 void WebAutomationSession::loadTimerFired()
@@ -1076,7 +1115,7 @@ void WebAutomationSession::navigateBrowsingContext(const Inspector::Protocol::Au
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
     auto pageLoadStrategy = optionalPageLoadStrategy.value_or(defaultPageLoadStrategy);
-    auto pageLoadTimeout = optionalPageLoadTimeout ? Seconds::fromMilliseconds(*optionalPageLoadTimeout) : defaultPageLoadTimeout;
+    auto pageLoadTimeout = pageLoadTimeoutFromProtocol(optionalPageLoadTimeout);
 
     // A fragment navigation stays in the current document, and WebCore reports it with that document's
     // navigation rather than the new one, so only navigations to another document are awaited. WebCore tells
@@ -1109,7 +1148,7 @@ void WebAutomationSession::goBackInBrowsingContext(const Inspector::Protocol::Au
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
     auto pageLoadStrategy = optionalPageLoadStrategy.value_or(defaultPageLoadStrategy);
-    auto pageLoadTimeout = optionalPageLoadTimeout ? Seconds::fromMilliseconds(*optionalPageLoadTimeout) : defaultPageLoadTimeout;
+    auto pageLoadTimeout = pageLoadTimeoutFromProtocol(optionalPageLoadTimeout);
 
     waitForHistoryTraversalToComplete(*page, pageLoadStrategy, pageLoadTimeout, WTF::move(callback), page->goBack());
 }
@@ -1120,7 +1159,7 @@ void WebAutomationSession::goForwardInBrowsingContext(const Inspector::Protocol:
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
     auto pageLoadStrategy = optionalPageLoadStrategy.value_or(defaultPageLoadStrategy);
-    auto pageLoadTimeout = optionalPageLoadTimeout ? Seconds::fromMilliseconds(*optionalPageLoadTimeout) : defaultPageLoadTimeout;
+    auto pageLoadTimeout = pageLoadTimeoutFromProtocol(optionalPageLoadTimeout);
 
     waitForHistoryTraversalToComplete(*page, pageLoadStrategy, pageLoadTimeout, WTF::move(callback), page->goForward());
 }
@@ -1150,7 +1189,7 @@ void WebAutomationSession::reloadBrowsingContext(const Inspector::Protocol::Auto
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
     auto pageLoadStrategy = optionalPageLoadStrategy.value_or(defaultPageLoadStrategy);
-    auto pageLoadTimeout = optionalPageLoadTimeout ? Seconds::fromMilliseconds(*optionalPageLoadTimeout) : defaultPageLoadTimeout;
+    auto pageLoadTimeout = pageLoadTimeoutFromProtocol(optionalPageLoadTimeout);
 
     waitForNavigationToCompleteOnPage(*page, pageLoadStrategy, pageLoadTimeout, WTF::move(callback), page->reload({ }));
 }
@@ -1323,7 +1362,7 @@ void WebAutomationSession::waitForBidiNavigationToCommit(BidiPendingNavigation& 
     }
 
     pending.commitCallback = WTF::move(callback);
-    m_loadTimer.startOneShot(timeout);
+    startLoadTimer(timeout);
 }
 
 void WebAutomationSession::completeBidiCommitWaits(NOESCAPE const Function<bool(const BidiPendingNavigation&)>& shouldComplete, const Inspector::CommandResult<void>& result)
@@ -1596,6 +1635,7 @@ void WebAutomationSession::wheelEventsFlushedForPage(const WebPageProxy& page)
 void WebAutomationSession::didCreatePage(WebPageProxy& page)
 {
     m_bidiProcessor->browserAgent().didCreatePage(page);
+    m_bidiProcessor->emulationAgent().didCreatePage(page);
     emitContextCreatedEvent(page);
 }
 
@@ -2529,6 +2569,19 @@ CommandResult<void> WebAutomationSession::setFilesToSelectForFileUpload(const In
     return { };
 }
 
+static void grantFilesToProcess(WebPageProxy& page, WebProcessProxy& process, const Vector<String>& paths, ASCIILiteral logLabel, CompletionHandler<void()>&& completionHandler)
+{
+    for (auto& path : borrow(paths))
+        process.addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(path));
+#if ENABLE(SANDBOX_EXTENSIONS)
+    auto sandboxExtensionHandles = SandboxExtension::createReadOnlyHandlesForFiles(logLabel, paths);
+    process.send(Messages::WebPage::ExtendSandboxForFilesFromOpenPanel(WTF::move(sandboxExtensionHandles)), page.webPageIDInProcess(process));
+#else
+    UNUSED_PARAM(logLabel);
+#endif
+    protect(protect(page.websiteDataStore())->networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::AllowFilesAccessFromWebProcess(process.coreProcessIdentifier(), paths), WTF::move(completionHandler));
+}
+
 void WebAutomationSession::setFilesForInputFileUpload(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, const Inspector::Protocol::Automation::NodeHandle& nodeHandle, Ref<JSON::Array>&& filenames, CommandCallback<void>&& callback)
 {
     auto page = webPageProxyForHandle(browsingContextHandle);
@@ -2543,18 +2596,11 @@ void WebAutomationSession::setFilesForInputFileUpload(const Inspector::Protocol:
         ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!filename, InternalError, "The parameter 'filenames' contains a non-string value."_s);
         ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!FileSystem::fileExists(filename), InvalidParameter, "The parameter 'filenames' contains a file that doesn't exist."_s);
 
-        newFileList.append(filename);
+        newFileList.append(FileSystem::realPath(filename));
     }
 
     Ref process = page->processContainingFrame(frameID);
     auto pageID = page->webPageIDInProcess(process);
-    for (auto& filename : borrow(newFileList))
-        process->addPreviouslyApprovedFileURL(URL::fileURLWithFileSystemPath(filename));
-#if ENABLE(SANDBOX_EXTENSIONS)
-    auto sandboxExtensionHandles = SandboxExtension::createReadOnlyHandlesForFiles("WebAutomationSession::setFilesForInputFileUpload"_s, newFileList);
-    process->send(Messages::WebPage::ExtendSandboxForFilesFromOpenPanel(WTF::move(sandboxExtensionHandles)), pageID);
-#endif
-
     auto setFiles = [process, pageID, frameID, nodeHandle, fileList = newFileList, callback = WTF::move(callback)] mutable {
         CompletionHandler<void(std::optional<String>&&)> completionHandler = [callback = WTF::move(callback)](std::optional<String>&& optionalError) mutable {
             ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF_SET(optionalError);
@@ -2564,8 +2610,66 @@ void WebAutomationSession::setFilesForInputFileUpload(const Inspector::Protocol:
 
         process->sendWithAsyncReply(Messages::WebAutomationSessionProxy::SetFilesForInputFileUpload(pageID, frameID, nodeHandle, WTF::move(fileList)), WTF::move(completionHandler));
     };
-    protect(protect(page->websiteDataStore())->networkProcess())->sendWithAsyncReply(Messages::NetworkProcess::AllowFilesAccessFromWebProcess(process->coreProcessIdentifier(), WTF::move(newFileList)), WTF::move(setFiles));
+    grantFilesToProcess(*page, process, newFileList, "WebAutomationSession::setFilesForInputFileUpload"_s, WTF::move(setFiles));
 }
+
+#if ENABLE(WEBDRIVER_BIDI)
+void WebAutomationSession::setFilesForBidi(const String& pageHandle, const String& frameHandle, const String& nodeHandle, Vector<String>&& paths, AutomationCompletionHandler&& callback)
+{
+    RefPtr page = webPageProxyForHandle(pageHandle);
+    if (!page) {
+        callback(AUTOMATION_COMMAND_ERROR_WITH_NAME(FrameNotFound));
+        return;
+    }
+
+    bool frameNotFound = false;
+    auto frameID = webFrameIDForHandle(frameHandle, frameNotFound);
+    if (frameNotFound) {
+        callback(AUTOMATION_COMMAND_ERROR_WITH_NAME(FrameNotFound));
+        return;
+    }
+
+    Ref process = page->processContainingFrame(frameID);
+    auto pageID = page->webPageIDInProcess(process);
+    uint64_t fileCount = paths.size();
+    process->sendWithAsyncReply(Messages::WebAutomationSessionProxy::ValidateFileInputForBidi(pageID, frameID, nodeHandle, fileCount), [weakPage = WeakPtr { *page }, process, pageID, frameID, nodeHandle, paths = WTF::move(paths), callback = WTF::move(callback)](std::expected<void, String>&& result) mutable {
+        if (!result) {
+            callback(AUTOMATION_COMMAND_ERROR_WITH_MESSAGE(result.error()));
+            return;
+        }
+
+        // https://w3c.github.io/webdriver-bidi/#command-input-setFiles
+        Vector<String> resolvedPaths(ReserveCapacityTag { }, paths.size());
+        for (auto& path : borrow(paths)) {
+            if (!FileSystem::fileExists(path)) {
+                callback(AUTOMATION_COMMAND_ERROR_WITH_NAME_AND_MESSAGE(NotImplemented, "'files' contains a file that doesn't exist"_s));
+                return;
+            }
+            resolvedPaths.append(FileSystem::realPath(path));
+        }
+
+        RefPtr page = weakPage;
+        if (!page || page->isClosed()) {
+            callback(AUTOMATION_COMMAND_ERROR_WITH_NAME(FrameNotFound));
+            return;
+        }
+
+        auto setFiles = [process, pageID, frameID, nodeHandle, paths = resolvedPaths, callback = WTF::move(callback)] mutable {
+            CompletionHandler<void(std::expected<void, String>&&)> completionHandler = [callback = WTF::move(callback)](std::expected<void, String>&& result) mutable {
+                if (!result) {
+                    callback(AUTOMATION_COMMAND_ERROR_WITH_MESSAGE(result.error()));
+                    return;
+                }
+
+                callback(std::nullopt);
+            };
+
+            process->sendWithAsyncReply(Messages::WebAutomationSessionProxy::SetFilesForBidi(pageID, frameID, nodeHandle, WTF::move(paths)), WTF::move(completionHandler));
+        };
+        grantFilesToProcess(*page, process, resolvedPaths, "WebAutomationSession::setFilesForBidi"_s, WTF::move(setFiles));
+    });
+}
+#endif
 
 NODELETE static inline Inspector::Protocol::Automation::CookieSameSitePolicy toProtocolSameSitePolicy(WebCore::Cookie::SameSitePolicy policy)
 {

@@ -4236,9 +4236,9 @@ void Document::implicitOpen()
     setReadyState(ReadyState::Loading);
 }
 
-RefPtr<FontLoadRequest> Document::fontLoadRequest(const String& url, bool isSVG, bool isInitiatingElementInUserAgentShadowTree, const CSS::URLModifiers& modifiers)
+RefPtr<FontLoadRequest> Document::fontLoadRequest(const CSS::URL& location, bool isSVG, bool isInitiatingElementInUserAgentShadowTree)
 {
-    RefPtr cachedFont = protect(fontLoader())->cachedFont(encodingParseURL(url), isSVG, isInitiatingElementInUserAgentShadowTree, modifiers);
+    RefPtr cachedFont = protect(fontLoader())->cachedFont(location, isSVG, isInitiatingElementInUserAgentShadowTree);
     if (!cachedFont)
         return nullptr;
     return CachedFontLoadRequest::create(*cachedFont, *this);
@@ -8964,7 +8964,7 @@ bool Document::crossOriginIsolated() const
 
 void Document::setAgentClusterIdentifier(std::optional<AgentClusterIdentifier> identifier)
 {
-    ASSERT(!m_eventLoop);
+    ASSERT(!m_eventLoop || !isInWebProcess()); // Frame::setOpenerForWebKitLegacy violates this condition.
     m_agentClusterIdentifier = identifier;
 }
 
@@ -12182,7 +12182,7 @@ bool Document::hitTest(const HitTestRequest& request, const HitTestLocation& loc
     // ScrollView scrollbars are not the same as RenderLayer scrollbars tested by RenderLayer::hitTestOverflowControls,
     // so we need to test ScrollView scrollbars separately here. In case of using overlay scrollbars, the layer hit test
     // will always work so we need to check the ScrollView scrollbars in that case too.
-    if (!resultLayer || ScrollbarTheme::theme().usesOverlayScrollbars()) {
+    if (!resultLayer || frameView->usesOverlayScrollbars()) {
         // FIXME: Consider if this test should be done unconditionally.
         if (request.allowsFrameScrollbars()) {
             IntPoint windowPoint = frameView->contentsToWindow(location.roundedPoint());
@@ -12785,7 +12785,7 @@ PermissionsPolicy Document::permissionsPolicy() const
 
 void Document::securityOriginDidChange()
 {
-    ASSERT(!m_eventLoop);
+    ASSERT(!m_eventLoop || !isInWebProcess()); // Frame::setOpenerForWebKitLegacy violates this condition.
     m_syncData->documentSecurityOrigin = SecurityContext::securityOrigin();
     m_permissionsPolicy = nullptr;
     if (m_hasUnpartitionedStorageAccess) {

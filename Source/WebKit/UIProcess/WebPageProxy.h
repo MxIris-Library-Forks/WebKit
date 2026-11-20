@@ -212,6 +212,7 @@ enum class LayoutMilestone : uint16_t;
 enum class PaginationMode : uint8_t;
 enum class ScrollDirection : uint8_t;
 enum class ScrollbarOverlayStyle : uint8_t;
+enum class ScrollbarStyle : uint8_t;
 
 enum class ActivityState : uint16_t;
 enum class AccessibilityMode : uint8_t;
@@ -826,6 +827,12 @@ using TransactionID = WebCore::ProcessQualified<TransactionIdentifier>;
 using WebPageProxyIdentifier = ObjectIdentifier<WebPageProxyIdentifierType>;
 using WebURLSchemeHandlerIdentifier = ObjectIdentifier<WebURLSchemeHandlerIdentifierType>;
 using WebUndoStepID = ObjectIdentifier<WebUndoStepIDType>;
+
+template<typename> struct ReplyWithConnectionType;
+template<typename... Arguments> struct ReplyWithConnectionType<CompletionHandler<void(Arguments...)>> {
+    using Type = CompletionHandler<void(IPC::Connection*, Arguments...)>;
+};
+template<typename Message> using ReplyWithConnection = typename ReplyWithConnectionType<typename Message::Reply>::Type;
 
 class WebPageProxy final : public API::ObjectImpl<API::Object::Type::Page>, public IPC::MessageReceiver {
 public:
@@ -1782,6 +1789,9 @@ public:
 
     void setSuppressScrollbarAnimations(bool);
     bool areScrollbarAnimationsSuppressed() const { return m_suppressScrollbarAnimations; }
+
+    void setScrollbarStyleOverride(std::optional<WebCore::ScrollbarStyle>);
+    std::optional<WebCore::ScrollbarStyle> scrollbarStyleOverride() const { return m_scrollbarStyleOverride; }
 
     NODELETE WebCore::RectEdges<bool> pinnedState() const;
     WebCore::RectEdges<bool> pinnedStateIncludingAncestorsAtPoint(WebCore::FloatPoint);
@@ -3155,7 +3165,7 @@ public:
     template<typename M> IPC::ConnectionSendSyncResult<M> sendSyncToProcessContainingFrame(std::optional<WebCore::FrameIdentifier>, M&&, const IPC::Timeout&, OptionSet<IPC::SendSyncOption>);
     Ref<WebProcessProxy> processContainingFrame(std::optional<WebCore::FrameIdentifier>);
 
-    RefPtr<WebFrameProxy> frameForRemoteUserInputEventRedispatch(IPC::Connection* replyingConnection, WebCore::FrameIdentifier sourceFrameID, WebCore::FrameIdentifier targetFrameID);
+    RefPtr<WebFrameProxy> frameForRemoteUserInputEventRedispatch(IPC::Connection* replyingConnection, std::optional<WebCore::FrameIdentifier> sourceFrameID, WebCore::FrameIdentifier targetFrameID);
 
     void forEachWebContentProcess(NOESCAPE const Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&);
 
@@ -4020,6 +4030,7 @@ private:
     void didEvictBackForwardFrameItem(WebCore::BackForwardFrameItemIdentifier);
     void didTakeBackForwardItemForRestoration(WebCore::BackForwardItemIdentifier);
     void restoreOrCancelPendingBackForwardIframes(const PendingBackForwardIframeRestore&, WebCore::RestoredFromBackForwardCache);
+    void takeBackForwardCacheEntryForAllowedNavigation(API::Navigation&, WebProcessProxy& mainFrameProcess);
 
     Vector<Ref<WebProcessProxy>> activeRemoteFrameProcesses() const;
     void discardBackForwardCacheEntry(WebCore::BackForwardItemIdentifier);
@@ -4379,6 +4390,7 @@ private:
     bool m_alwaysShowsVerticalScroller { false };
 
     bool m_suppressScrollbarAnimations { false };
+    std::optional<WebCore::ScrollbarStyle> m_scrollbarStyleOverride;
 
     WebCore::PaginationMode m_paginationMode { };
     bool m_paginationBehavesLikeColumns { false };

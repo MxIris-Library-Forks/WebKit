@@ -716,9 +716,6 @@
             },
             "test_null_response_value": {
                 "expected": {"wpe": {"status": ["PASS"], "bug": "webkit.org/b/330712"}}
-            },
-            "test_timeout_page_load_null": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -736,9 +733,6 @@
             },
             "test_dismissed_beforeunload": {
                 "expected": {"wpe": {"status": ["FAIL"], "bug": "webkit.org/b/330712"}}
-            },
-            "test_timeout_page_load_null": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -1520,9 +1514,6 @@
             },
             "test_no_such_element_with_shadow_root": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
-            },
-            "test_implicit_wait[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -1536,9 +1527,6 @@
             },
             "test_no_such_element_with_shadow_root": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
-            },
-            "test_implicit_wait[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -1641,9 +1629,6 @@
             },
             "test_same_url_replaces_current_history_entry": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "Fails on Mac, not investigated yet"}}
-            },
-            "test_timeout_page_load_null": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -2132,9 +2117,6 @@
             },
             "test_no_such_shadow_root_with_unknown_shadow_root": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
-            },
-            "test_implicit_wait_shadow_root[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -2191,9 +2173,6 @@
             },
             "test_no_such_shadow_root_with_unknown_shadow_root": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
-            },
-            "test_implicit_wait_shadow_root[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -4118,13 +4097,18 @@
         }
     },
     "imported/w3c/webdriver/tests/bidi/input/set_files/context.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/287926"}}
+        "expected": {"glib": {"status": ["SKIP"], "bug": "webkit.org/b/281949"}}
     },
     "imported/w3c/webdriver/tests/bidi/input/set_files/files.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/287926"}}
+        "expected": {"glib": {"status": ["SKIP"], "bug": "webkit.org/b/281949"}},
+        "subtests": {
+            "test_non_existent_file": {
+                "expected": {"all": {"status": ["FAIL"], "note": "WebKit rejects files that don't exist, which the test only allows Firefox to do"}}
+            }
+        }
     },
     "imported/w3c/webdriver/tests/bidi/input/set_files/invalid.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/287926"}}
+        "expected": {"glib": {"status": ["SKIP"], "bug": "webkit.org/b/281949"}}
     },
 
     "imported/w3c/webdriver/tests/bidi/integration/parallel_execution/browsing_context_set_viewport.py": {
@@ -5763,9 +5747,6 @@
         "subtests": {
             "test_no_browsing_context": {
                 "expected": {"mac@Debug": {"status": ["FAIL", "PASS"], "note": "Fails on Mac, not investigated yet"}}
-            },
-            "test_implicit_wait[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -6008,19 +5989,57 @@
     },
 
     "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/contexts.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/330266"}}
+        "subtests": {
+            "test_iframe[same_origin]": {
+                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/288058", "note": "create_iframe passes a string argument to script.callFunction"}}
+            },
+            "test_iframe[cross_origin]": {
+                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/288058", "note": "create_iframe passes a string argument to script.callFunction"}}
+            },
+            "test_overrides_user_contexts[Custom user context]": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            }
+        },
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
     },
     "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/global.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/330266"}}
+        "subtests": {
+            "test_global[Custom user context]": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            }
+        },
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
     },
     "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/invalid.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/330266"}}
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
+    },
+    "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/rendering.py": {
+        "subtests": {
+            "test_rendering": {
+                "expected": {"all": {"status": ["FAIL"], "bug": ["webkit.org/b/288058", "webkit.org/b/282977"], "note": "compare_png_bidi passes string and number arguments to script.callFunction, and reads an object back"}}
+            }
+        },
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
     },
     "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/scrollbar_type.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/330266"}}
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
     },
     "imported/w3c/webdriver/tests/bidi/emulation/set_scrollbar_type_override/user_contexts.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/330266"}}
+        "subtests": {
+            "test_user_contexts[Default user context]": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            },
+            "test_user_contexts[Custom user context]": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            },
+            "test_multiple_user_contexts": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            },
+            "test_overrides_global[Custom user context]": {
+                "expected": {"mac": {"status": ["FAIL"], "note": "User contexts aren't implemented on Mac"}}
+            }
+        },
+        "expected": {"glib": {"status": ["SKIP"], "note": "Not run on GLib ports yet"}}
     },
 
     "imported/w3c/webdriver/tests/bidi/emulation/set_touch_override/contexts.py": {
@@ -6540,14 +6559,6 @@
         }
     },
 
-    "imported/w3c/webdriver/tests/classic/find_elements/find.py": {
-        "subtests": {
-            "test_implicit_wait[None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
-            }
-        }
-    },
-
     "imported/w3c/webdriver/tests/classic/get_all_cookies/get.py": {
         "subtests": {
             "test_get_cookies_only_from_active_document": {
@@ -6575,25 +6586,6 @@
             },
             "test_dismiss[prompt-None]": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "Fails on Mac, not investigated yet"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/331469"}}
-            }
-        }
-    },
-
-    "imported/w3c/webdriver/tests/classic/get_timeouts/get.py": {
-        "subtests": {
-            "test_types_null": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
-            }
-        }
-    },
-
-    "imported/w3c/webdriver/tests/classic/new_session/timeouts.py": {
-        "subtests": {
-            "test_timeouts[implicit-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
-            },
-            "test_timeouts[pageLoad-None]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },
@@ -6671,14 +6663,6 @@
         }
     },
 
-    "imported/w3c/webdriver/tests/classic/refresh/refresh.py": {
-        "subtests": {
-            "test_timeout_page_load_null": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
-            }
-        }
-    },
-
     "imported/w3c/webdriver/tests/classic/release_actions/iframe.py": {
         "subtests": {
             "test_release_actions_in_frame[cross_origin]": {
@@ -6686,17 +6670,6 @@
             },
             "test_release_actions_in_frame[same_origin]": {
                 "expected": {"mac": {"status": ["FAIL"], "note": "Release Actions doesn't dispatch pointerup in a frame"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/331469"}}
-            }
-        }
-    },
-
-    "imported/w3c/webdriver/tests/classic/set_timeouts/set.py": {
-        "subtests": {
-            "test_value_null[implicit]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
-            },
-            "test_value_null[pageLoad]": {
-                "expected": {"mac": {"status": ["FAIL"], "note": "WebKit doesn't accept null timeouts"}, "glib": {"status": ["FAIL"], "bug": "webkit.org/b/330709"}}
             }
         }
     },

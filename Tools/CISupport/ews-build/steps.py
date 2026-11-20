@@ -25,10 +25,11 @@ from buildbot.process import buildstep, logobserver, properties, remotecommand
 from buildbot.process.results import Results, SUCCESS, FAILURE, CANCELLED, WARNINGS, SKIPPED, EXCEPTION, RETRY
 from buildbot.steps import master, shell, transfer, trigger
 from buildbot.steps.source import git
+from contextlib import contextmanager
 from dataclasses import replace
 from datetime import date
 from shlex import quote
-from typing import Any, Generator
+from typing import Any, Generator, NamedTuple
 from unittest import mock
 
 from twisted.internet import defer, reactor, task
@@ -563,6 +564,13 @@ class AddToLogMixin(object):
         log.addStdout(message)
 
 
+class FlakinessVerdicts(NamedTuple):
+    flaky: dict  # Every test with a flaky verdict, mapped to its flaky type, whether excused or not.
+    unsupported: list  # Flaky between builds with no evidence from within a build, never excused.
+    unknown: list
+    excused: set
+
+
 class ResultsDBReportMixin(abc.ABC):
     """
     Reports test results to the results database. Hosts supply AddToLogMixin, a `suite`, and
@@ -578,6 +586,7 @@ class ResultsDBReportMixin(abc.ABC):
     MAX_FAILURES_TO_CHECK_RESULTS_DB = 50
     NUM_FAILURES_TO_DISPLAY = 10
     prefix = ''
+    results_db_flavor_override = None
 
     # From Tools/Scripts/libraries/resultsdbpy/resultsdbpy/controller/configuration.py
     RESULTS_REQUIRED_CONFIG = ['platform', 'is_simulator', 'version', 'architecture']
@@ -595,7 +604,10 @@ class ResultsDBReportMixin(abc.ABC):
             configuration['platform'] = ResultsDatabase.platform_for_query(platform)
         if (style := self.getProperty('configuration', None)) in ('debug', 'release'):
             configuration['style'] = style
-        if (flavor := self.getProperty('flavor', None)) in ('wk1', 'wk2', 'site-isolation'):
+        # A step that runs more than one driver (run-webkit-tests -2 -1) queries and reports each
+        # driver's results under that driver's flavor, which overrides the build's `flavor`.
+        flavor = self.results_db_flavor_override or self.getProperty('flavor', None)
+        if flavor in ('wk1', 'wk2', 'site-isolation'):
             configuration['flavor'] = flavor
         # GTK and WPE post-commit bots run on more than one architecture, and pooling their history
         # can excuse a failure on this architecture with failures seen only on another one.
@@ -604,6 +616,15 @@ class ResultsDBReportMixin(abc.ABC):
             if architecture and ' ' not in architecture:
                 configuration['architecture'] = architecture
         return configuration
+
+    @contextmanager
+    def overriding_results_db_flavor(self, flavor):
+        previous = self.results_db_flavor_override
+        self.results_db_flavor_override = flavor
+        try:
+            yield
+        finally:
+            self.results_db_flavor_override = previous
 
     def results_db_configuration(self):
         architecture = self.getProperty('machine_architecture', None) or self.getProperty('architecture', None)
@@ -717,20 +738,25 @@ class ResultsDBReportMixin(abc.ABC):
             return False
         return reported
 
+    def results_db_ignored_tests(self) -> tuple[list[str], list[str]]:
+        return list(self.pre_existing_failures_in_results_db), sorted(self.pre_existing_flakes_in_results_db)
+
     def results_db_ignore_message(self) -> str:
+        failures, flakes = self.results_db_ignored_tests()
         parts = []
-        if self.pre_existing_failures_in_results_db:
-            parts.append(f"Ignored pre-existing failures: {', '.join(self.pre_existing_failures_in_results_db)}")
-        if self.pre_existing_flakes_in_results_db:
-            parts.append(f"Ignored pre-existing flakes: {', '.join(sorted(self.pre_existing_flakes_in_results_db))}")
+        if failures:
+            parts.append(f"Ignored pre-existing failures: {', '.join(failures)}")
+        if flakes:
+            parts.append(f"Ignored pre-existing flakes: {', '.join(flakes)}")
         return '\n'.join(parts)
 
     def results_db_ignore_counts_message(self) -> str:
+        failures, flakes = self.results_db_ignored_tests()
         counts = []
-        if self.pre_existing_failures_in_results_db:
-            counts.append(f'{len(self.pre_existing_failures_in_results_db)} pre-existing')
-        if self.pre_existing_flakes_in_results_db:
-            counts.append(f'{len(self.pre_existing_flakes_in_results_db)} flaky')
+        if failures:
+            counts.append(f'{len(failures)} pre-existing')
+        if flakes:
+            counts.append(f'{len(flakes)} flaky')
         return f"Ignored {' and '.join(counts)} failure(s)"
 
     @defer.inlineCallbacks
@@ -740,6 +766,24 @@ class ResultsDBReportMixin(abc.ABC):
         Only the first MAX_FAILURES_TO_CHECK_RESULTS_DB names, sorted, are queried; the rest are
         absent from the result rather than reported as unexcused. Every verdict seen is recorded on
         the step and in the results-db_<prefix>flaky, _flaky_unsupported and _flaky_unknown properties.
+        """
+        verdicts = yield self.flaky_verdicts_using_results_db(new_failures)
+        self.pre_existing_flakes_in_results_db = verdicts.flaky
+        self.unsupported_flakes_in_results_db = verdicts.unsupported
+        self.unknown_flakes_in_results_db = verdicts.unknown
+        self.set_flaky_verdict_properties(verdicts, self.prefix)
+        defer.returnValue(verdicts.excused)
+
+    def set_flaky_verdict_properties(self, verdicts: FlakinessVerdicts, prefix: str):
+        self.setProperty('results-db_' + prefix + 'flaky', verdicts.flaky)
+        self.setProperty('results-db_' + prefix + 'flaky_unsupported', sorted(verdicts.unsupported))
+        self.setProperty('results-db_' + prefix + 'flaky_unknown', sorted(verdicts.unknown))
+
+    @defer.inlineCallbacks
+    def flaky_verdicts_using_results_db(self, new_failures: set[str]) -> Generator[Any, Any, FlakinessVerdicts]:
+        """
+        The results database's flakiness verdicts for `new_failures`, without recording them on the
+        step; pre_existing_flakes_using_results_db() describes which tests are queried and excused.
         """
         tests = sorted(new_failures)[:self.MAX_FAILURES_TO_CHECK_RESULTS_DB]
         configuration = self.results_db_query_configuration()
@@ -772,20 +816,13 @@ class ResultsDBReportMixin(abc.ABC):
 
             yield self._addToLog(self.results_db_log_name, f'\n{test}: pre-existing-flake={flake_summary}\n')
 
-        self.pre_existing_flakes_in_results_db = flaky
-        self.unsupported_flakes_in_results_db = unsupported
-        self.unknown_flakes_in_results_db = unknown
-        self.setProperty('results-db_' + self.prefix + 'flaky', flaky)
-        self.setProperty('results-db_' + self.prefix + 'flaky_unsupported', sorted(unsupported))
-        self.setProperty('results-db_' + self.prefix + 'flaky_unknown', sorted(unknown))
-
         for action, acted_on in (('Ignored', ignored), ('Would have ignored', shadowed)):
             if acted_on:
                 yield self._addToLog(
                     self.results_db_log_name,
                     f"\n{action} {len(acted_on)} flaky test(s): {', '.join(sorted(acted_on))}\n",
                 )
-        defer.returnValue(set(ignored))
+        defer.returnValue(FlakinessVerdicts(flaky=flaky, unsupported=unsupported, unknown=unknown, excused=set(ignored)))
 
 
 class Contributors(object):
@@ -5596,12 +5633,15 @@ class UploadFileToS3(shell.ShellCommand, AddToLogMixin):
     descriptionDone = name
     haltOnFailure = True
     flunkOnFailure = True
+    MAX_ATTEMPTS = 3
 
-    def __init__(self, file, links=None, content_type=None, **kwargs):
+    def __init__(self, file, links=None, content_type=None, attempt=1, **kwargs):
         super().__init__(timeout=31 * 60, logEnviron=False, **kwargs)
         self.file = file
         self.links = links or dict()
         self.content_type = content_type
+        self.attempt = attempt
+        self.retrying = False
 
     def getLastBuildStepByName(self, name):
         for step in reversed(self.build.executedSteps):
@@ -5635,12 +5675,34 @@ class UploadFileToS3(shell.ShellCommand, AddToLogMixin):
                     continue
                 step.addURL(message, self.build.s3_archives[-1])
 
+        if rc == FAILURE and self.attempt < self.MAX_ATTEMPTS:
+            generate_step = self.getLastBuildStepByName(GenerateS3URL.name)
+            if generate_step:
+                # The presigned URL can expire mid-upload, so each attempt needs a freshly generated one.
+                self.build.addStepsAfterCurrentStep([
+                    GenerateS3URL(
+                        generate_step.identifier,
+                        extension=generate_step.extension,
+                        additions=generate_step.additions,
+                        content_type=generate_step.content_type,
+                    ), UploadFileToS3(
+                        self.file,
+                        links=self.links,
+                        content_type=self.content_type,
+                        attempt=self.attempt + 1,
+                    )
+                ])
+                self.retrying = True
+                rc = WARNINGS
+
         return defer.returnValue(rc)
 
     def doStepIf(self, step):
         return USE_S3 and CURRENT_HOSTNAME in EWS_BUILD_HOSTNAMES + TESTING_ENVIRONMENT_HOSTNAMES
 
     def getResultSummary(self):
+        if self.retrying:
+            return {'step': f'Failed to upload {self.file} to S3 (attempt {self.attempt} of {self.MAX_ATTEMPTS}), retrying'}
         if self.results == FAILURE:
             return {'step': f'Failed to upload {self.file} to S3. Please inform an admin.'}
         if self.results == SKIPPED:
@@ -6012,24 +6074,30 @@ class RunAPITests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin):
             if self.name != RunAPITestsWithoutChange.name:
                 self.build.results = SUCCESS
                 self.setProperty('build_summary', message)
-                # Add parallel safety testing for modified API tests (only for initial run)
-                if self.name == RunAPITests.name:
-                    self.steps_to_add += [
-                        FindModifiedAPITests(skipBuildIfNoResult=False),
-                        FilterAPITestsForPlatform(),
-                        RunAPITestsParallelSafety(),
-                    ]
+                self.add_parallel_safety_steps()
         elif (self.name != RunAPITestsWithoutChange.name and self.pre_existing_failures_in_results_db and len(self.failing_tests_filtered) == 0):
             # This means all the tests which failed in this run were also failing or flaky in results database
             message = self.results_db_ignore_message()
             self.descriptionDone = message
             self.build.results = SUCCESS
             self.setProperty('build_summary', message)
+            self.add_parallel_safety_steps()
         else:
             yield self.doOnFailure()
 
         self.build.addStepsAfterCurrentStep(self.steps_to_add)
         defer.returnValue(rc)
+
+    def add_parallel_safety_steps(self):
+        if self.name not in (RunAPITests.name, ReRunAPITests.name):
+            return
+        if self.getProperty('platform') in RunAPITestsParallelSafety.UNSUPPORTED_PLATFORMS:
+            return
+        self.steps_to_add += [
+            FindModifiedAPITests(skipBuildIfNoResult=False),
+            FilterAPITestsForPlatform(),
+            RunAPITestsParallelSafety(),
+        ]
 
     def parseOutputLine(self, line):
         self.line_count += 1
@@ -6212,6 +6280,7 @@ class ReRunAPITests(RunAPITests):
             self.build.results = SUCCESS
             self.setProperty('force_build_success', True)
             self.setProperty('build_summary', message)
+            self.add_parallel_safety_steps()
             return
 
         first_exceeded = self.getProperty('api_first_run_exceeded_failure_limit', False)
@@ -6239,6 +6308,7 @@ class ReRunAPITests(RunAPITests):
                     'second-run': 'api_second_run_results',
                 })
                 yield self.report_to_results_db(results)
+                self.add_parallel_safety_steps()
                 return
 
         self.steps_to_add += [RevertAppliedChanges(), CleanWorkingDirectory(), ValidateChange(verifyPRClosed=False, addURLs=False)]
@@ -6609,52 +6679,113 @@ class FindModifiedAPITests(shell.ShellCommand, AnalyzeChange):
     name = 'find-modified-api-tests'
     description = ['find-modified-api tests running']
     descriptionDone = ['Found modified API tests']
-    RE_API_TEST = br'^(\+\+\+).*(Tools/TestWebKitAPI/Tests/.*\.(cpp|mm|m))'
-    RE_TEST_F = re.compile(r'TEST_F\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)')
-    RE_TEST = re.compile(r'TEST\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)')
+    RE_API_TEST = br'^(\+\+\+).*(Tools/TestWebKitAPI/Tests/.*\.(cpp|mm|m|swift))'
+    RE_TEST_DEFINITION = re.compile(r'^[ \t]*TEST(?:_F)?\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)', re.MULTILINE)
+    RE_SWIFT_TYPE = re.compile(r'^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:public|private|fileprivate|internal|final)\s+)*(?:struct|class|enum|actor|extension)\s+(\w+)')
+    RE_SWIFT_TEST = re.compile(r'^\s*@Test\b')
+    RE_SWIFT_FUNCTION = re.compile(r'\bfunc\s+(\w+)\s*\(')
+    RE_HUNK = re.compile(r'^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@', re.MULTILINE)
     API_TEST_PATHS = ['Tools/TestWebKitAPI/Tests/']
+    BINARY_FOR_DIRECTORY = {
+        'Tools/TestWebKitAPI/Tests/IPC/': 'TestIPC',
+        'Tools/TestWebKitAPI/Tests/WGSL/': 'TestWGSL',
+        'Tools/TestWebKitAPI/Tests/WebGPU/': 'TestWGSL',
+        'Tools/TestWebKitAPI/Tests/WTF/': 'TestWTF',
+    }
+    MAX_TESTS = 250
 
     def __init__(self, skipBuildIfNoResult=True):
         self.skipBuildIfNoResult = skipBuildIfNoResult
         super().__init__(logEnviron=False)
 
-    @staticmethod
-    def _extract_test_names_from_content(content):
-        """Extract test names from file content string"""
-        test_names = []
-        for pattern in [FindModifiedAPITests.RE_TEST_F, FindModifiedAPITests.RE_TEST]:
-            matches = pattern.findall(content)
-            for suite, test in matches:
-                test_names.append(f'{suite}.{test}')
-        return test_names
+    @classmethod
+    def _test_spans_from_content(cls, content, swift=False):
+        lines = content.splitlines()
+        starts = []
+        if swift:
+            suite = None
+            pending_swift_test = None
+            in_string_literal = False
+            for number, line in enumerate(lines, 1):
+                was_in_string_literal = in_string_literal
+                in_string_literal ^= line.count('\"\"\"') % 2 == 1
+                if was_in_string_literal:
+                    continue
+                type_match = cls.RE_SWIFT_TYPE.match(line)
+                if type_match and pending_swift_test is None:
+                    suite = type_match.group(1)
+                    starts.append((None, None, number))
+                if cls.RE_SWIFT_TEST.match(line):
+                    pending_swift_test = number
+                if pending_swift_test is not None and (function := cls.RE_SWIFT_FUNCTION.search(line)):
+                    if suite:
+                        starts.append((suite, function.group(1), pending_swift_test))
+                    pending_swift_test = None
+        else:
+            for match in cls.RE_TEST_DEFINITION.finditer(content):
+                starts.append((match.group(1), match.group(2), content.count('\n', 0, match.start()) + 1))
+        spans = []
+        for index, (span_suite, test, first) in enumerate(starts):
+            if test is None:
+                continue
+            last = starts[index + 1][2] - 1 if index + 1 < len(starts) else len(lines)
+            spans.append((span_suite, test, first, last))
+        return spans
 
-    @staticmethod
-    def _get_binary_for_test_path(file_path):
-        """Determine which test binary a file belongs to"""
-        binaries = ['TestWTF', 'TestWebCore', 'TestIPC', 'TestWGSL']
-        for binary in binaries:
-            if binary in file_path:
+    @classmethod
+    def _changed_line_ranges(cls, diff):
+        ranges = []
+        for start, count in cls.RE_HUNK.findall(diff):
+            first = int(start)
+            ranges.append((first, first + max(int(count or 1), 1) - 1))
+        return ranges
+
+    @classmethod
+    def _get_binary_for_test_path(cls, file_path):
+        """FilterAPITestsForPlatform corrects the tests this guesses wrong using run-api-tests --dump."""
+        for directory, binary in cls.BINARY_FOR_DIRECTORY.items():
+            if file_path.startswith(directory):
                 return binary
         return 'TestWebKitAPI'
 
+    @classmethod
+    def _tests_in_file(cls, file_path, content, diff):
+        swift = file_path.endswith('.swift')
+        binary = cls._get_binary_for_test_path(file_path)
+        changed = cls._changed_line_ranges(diff)
+        tests = []
+        for suite, test, first, last in cls._test_spans_from_content(content, swift=swift):
+            item = {
+                'file': file_path,
+                'test': f'{binary}.{suite}/{test}()' if swift else f'{binary}.{suite}.{test}',
+                'touched': any(first <= changed_last and changed_first <= last for changed_first, changed_last in changed),
+            }
+            if swift:
+                item['swift'] = [suite, test]
+            tests.append(item)
+        return sorted(tests, key=lambda item: not item['touched'])
+
+    @defer.inlineCallbacks
+    def _command_output(self, command):
+        log_observer = logobserver.BufferLogObserver()
+        self.addLogObserver('stdio', log_observer)
+        self.command = command
+        rc = yield super().run()
+        defer.returnValue(log_observer.getStdout() if rc == SUCCESS else None)
+
     @defer.inlineCallbacks
     def run(self):
-        self.log_observer = logobserver.BufferLogObserver()
-        self.addLogObserver('stdio', self.log_observer)
+        remote = self.getProperty('remote', 'origin')
+        base_ref = self.getProperty('github.base.ref', 'main')
+        # Use triple-dot diff to compare merge-base with HEAD (only PR changes)
+        merge_base_range = f'remotes/{remote}/{base_ref}...HEAD'
 
         all_changed_files = self._get_changed_files()
         if not all_changed_files:
             yield self._addToLog('stdio', 'No changed files found, using git diff against base branch\n')
-            remote = self.getProperty('remote', 'origin')
-            base_ref = self.getProperty('github.base.ref', 'main')
-            # Use triple-dot diff to compare merge-base with HEAD (only PR changes)
-            self.command = ['git', 'diff', f'remotes/{remote}/{base_ref}...HEAD', '--name-only']
-            rc = yield super().run()
-
-            if rc != SUCCESS:
+            log_text = yield self._command_output(['git', 'diff', merge_base_range, '--name-only'])
+            if log_text is None:
                 return defer.returnValue(SKIPPED)
-
-            log_text = self.log_observer.getStdout()
             changed_files = [f for f in log_text.splitlines() if any(f.startswith(path) for path in self.API_TEST_PATHS)]
         else:
             yield self._addToLog('stdio', 'Found changed files, analyzing for API test changes\n')
@@ -6669,58 +6800,39 @@ class FindModifiedAPITests(shell.ShellCommand, AnalyzeChange):
             return defer.returnValue(SKIPPED)
 
         yield self._addToLog('stdio', f'Found {len(changed_files)} modified API test file(s):\n')
-        for file_path in changed_files:
+        for file_path in sorted(changed_files):
             yield self._addToLog('stdio', f'  - {file_path}\n')
 
-        # Extract test names from modified files, keyed by file for round-robin selection
         # Note: Files are on the worker, not master, so we use git show to read content
-        tests_by_file = {}
-        for file_path in changed_files:
-            # Create fresh log observer for each file to avoid accumulation
-            file_log_observer = logobserver.BufferLogObserver()
-            self.addLogObserver('stdio', file_log_observer)
-
-            self.command = ['git', 'show', f'HEAD:{file_path}']
-            rc = yield super().run()
-
-            if rc != SUCCESS:
+        all_tests = []
+        seen_tests = set()
+        for file_path in sorted(changed_files):
+            content = yield self._command_output(['git', 'show', f'HEAD:{file_path}'])
+            if content is None:
                 yield self._addToLog('stdio', f'  Warning: Could not read {file_path} via git show\n')
                 continue
+            diff = yield self._command_output(['git', 'diff', '-U0', merge_base_range, '--', file_path])
+            tests = [item for item in self._tests_in_file(file_path, content, diff or '') if item['test'] not in seen_tests]
+            seen_tests.update(item['test'] for item in tests)
+            touched_count = sum(1 for item in tests if item['touched'])
+            yield self._addToLog('stdio', f'  Extracted {len(tests)} test(s) from {file_path}, {touched_count} of them added or modified\n')
+            all_tests.extend(tests)
 
-            content = file_log_observer.getStdout()
-            binary = self._get_binary_for_test_path(file_path)
-            test_names = self._extract_test_names_from_content(content)
-            yield self._addToLog('stdio', f'  Extracted {len(test_names)} test(s) from {file_path}\n')
-
-            if test_names:
-                tests_by_file[file_path] = [(binary, test) for test in test_names]
-
-        if not tests_by_file:
+        if not all_tests:
             yield self._addToLog('stdio', '\nCould not extract test names from modified files, will skip parallel safety testing\n')
             self.setProperty('modified_api_tests', [])
             return defer.returnValue(SKIPPED)
 
-        # Collect all tests with file info for round-robin selection in later step
-        seen_tests = {}
-        for file_path, tests in tests_by_file.items():
-            for binary, test in tests:
-                full_test_name = f'{binary}.{test}'
-                if full_test_name not in seen_tests:
-                    seen_tests[full_test_name] = {'file': file_path, 'test': full_test_name}
-        all_tests = list(seen_tests.values())
-
-        MAX_TESTS = 250
-        if all_tests:
-            total_tests = len(all_tests)
-            if total_tests > MAX_TESTS:
-                yield self._addToLog('stdio', f'\nWarning: Truncating to {MAX_TESTS} tests (was {total_tests})\n')
-                all_tests = all_tests[:MAX_TESTS]
-            yield self._addToLog('stdio', f'\nIdentified {len(all_tests)} API test(s) for parallel safety testing:\n')
-            for item in all_tests:
-                yield self._addToLog('stdio', f'  - {item["test"]}\n')
+        all_tests.sort(key=lambda item: not item['touched'])
+        if len(all_tests) > self.MAX_TESTS:
+            yield self._addToLog('stdio', f'\nWarning: Truncating to {self.MAX_TESTS} tests (was {len(all_tests)})\n')
+            all_tests = all_tests[:self.MAX_TESTS]
+        yield self._addToLog('stdio', f'\nIdentified {len(all_tests)} API test(s) for parallel safety testing:\n')
+        for item in all_tests:
+            yield self._addToLog('stdio', f"  - {item['test']}{' (added or modified)' if item['touched'] else ''}\n")
 
         self.setProperty('modified_api_tests', all_tests)
-        defer.returnValue(SUCCESS if all_tests else SKIPPED)
+        defer.returnValue(SUCCESS)
 
     def find_test_names_from_changed_files(self, changed_files):
         """Find modified API test files from changed files"""
@@ -6746,6 +6858,7 @@ class FilterAPITestsForPlatform(shell.ShellCommand, AddToLogMixin):
     description = ['filtering api tests for platform']
     descriptionDone = ['filtered api tests']
     UNSUPPORTED_PLATFORMS = ['gtk', 'wpe']
+    DEFAULT_IOS_SIMULATORS = 3
 
     def __init__(self, **kwargs):
         super().__init__(logEnviron=False, timeout=120, **kwargs)
@@ -6768,8 +6881,7 @@ class FilterAPITestsForPlatform(shell.ShellCommand, AddToLogMixin):
         platform = self.getProperty('platform')
         configuration = self.getProperty('configuration', 'debug')
 
-        # iOS simulators have significant boot overhead, so use a lower cap
-        MAX_TESTS = 2 if platform == 'ios' else 30
+        MAX_TESTS = max(1, self.child_processes(self.getProperty('additionalArguments')) - 1) if platform == 'ios' else 30
 
         self.log_observer = logobserver.BufferLogObserver(wantStdout=True, wantStderr=True)
         self.addLogObserver('stdio', self.log_observer)
@@ -6777,6 +6889,7 @@ class FilterAPITestsForPlatform(shell.ShellCommand, AddToLogMixin):
         self.command = [
             'python3', 'Tools/Scripts/run-api-tests',
             '--dump',
+            '--skip-blocklisted',
             f'--{configuration}',
         ]
         self.command += customBuildFlag(platform, self.getProperty('fullPlatform'))
@@ -6802,38 +6915,26 @@ class FilterAPITestsForPlatform(shell.ShellCommand, AddToLogMixin):
 
         yield self._addToLog('stdio', f'\nFound {len(available_tests)} available tests on this platform\n')
 
-        # Filter by availability and group by file
-        tests_by_file = {}
+        touched_by_file = {}
+        untouched_by_file = {}
         filtered_out = 0
+        available_by_name = self.index_available_tests(available_tests)
         for item in modified_tests:
-            test_name = item['test']
-            file_path = item['file']
-            if test_name in available_tests:
-                if file_path not in tests_by_file:
-                    tests_by_file[file_path] = []
-                tests_by_file[file_path].append(test_name)
-            else:
+            test_names = self.available_test_names(item, available_by_name)
+            if not test_names:
                 filtered_out += 1
+                continue
+            tests_by_file = touched_by_file if item.get('touched') else untouched_by_file
+            tests_by_file.setdefault(item['file'], []).extend(test_names)
 
         if filtered_out:
             yield self._addToLog('stdio', f'Filtered out {filtered_out} test(s) not available on this platform\n')
 
-        # Round-robin selection up to MAX_TESTS
         selected_tests = []
-        file_iterators = {f: iter(tests) for f, tests in tests_by_file.items()}
-        active_files = list(file_iterators.keys())
+        for tests_by_file in (touched_by_file, untouched_by_file):
+            selected_tests += self.round_robin(tests_by_file, MAX_TESTS - len(selected_tests), set(selected_tests))
 
-        while active_files and len(selected_tests) < MAX_TESTS:
-            for file_path in list(active_files):
-                if len(selected_tests) >= MAX_TESTS:
-                    break
-                try:
-                    test = next(file_iterators[file_path])
-                    selected_tests.append(test)
-                except StopIteration:
-                    active_files.remove(file_path)
-
-        total_available = sum(len(tests) for tests in tests_by_file.values())
+        total_available = len({test for tests_by_file in (touched_by_file, untouched_by_file) for tests in tests_by_file.values() for test in tests})
         truncated_count = total_available - len(selected_tests)
 
         if selected_tests:
@@ -6847,6 +6948,51 @@ class FilterAPITestsForPlatform(shell.ShellCommand, AddToLogMixin):
 
         self.setProperty('modified_api_tests', selected_tests)
         defer.returnValue(SUCCESS if selected_tests else SKIPPED)
+
+    @staticmethod
+    def child_processes(additional_arguments):
+        for argument in additional_arguments or []:
+            if argument.startswith('--child-processes='):
+                return int(argument.split('=', 1)[1])
+        return FilterAPITestsForPlatform.DEFAULT_IOS_SIMULATORS
+
+    @staticmethod
+    def index_available_tests(available_tests):
+        by_name = {}
+        by_swift_function = {}
+        for test in available_tests:
+            if '.' not in test:
+                continue
+            name = test.split('.', 1)[1]
+            by_name.setdefault(name, []).append(test)
+            if '/' in name and name.endswith(')'):
+                components = name.split('/')
+                by_swift_function.setdefault(components[-1].split('(', 1)[0], []).append((components[:-1], test))
+        return by_name, by_swift_function
+
+    @staticmethod
+    def available_test_names(item, available_by_name):
+        by_name, by_swift_function = available_by_name
+        if item.get('swift'):
+            suite, function = item['swift']
+            return sorted(test for suites, test in by_swift_function.get(function, []) if suite in suites)
+        return sorted(by_name.get(item['test'].split('.', 1)[1], []))
+
+    @staticmethod
+    def round_robin(tests_by_file, limit, already_selected):
+        selected = []
+        iterators = [iter(tests) for tests in tests_by_file.values()]
+        while iterators and len(selected) < limit:
+            for iterator in list(iterators):
+                if len(selected) >= limit:
+                    break
+                test = next(iterator, None)
+                if test is None:
+                    iterators.remove(iterator)
+                elif test not in already_selected:
+                    already_selected.add(test)
+                    selected.append(test)
+        return selected
 
     def doStepIf(self, step):
         return bool(self.getProperty('modified_api_tests', []))
@@ -6881,6 +7027,8 @@ class RunAPITestsParallelSafety(RunAPITests):
 
     @defer.inlineCallbacks
     def run(self):
+        self.log_observer_json = logobserver.BufferLogObserver()
+        self.addLogObserver('json', self.log_observer_json)
         self.log_observer = ParseByLineLogObserver(self.parseOutputLine)
         self.addLogObserver('stdio', self.log_observer)
 
@@ -6915,13 +7063,15 @@ class RunAPITestsParallelSafety(RunAPITests):
             self.command.append('--skip-failing-tests')
 
         self.command += customBuildFlag(platform, self.getProperty('fullPlatform'))
+        self.command += self.getProperty('additionalArguments') or []
+        self.command.append('--skip-blocklisted')
 
         # Add each test with its own --test-parallel-safety flag
         for test in modified_tests:
             self.command += ['--test-parallel-safety', test]
 
         if SHOULD_FILTER_LOGS is True:
-            self.command = self.shell_command(' '.join(self.command) + ' 2>&1 | Tools/Scripts/filter-test-logs api')
+            self.command = self.shell_command(' '.join(quote(str(argument)) for argument in self.command) + ' 2>&1 | Tools/Scripts/filter-test-logs api')
 
         yield self._addToLog('stdio', f'Running parallel safety testing on {len(modified_tests)} test(s)\n')
         yield self._addToLog('stdio', f'Command: {" ".join(self.command)}\n\n')
@@ -6930,6 +7080,11 @@ class RunAPITestsParallelSafety(RunAPITests):
 
         if self.failedTestCount:
             rc = FAILURE
+
+        if rc == FAILURE:
+            failures = yield self.parse_and_set_failures()
+            if failures:
+                self.report_tests_unsafe_in_parallel(sorted(failures))
 
         if SHOULD_FILTER_LOGS is True:
             self.steps_to_add += [
@@ -6951,6 +7106,19 @@ class RunAPITestsParallelSafety(RunAPITests):
     def doOnFailure(self):
         # No retry needed for parallel safety tests - failures are legitimate
         pass
+
+    def report_tests_unsafe_in_parallel(self, tests):
+        """Fail the build even though the API test runs passed, which would otherwise make SetBuildSummary report success."""
+        pluralSuffix = 's' if len(tests) > 1 else ''
+        pronoun = 'them' if len(tests) > 1 else 'it'
+        message = f"Found {len(tests)} API test{pluralSuffix} that failed when run in parallel: {', '.join(tests[:self.NUM_FAILURES_TO_DISPLAY])}"
+        if len(tests) > self.NUM_FAILURES_TO_DISPLAY:
+            message += ' ...'
+        message += f'. Fix {pronoun} or add {pronoun} to Tools/Scripts/webkitpy/api_tests/blocklist.txt'
+        self.descriptionDone = message
+        self.build.results = FAILURE
+        self.setProperty('force_build_success', False)
+        self.setProperty('build_summary', message)
 
     def analyze_failures_using_results_db(self, failures):
         # Skip results DB checking for parallel safety tests

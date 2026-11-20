@@ -74,6 +74,12 @@ public:
         g_main_loop_run(m_mainLoop.get());
     }
 
+    ~AutomationTest()
+    {
+        if (m_connection)
+            m_connection->close();
+    }
+
     struct Target {
         Target() = default;
         Target(guint64 id, UTF8CString&& name, bool isPaired)
@@ -489,7 +495,6 @@ const SocketConnection::MessageHandlers AutomationTest::s_messageHandlers = {
 
 static bool s_slowScriptWasServed;
 static bool s_stalledLoadWasRequested;
-static bool s_slowReplacementWasServed;
 static GRefPtr<SoupServerMessage> s_heldReplacementRequest;
 
 // Answers the /slow-replacement request the server has been holding.
@@ -503,7 +508,6 @@ static void serveHeldReplacement()
     static const char* html = "<p>replacement</p>";
     soup_message_body_append(responseBody, SOUP_MEMORY_STATIC, html, strlen(html));
     soup_message_body_complete(responseBody);
-    s_slowReplacementWasServed = true;
     soup_server_unpause_message(kServer->soupServer(), message.get());
 }
 static GRefPtr<WebKitPolicyDecision> s_heldPolicyDecision;
@@ -579,7 +583,6 @@ static void checkNavigationCommandsAwaitTheirOwnNavigation(AutomationTest* test)
     // the command: that is still the replacement's load. The server holds the replacement's response; its
     // request means the replacement has passed its policy check, which cancelled the held one.
     s_heldPolicyDecision = nullptr;
-    s_slowReplacementWasServed = false;
     heldCommandID = test->sendNavigateCommand(pageHandle, String::fromUTF8(kServer->getURIForPath("/held").span()));
     test->waitUntil([&] {
         return !!s_heldPolicyDecision;
@@ -887,6 +890,11 @@ static std::optional<uint64_t> protocolRealmProcessIdentifier(const String& real
 
 static std::optional<pid_t> webProcessPIDForProtocolIdentifier(uint64_t processIdentifier)
 {
+#if PLATFORM(WPE)
+    constexpr auto webProcessName = "WPEWebProcess"_s;
+#else
+    constexpr auto webProcessName = "WebKitWebProces"_s;
+#endif
     auto expectedIdentifier = String::number(processIdentifier);
     std::optional<pid_t> matchingProcess;
     GUniquePtr<GDir> directory(g_dir_open("/proc", 0, nullptr));
@@ -907,7 +915,7 @@ static std::optional<pid_t> webProcessPIDForProtocolIdentifier(uint64_t processI
         auto processNameEnd = stat.reverseFind(')');
         if (processNameStart == notFound || processNameEnd == notFound || processNameEnd < processNameStart)
             continue;
-        if (!stat.substring(processNameStart + 1, processNameEnd - processNameStart - 1).startsWith("WebKitWebProces"_s))
+        if (!stat.substring(processNameStart + 1, processNameEnd - processNameStart - 1).startsWith(webProcessName))
             continue;
 
         auto statFields = stat.substring(processNameEnd + 2).split(' ');
@@ -923,7 +931,7 @@ static std::optional<pid_t> webProcessPIDForProtocolIdentifier(uint64_t processI
         if (!g_file_get_contents(commandLinePath.get(), &commandLine.outPtr(), &commandLineLength, nullptr))
             continue;
 
-        // The normal GLib API test launcher starts WebKitWebProcess directly and passes the WebCore process identifier
+        // The normal GLib API test launcher starts the web process directly and passes the WebCore process identifier
         // as its first argument. WEB_PROCESS_CMD_PREFIX or a debugging wrapper changes this layout and is unsupported here.
         auto executableLength = strnlen(commandLine.get(), commandLineLength);
         if (executableLength >= commandLineLength)

@@ -25,13 +25,9 @@ rendering/paint/TextDecorationPainter.h
 [ iOS ] rendering/cocoa/RenderThemeCocoa.mm
 [ iOS ] rendering/ios/RenderThemeIOS.mm
 rendering/shapes/ShapeOutsideInfo.h
-rendering/svg/SVGRenderingContext.h
-rendering/svg/SVGTextBoxPainter.h
-rendering/svg/legacy/SVGResourcesCache.h
 rendering/updating/RenderTreeBuilder.h
 rendering/updating/RenderTreeBuilderBlock.cpp
 rendering/updating/RenderTreeUpdater.h
-style/InlineTextBoxStyle.cpp
 style/PseudoClassChangeInvalidation.h
 style/StyleAdjuster.h
 style/StyleBuilderState.h
@@ -39,4 +35,3 @@ style/StyleRelations.h
 style/StyleResolver.cpp
 style/StyleResolver.h
 style/StyleTreeResolver.h
-style/values/primitives/StyleLengthResolution.cpp

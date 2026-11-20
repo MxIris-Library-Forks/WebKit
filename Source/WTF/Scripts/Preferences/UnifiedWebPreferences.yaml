@@ -3746,11 +3746,13 @@ LazyImageLoadingEnabled:
 
 LazyMediaLoadingEnabled:
   type: bool
-  status: testable
+  status: stable
   category: html
   humanReadableName: "Lazy media loading"
   humanReadableDescription: "Enable lazy loading for audio and video elements via the loading attribute"
-  defaultValue: false
+  defaultValue:
+    default: false
+    WebKit: true
 
 LegacyEncryptedMediaAPIEnabled:
   type: bool
@@ -5583,6 +5585,15 @@ ScreenCaptureEnabled:
   defaultValue:
     default: false
     WebKit: WebKit::defaultShouldEnableScreenCapture()
+
+ScreenCaptureForTabEnabled:
+  type: bool
+  status: unstable
+  category: media
+  condition: ENABLE(MEDIA_STREAM)
+  humanReadableName: "Screen Capture for Tab"
+  humanReadableDescription: "Enable sharing a tab with getDisplayMedia"
+  defaultValue: false
 
 ScreenOrientationAPIEnabled:
   type: bool
@@ -7853,6 +7864,17 @@ WebTransportEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
   disableInLockdownMode: true
+
+WebXRAnchorsModuleEnabled:
+  type: bool
+  status: testable
+  category: dom
+  humanReadableName: "WebXR Anchors Module"
+  humanReadableDescription: "Adds support for the Anchors Module for WebXR"
+  condition: ENABLE(WEBXR_ANCHORS)
+  defaultValue:
+    "PLATFORM(GTK) || PLATFORM(WPE)": true
+    default: false
 
 WebXRAugmentedRealityModuleEnabled:
   type: bool

@@ -868,18 +868,7 @@ imported/w3c/web-platform-tests/html/canvas/element/manual/wide-gamut-canvas/can
 imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.fillText.shadow.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.strokeText.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.p3.canvas.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toBlob.with.putImageData.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.jpeg.p3.canvas.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.p3.canvas.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.toDataURL.with.putImageData.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.p3.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/element/wide-gamut-canvas/2d.color.space.p3.to.srgb.html [ Pass ]
 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/wide-gamut-canvas/2d.color.space.p3.convertToBlobp3.canvas.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.p3.worker.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.html [ Pass ]
-imported/w3c/web-platform-tests/html/canvas/offscreen/wide-gamut-canvas/2d.color.space.p3.to.srgb.worker.html [ Pass ]
 storage/indexeddb/structured-clone-image-data-display-p3.html [ Pass ]
 
 imported/w3c/web-platform-tests/css/css-pseudo/marker-content-012.html [ Pass ]
@@ -1343,13 +1332,7 @@ http/tests/cookies/same-site/fetch-in-cross-origin-service-worker.html [ Failure
 http/tests/cookies/same-site/popup-cross-site-post.html [ Failure ]
 
 # Cookie blocking for an empty firstPartyForCookies domain is only implemented for Cocoa.
-webkit.org/b/331011 http/tests/security/cookies-from-empty-origin-and-detached-opener-fetch.html [ Failure ]
-webkit.org/b/331011 http/tests/security/cookies-from-empty-origin-and-detached-opener-redirect.html [ Failure ]
-webkit.org/b/331011 http/tests/security/cookies-from-empty-origin-and-detached-opener-syncxhr.html [ Failure ]
-webkit.org/b/331011 http/tests/security/cookies-from-empty-origin-and-detached-opener-websocket-with-blocked-third-party-cookies.html [ Failure ]
-webkit.org/b/331011 http/tests/security/cookies-from-empty-origin-and-detached-opener-websocket.html [ Failure ]
 webkit.org/b/331011 http/tests/security/ipc-cookie-access-from-file-url.html [ Failure ]
-webkit.org/b/331011 http/tests/security/redirect-to-allow-cookies-request.html [ Failure ]
 
 #////////////////////////////////////////////////////////////////////////////////////////
 # End of Cookie-related bugs
@@ -2920,6 +2903,7 @@ webkit.org/b/235885 webrtc/canvas-to-peer-connection-vp8.html [ Failure ]
 
 imported/w3c/web-platform-tests/webrtc/RTCDataChannel-worker-GC.html [ Skip ] # Timeout
 imported/w3c/web-platform-tests/webrtc/RTCPeerConnection-remote-track-currentTime.https.html [ Failure ]
+imported/w3c/web-platform-tests/webrtc/RTCRtpSender-maxFramerate.https.html [ Failure ]
 imported/w3c/web-platform-tests/webrtc/RTCRtpReceiver-track-settings.tentative.html [ Failure ]
 
 # The last promise test here fails because webrtcbin doesn't rely on a singleton signaling thread.
@@ -3019,6 +3003,8 @@ webkit.org/b/227086 imported/w3c/web-platform-tests/webxr/xrWebGLLayer_construct
 webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xr_viewport_scale.https.html [ Pass ]
 
 imported/w3c/web-platform-tests/webxr/exclusive_requestFrame_nolayer.https.html [ Pass ]
+
+imported/w3c/web-platform-tests/webxr/anchors/ [ Pass ]
 
 imported/w3c/web-platform-tests/webxr/hand-input/ [ Pass ]
 

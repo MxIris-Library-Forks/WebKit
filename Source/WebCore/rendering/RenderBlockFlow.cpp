@@ -49,6 +49,7 @@
 #include "LocalFrame.h"
 #include "Logging.h"
 #include "LogicalSelectionOffsetCachesInlines.h"
+#include "RenderAncestorIterator.h"
 #include "RenderBlockFlowInlines.h"
 #include "RenderBlockInlines.h"
 #include "RenderBoxInlines.h"
@@ -69,6 +70,7 @@
 #include "RenderMarquee.h"
 #include "RenderMultiColumnFlow.h"
 #include "RenderMultiColumnSet.h"
+#include "RenderMultiColumnSpannerPlaceholder.h"
 #include "RenderObjectInlines.h"
 #include "RenderTableCellInlines.h"
 #include "RenderText.h"
@@ -2113,6 +2115,58 @@ static bool inNormalFlow(RenderBox& child)
     return true;
 }
 
+// https://drafts.csswg.org/css-page-3/#using-named-pages
+static AtomString usedPageValue(const RenderElement& renderer)
+{
+    for (CheckedRef ancestor : lineageOfType<RenderElement>(renderer)) {
+        if (auto name = ancestor->style().pageName().tryValue())
+            return name->value;
+    }
+    return emptyAtom();
+}
+
+enum class PageValueEdge : bool { Start, End };
+
+static CheckedPtr<RenderBox> firstOrLastInFlowChild(const RenderBox& box, PageValueEdge edge)
+{
+    CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(box);
+    if (!blockFlow || blockFlow->childrenInline())
+        return nullptr;
+    // A multicol container's content is in its flow. Column sets and spanners are siblings of the flow.
+    if (CheckedPtr<RenderBox> multiColumnFlow = blockFlow->multiColumnFlow())
+        return multiColumnFlow;
+    CheckedPtr child = edge == PageValueEdge::Start ? blockFlow->firstInFlowChildBox() : blockFlow->lastInFlowChildBox();
+    if (CheckedPtr placeholder = dynamicDowncast<RenderMultiColumnSpannerPlaceholder>(child))
+        return placeholder->spanner();
+    return child;
+}
+
+static AtomString startOrEndPageName(const RenderBox& box, PageValueEdge edge)
+{
+    AtomString name;
+    for (CheckedPtr<const RenderBox> descendant = &box; descendant; descendant = firstOrLastInFlowChild(*descendant, edge)) {
+        if (auto value = descendant->style().pageName().tryValue())
+            name = value->value;
+    }
+    return name;
+}
+
+static bool pageValuesForceBreakBefore(const RenderBlockFlow& parent, const RenderBox& child)
+{
+    // A multicol container's children are its flow, column sets and spanners, not its content. Blocks inside inlines aren't supported.
+    if (!parent.view().frameView().layoutContext().hasRenderersWithNamedPage() || parent.multiColumnFlow() || parent.childrenInline())
+        return false;
+    CheckedPtr previous = child.previousInFlowSiblingBox();
+    if (!previous)
+        return false;
+    auto endName = startOrEndPageName(*previous, PageValueEdge::End);
+    auto startName = startOrEndPageName(child, PageValueEdge::Start);
+    if (endName == startName)
+        return false;
+    auto parentUsedValue = usedPageValue(parent);
+    return (endName.isNull() ? parentUsedValue : endName) != (startName.isNull() ? parentUsedValue : startName);
+}
+
 LayoutUnit RenderBlockFlow::applyBeforeBreak(RenderBox& child, LayoutUnit logicalOffset)
 {
     // FIXME: Add page break checking here when we support printing.
@@ -2122,7 +2176,7 @@ LayoutUnit RenderBlockFlow::applyBeforeBreak(RenderBox& child, LayoutUnit logica
     bool checkPageBreaks = !checkColumnBreaks && view().frameView().layoutContext().layoutState()->pageLogicalHeight(); // FIXME: Once columns can print we have to check this.
     bool checkFragmentBreaks = false;
     bool checkBeforeAlways = (checkColumnBreaks && child.style().breakBefore() == BreakBetween::Column)
-        || (checkPageBreaks && alwaysPageBreak(child.style().breakBefore()));
+        || (checkPageBreaks && (alwaysPageBreak(child.style().breakBefore()) || pageValuesForceBreakBefore(*this, child)));
     if (checkBeforeAlways && inNormalFlow(child) && hasNextPage(logicalOffset)) {
         if (checkColumnBreaks) {
             if (isInsideMulticolFlow)
@@ -2809,71 +2863,6 @@ void RenderBlockFlow::repaintOverhangingFloats(bool paintAllDescendants)
             renderer.repaint();
             renderer.repaintOverhangingFloats(false);
         }
-    }
-}
-
-void RenderBlockFlow::paintColumnRules(PaintInfo& paintInfo, const LayoutPoint& point)
-{
-    RenderBlock::paintColumnRules(paintInfo, point);
-    
-    if (!multiColumnFlow() || paintInfo.context().paintingDisabled())
-        return;
-
-    // Iterate over our children and paint the column rules as needed.
-    for (auto& columnSet : childrenOfType<RenderMultiColumnSet>(*this)) {
-        LayoutPoint childPoint = columnSet.location() + blockStartRelativeToPhysicalForChild(columnSet, point);
-        columnSet.paintColumnRules(paintInfo, childPoint);
-    }
-}
-
-void RenderBlockFlow::paintFloats(PaintInfo& paintInfo, const LayoutPoint& paintOffset, bool preservePhase)
-{
-    if (!m_floatingObjects)
-        return;
-
-    for (auto& floatingObject : m_floatingObjects->set()) {
-        if (!floatingObject->renderer())
-            continue;
-        if (!floatingObject->shouldPaint())
-            continue;
-
-        auto floatBoxLocation = blockStartRelativeToPhysicalForFloat(*floatingObject, paintOffset + floatingObject->translationOffsetToAncestor());
-        auto& renderer = *floatingObject->renderer();
-        GraphicsContextStateSaver stateSaver(paintInfo.context(), false);
-
-        auto clipBlockEndIfNeeded = [&] {
-            // The clip rect in the float's own coordinates, moved to where the float's border box paints.
-            auto clipRect = LineClampUpdater::blockEndClipRect(renderer, renderer);
-            if (!clipRect)
-                return;
-            clipRect->moveBy(floatBoxLocation + renderer.locationOffset());
-            // Like the layer clip rects, this is within the area being painted (and so it is finite, which the conversion to float needs).
-            clipRect->intersect(paintInfo.rect);
-            stateSaver.save();
-            paintInfo.context().clip(*clipRect);
-        };
-        clipBlockEndIfNeeded();
-
-        if (preservePhase) {
-            renderer.paint(paintInfo, floatBoxLocation);
-            continue;
-        }
-        auto paintInfoForFloat = PaintInfo { paintInfo };
-
-        paintInfoForFloat.phase = PaintPhase::BlockBackground;
-        renderer.paint(paintInfoForFloat, floatBoxLocation);
-
-        paintInfoForFloat.phase = PaintPhase::ChildBlockBackgrounds;
-        renderer.paint(paintInfoForFloat, floatBoxLocation);
-
-        paintInfoForFloat.phase = PaintPhase::Float;
-        renderer.paint(paintInfoForFloat, floatBoxLocation);
-
-        paintInfoForFloat.phase = PaintPhase::Foreground;
-        renderer.paint(paintInfoForFloat, floatBoxLocation);
-
-        paintInfoForFloat.phase = PaintPhase::Outline;
-        renderer.paint(paintInfoForFloat, floatBoxLocation);
     }
 }
 
@@ -4155,31 +4144,6 @@ Position RenderBlockFlow::positionForPoint(const LayoutPoint& point, HitTestSour
 PositionWithAffinity RenderBlockFlow::positionForPoint(const LayoutPoint& point, HitTestSource source, const RenderFragmentContainer*)
 {
     return RenderBlock::positionForPoint(point, source, nullptr);
-}
-
-void RenderBlockFlow::paintInlineChildren(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
-{
-    ASSERT(childrenInline());
-
-    if (!inlineLayout())
-        return;
-
-    inlineLayout()->paint(paintInfo, paintOffset);
-}
-
-void RenderBlockFlow::paintBlockLevelContentInInline(PaintInfo& paintInfo, const LayoutPoint& paintOffset)
-{
-    ASSERT(childrenInline());
-
-    PaintInfo paintInfoForChildren = paintInfoForBlockChildren(paintInfo);
-
-    for (auto walker = InlineWalker(*this); !walker.atEnd(); walker.advance()) {
-        auto* child = dynamicDowncast<RenderBox>(walker.current());
-        if (!child)
-            continue;
-        if (!paintChild(*child, paintInfo, paintOffset, paintInfoForChildren, false))
-            return;
-    }
 }
 
 bool RenderBlockFlow::relayoutForPagination()

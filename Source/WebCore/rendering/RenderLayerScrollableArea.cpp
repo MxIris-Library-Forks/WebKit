@@ -316,6 +316,11 @@ ScrollOffset RenderLayerScrollableArea::scrollToOffset(const ScrollOffset& scrol
     ScrollOffset snappedOffset = ceiledIntPoint(scrollAnimator().scrollOffsetAdjustedForSnapping(clampedScrollOffset, options.snapPointSelectionMethod));
     auto snappedPosition = scrollPositionFromOffset(snappedOffset);
 
+    // The scrolling tree applies originalScrollDelta without snapping, so send the snapped position instead.
+    auto adjustedOptions = options;
+    if (snappedOffset != clampedScrollOffset)
+        adjustedOptions.originalScrollDelta = std::nullopt;
+
     if (scrollAnimationStatus() == ScrollAnimationStatus::Animating) {
         // If a smooth scroll animation is already running and the new request is also
         // animated, retarget the running animation to the new destination instead of
@@ -336,8 +341,8 @@ ScrollOffset RenderLayerScrollableArea::scrollToOffset(const ScrollOffset& scrol
 
     if (options.animated == ScrollIsAnimated::Yes) {
         registerScrollableAreaForAnimatedScroll();
-        ScrollableArea::scrollToPositionWithAnimation(snappedPosition, options);
-    } else if (!requestScrollToPosition(snappedPosition, options))
+        ScrollableArea::scrollToPositionWithAnimation(snappedPosition, adjustedOptions);
+    } else if (!requestScrollToPosition(snappedPosition, adjustedOptions))
         scrollToPositionWithoutAnimation(snappedPosition, options.clamping);
 
     return snappedOffset;
@@ -682,12 +687,32 @@ void RenderLayerScrollableArea::availableContentSizeChanged(AvailableSizeChangeR
 {
     ScrollableArea::availableContentSizeChanged(reason);
 
+    if (reason == AvailableSizeChangeReason::ScrollbarsChanged)
+        setNeedsLayoutForScrollbarsChange();
+}
+
+void RenderLayerScrollableArea::setNeedsLayoutForScrollbarsChange()
+{
     auto& renderer = m_layer.renderer();
-    if (reason == AvailableSizeChangeReason::ScrollbarsChanged) {
-        if (auto* renderBlock = dynamicDowncast<RenderBlock>(renderer))
-            renderBlock->setShouldForceRelayoutChildren(true);
-        renderer.setNeedsLayout();
+    if (auto* renderBlock = dynamicDowncast<RenderBlock>(renderer))
+        renderBlock->setShouldForceRelayoutChildren(true);
+    renderer.setNeedsLayout();
+}
+
+void RenderLayerScrollableArea::scrollbarStyleChanged(ScrollbarStyle newStyle, bool forceUpdate)
+{
+    // With overlay scroll bars, overflow: scroll behaves like overflow: auto, and layout only adds the scroll bars
+    // that are always present after laying out the content.
+    updateScrollbarsAfterStyleChange(nullptr);
+
+    // The base class would create a scroll animator and a scrollbars controller, which areas without scroll bars
+    // don't need, and would then keep.
+    if (!existingScrollbarsController()) {
+        setNeedsLayoutForScrollbarsChange();
+        return;
     }
+
+    ScrollableArea::scrollbarStyleChanged(newStyle, forceUpdate);
 }
 
 bool RenderLayerScrollableArea::shouldSuspendScrollAnimations() const
@@ -787,7 +812,7 @@ RenderLayer::OverflowControlRects RenderLayerScrollableArea::overflowControlsRec
         if (scrollbarsAvoidCorner)
             result.resizer = result.scrollCorner;
         else {
-            auto scrollbarThickness = ScrollbarTheme::theme().scrollbarThickness();
+            auto scrollbarThickness = ScrollbarTheme::theme().scrollbarThickness(scrollbarStyle());
             result.resizer = cornerRect({ scrollbarThickness, scrollbarThickness });
         }
     }
@@ -1013,8 +1038,8 @@ int RenderLayerScrollableArea::verticalScrollbarWidth(OverlayScrollbarSizeReleva
     if (vBar && vBar->isOverlayScrollbar() && (relevancy == OverlayScrollbarSizeRelevancy::IgnoreOverlayScrollbarSize || !vBar->shouldParticipateInHitTesting()))
         return 0;
 
-    if (!vBar && isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || ScrollbarTheme::theme().usesOverlayScrollbars()))
-        return ScrollbarTheme::theme().scrollbarThickness(scrollbarWidthStyle());
+    if (!vBar && isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || usesOverlayScrollbars()))
+        return ScrollbarTheme::theme().scrollbarThickness(scrollbarStyle(), scrollbarWidthStyle());
 
     if (!vBar || !showsOverflowControls())
         return 0;
@@ -1028,8 +1053,8 @@ int RenderLayerScrollableArea::horizontalScrollbarHeight(OverlayScrollbarSizeRel
     if (hBar && hBar->isOverlayScrollbar() && (relevancy == OverlayScrollbarSizeRelevancy::IgnoreOverlayScrollbarSize || !hBar->shouldParticipateInHitTesting()))
         return 0;
 
-    if (!hBar && !isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || ScrollbarTheme::theme().usesOverlayScrollbars()))
-        return ScrollbarTheme::theme().scrollbarThickness(scrollbarWidthStyle());
+    if (!hBar && !isHorizontalWritingMode && !(scrollbarGutterStyle().isAuto() || usesOverlayScrollbars()))
+        return ScrollbarTheme::theme().scrollbarThickness(scrollbarStyle(), scrollbarWidthStyle());
 
     if (!hBar || !showsOverflowControls())
         return 0;
@@ -1070,6 +1095,11 @@ Style::ScrollbarGutter RenderLayerScrollableArea::scrollbarGutterStyle()  const
     if (auto* renderer = m_layer.renderBox())
         return renderer->style().scrollbarGutter();
     return CSS::Keyword::Auto { };
+}
+
+std::optional<ScrollbarStyle> RenderLayerScrollableArea::scrollbarStyleOverride() const
+{
+    return m_layer.page().scrollbarStyleOverride();
 }
 
 ScrollbarWidth RenderLayerScrollableArea::scrollbarWidthStyle()  const

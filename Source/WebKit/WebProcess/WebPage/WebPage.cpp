@@ -1139,6 +1139,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
     setMaximumUnobscuredSize(parameters.maximumUnobscuredSize);
 
     setUnderlayColor(parameters.underlayColor);
+    setScrollbarStyleOverride(parameters.scrollbarStyleOverride);
 
     setPaginationMode(parameters.paginationMode);
     setPaginationBehavesLikeColumns(parameters.paginationBehavesLikeColumns);
@@ -1885,6 +1886,7 @@ void WebPage::reinitializeWebPage(WebPageCreationParameters&& parameters)
 
     setUseColorAppearance(parameters.useDarkAppearance, parameters.useElevatedUserInterfaceLevel);
     setContentInversion(parameters.contentInversion);
+    setScrollbarStyleOverride(parameters.scrollbarStyleOverride);
 
     if (auto& remotePageParameters = parameters.remotePageParameters) {
         if (RefPtr page = m_page; page && is<RemoteFrame>(page->mainFrame()))
@@ -3258,71 +3260,6 @@ void WebPage::didSetPageZoomFactor(double zoomFactor)
         frame->setPageZoomFactor(static_cast<float>(zoomFactor));
 }
 
-static void dumpHistoryItem(HistoryItem& item, size_t indent, bool isCurrentItem, StringBuilder& stringBuilder, const String& directoryName)
-{
-    if (isCurrentItem)
-        stringBuilder.append("curr->  "_s);
-    else {
-        for (size_t i = 0; i < indent; ++i)
-            stringBuilder.append(' ');
-    }
-
-    auto url = item.url();
-    if (url.protocolIsFile()) {
-        size_t start = url.string().find(directoryName);
-        if (start == WTF::notFound)
-            start = 0;
-        else
-            start += directoryName.length();
-        stringBuilder.append("(file test):"_s, StringView { url.string() }.substring(start));
-    } else
-        stringBuilder.append(url.string());
-
-    auto& target = item.target();
-    if (target.length())
-        stringBuilder.append(" (in frame \""_s, target, "\")"_s);
-
-    stringBuilder.append('\n');
-
-    auto children = item.children();
-    std::ranges::stable_sort(children, [](auto& a, auto& b) {
-        return codePointCompare(a->target(), b->target()) < 0;
-    });
-    for (auto& child : borrow(children))
-        dumpHistoryItem(child, indent + 4, false, stringBuilder, directoryName);
-}
-
-String WebPage::dumpHistoryForTesting(const String& directory)
-{
-    if (!m_page)
-        return { };
-
-    CheckedRef list = m_page->backForward();
-
-    // A page with no current item has nothing to dump. That is the state a window.open() page is
-    // in before its initial load commits, and WebKitTestRunner dumps every page it knows about.
-    if (!list->currentItem())
-        return { };
-
-    // itemAtIndex() takes an offset relative to the current item, so the range of valid offsets is
-    // [-backCount(), forwardCount()] inclusive. It is a synchronous round trip to the UI process,
-    // while backCount() and forwardCount() are served from a cache in this process, so the bounds
-    // and the items are sampled at different times and an item can be absent at an offset the
-    // bounds include. Skip those rather than crashing.
-    int begin = -static_cast<int>(list->backCount());
-    int end = static_cast<int>(list->forwardCount());
-
-    if (RefPtr item = list->itemAtIndex(begin); item && item->url() == aboutBlankURL())
-        ++begin;
-
-    StringBuilder builder;
-    for (int i = begin; i <= end; ++i) {
-        if (RefPtr item = list->itemAtIndex(i))
-            dumpHistoryItem(*item, 8, !i, builder, directory);
-    }
-    return builder.toString();
-}
-
 String WebPage::frameTextForTestingIncludingSubframes(bool includeSubframes)
 {
     return m_mainFrame->frameTextForTesting(includeSubframes);
@@ -3717,6 +3654,18 @@ void WebPage::listenForLayoutMilestones(OptionSet<WebCore::LayoutMilestone> mile
 void WebPage::setSuppressScrollbarAnimations(bool suppressAnimations)
 {
     protect(corePage())->setShouldSuppressScrollbarAnimations(suppressAnimations);
+}
+
+void WebPage::setScrollbarStyleOverride(std::optional<ScrollbarStyle> styleOverride)
+{
+    RefPtr corePage = this->corePage();
+    if (corePage->scrollbarStyleOverride() == styleOverride)
+        return;
+
+    corePage->setScrollbarStyleOverride(styleOverride);
+#if PLATFORM(MAC)
+    updateScrollerPairsForScrollbarStyleOverride();
+#endif
 }
 
 void WebPage::setEnableVerticalRubberBanding(bool enableVerticalRubberBanding)

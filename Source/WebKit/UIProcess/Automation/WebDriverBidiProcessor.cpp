@@ -35,6 +35,7 @@
 #include "BidiBrowserAgent.h"
 #include "BidiBrowsingContextAgent.h"
 #include "BidiDigitalCredentialsAgent.h"
+#include "BidiEmulationAgent.h"
 #include "BidiInputAgent.h"
 #include "BidiPermissionsAgent.h"
 #include "BidiScriptAgent.h"
@@ -62,6 +63,7 @@ WebDriverBidiProcessor::WebDriverBidiProcessor(WebAutomationSession& session)
     , m_browserAgent(makeUniqueRef<BidiBrowserAgent>(session, m_backendDispatcher))
     , m_browsingContextAgent(BidiBrowsingContextAgent::create(session, m_backendDispatcher))
     , m_digitalCredentialsAgent(makeUniqueRef<BidiDigitalCredentialsAgent>(session, m_backendDispatcher))
+    , m_emulationAgent(makeUniqueRef<BidiEmulationAgent>(session, m_backendDispatcher))
     , m_inputAgent(makeUniqueRef<BidiInputAgent>(session, m_backendDispatcher))
     , m_permissionsAgent(makeUniqueRef<BidiPermissionsAgent>(session, m_backendDispatcher))
     , m_scriptAgent(makeUniqueRef<BidiScriptAgent>(session, m_backendDispatcher))
@@ -199,6 +201,8 @@ static String toBidiErrorCode(int errorCode, const String& inspectorInternalMsg)
         return "no such history entry"_s;
     case Inspector::Protocol::Automation::ErrorMessage::NodeIsNotAnElement:
         return "no such element"_s;
+    case Inspector::Protocol::Automation::ErrorMessage::UnableToSetFileInput:
+        return "unable to set file input"_s;
     default:
         return "unknown error"_s;
     }

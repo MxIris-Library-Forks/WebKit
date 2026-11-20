@@ -101,6 +101,10 @@
 #import <wtf/cocoa/TypeCastsCocoa.h>
 #import <wtf/text/MakeString.h>
 
+#if PLATFORM(MAC)
+#import "Helpers/mac/LocalEventMonitorSwizzler.h"
+#endif
+
 #if PLATFORM(IOS_FAMILY)
 #import "UIKitSPIForTesting.h"
 #import <CoreLocation/CLLocation.h>
@@ -9160,6 +9164,41 @@ TEST(SiteIsolation, MainFrameRedirectBackToCommittedProcessKeepsBackForwardCache
     EXPECT_EQ([webView _webProcessIdentifier], examplePID);
     EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__marker === true"] boolValue]);
     EXPECT_TRUE([[webView objectByEvaluatingJavaScript:@"window.__pageshowPersisted === true"] boolValue]);
+}
+
+// A custom scheme main frame with an opaque origin (here via CSP sandbox) has a real URL but no site. The UI process
+// used to tell the network process only about the opaque site for a cross-site subframe's process, while the subframe's
+// WebContent process derives firstPartyForCookies from the main frame URL, so its loads were rejected as invalid IPC.
+TEST(SiteIsolation, CrossSiteIframeOfOpaqueOriginCustomSchemeMainFrame)
+{
+    HTTPServer server({
+        { "/iframe"_s, { "<script>fetch('/fetched');</script>"_s } },
+        { "/fetched"_s, { "ok"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    RetainPtr handler = adoptNS([TestURLSchemeHandler new]);
+    handler.get().startURLSchemeTaskHandler = ^(WKWebView *, id<WKURLSchemeTask> task) {
+        RetainPtr headers = @{
+            @"Content-Type": @"text/html",
+            @"Content-Security-Policy": @"sandbox allow-scripts"
+        };
+        RetainPtr response = adoptNS([[NSHTTPURLResponse alloc] initWithURL:task.request.URL statusCode:200 HTTPVersion:@"HTTP/1.1" headerFields:headers.get()]);
+        [task didReceiveResponse:response.get()];
+        [task didReceiveData:[@"<iframe src='https://webkit.org/iframe'></iframe>" dataUsingEncoding:NSUTF8StringEncoding]];
+        [task didFinish];
+    };
+    [configuration setURLSchemeHandler:handler.get() forURLScheme:@"customscheme"];
+
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"customscheme://example.com/main"]]];
+
+    // If the iframe's WebContent process is terminated for an invalid ScheduleResourceLoad, the server never sees
+    // the iframe's document request, let alone the subresource request that its script makes.
+    // (Alerts are not usable as a signal because the CSP sandbox on the main frame does not allow modals.)
+    EXPECT_TRUE(Util::waitFor([&] {
+        return server.totalRequests() >= 2u;
+    }));
 }
 
 TEST(SiteIsolation, URLSchemeTask)
@@ -23746,6 +23785,7 @@ TEST(SiteIsolation, DrawPagesToPDFKeepsGrayAndCMYKImagesInCrossSiteFrames8Bit)
     auto print = [&](bool siteIsolationAndRemoteSnapshotting) -> RetainPtr<NSData> {
         RetainPtr configuration = server.httpsProxyConfiguration();
         setFeatureEnabled(configuration.get(), @"RemoteSnapshottingEnabled", siteIsolationAndRemoteSnapshotting);
+        setFeatureEnabled(configuration.get(), @"SiteIsolationEnabled", siteIsolationAndRemoteSnapshotting);
         auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600), siteIsolationAndRemoteSnapshotting);
         [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://a.com/mainframe"]]];
         [navigationDelegate waitForDidFinishNavigationAndLoadInSubframe];
@@ -24299,7 +24339,7 @@ TEST(SiteIsolation, PrintProcessDrawsDuringDOMPrint)
     EXPECT_EQ(counts.second, drawnAfterPrintProcessFailed);
 }
 
-TEST(SiteIsolation, GPUProcessDrawsWhatPrintProcessCannot)
+TEST(SiteIsolation, PrintProcessDrawsImages)
 {
     HTTPServer server({
         { "/mainframe"_s, { "<body>Mainframe<iframe src='https://b.com/subframe'></iframe></body>"_s } },
@@ -24313,6 +24353,35 @@ TEST(SiteIsolation, GPUProcessDrawsWhatPrintProcessCannot)
     expectPDFText(data.get(), @[ @"Mainframe", @"Subframe" ]);
 
     auto counts = printProcessDrawingCounts(webView.get());
+    EXPECT_EQ(counts.first, drawnInPrintProcess + 1);
+    EXPECT_EQ(counts.second, drawnAfterPrintProcessFailed);
+}
+
+TEST(SiteIsolation, GPUProcessDrawsWhenPrintProcessDoesNotReply)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body>Mainframe<iframe src='https://b.com/subframe'></iframe></body>"_s } },
+        { "/subframe"_s, { "<body>Subframe</body>"_s } },
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = loadPageForPrintProcess(server);
+
+    computePagesForPrinting(webView.get());
+    auto printProcess = printProcessIdentifier(webView.get());
+    ASSERT_NE(printProcess, 0);
+
+    auto [drawnInPrintProcess, drawnAfterPrintProcessFailed] = printProcessDrawingCounts(webView.get());
+    kill(printProcess, SIGSTOP);
+    RetainPtr data = createPDF(webView.get());
+    kill(printProcess, SIGCONT);
+    ASSERT_NOT_NULL(data.get());
+    expectPDFText(data.get(), @[ @"Mainframe", @"Subframe" ]);
+
+    auto counts = printProcessDrawingCounts(webView.get());
+    EXPECT_EQ(counts.first, drawnInPrintProcess);
+    EXPECT_EQ(counts.second, drawnAfterPrintProcessFailed + 1);
+
+    Util::runFor(100_ms);
+    counts = printProcessDrawingCounts(webView.get());
     EXPECT_EQ(counts.first, drawnInPrintProcess);
     EXPECT_EQ(counts.second, drawnAfterPrintProcessFailed + 1);
 }
@@ -24806,6 +24875,127 @@ TEST(SiteIsolation, CrossSiteIframeProcessesDoNotReportMainFrameScroll)
     EXPECT_EQ(pageScrollsForMainFrameScrollTo(100), 1u);
     EXPECT_EQ(pageScrollsForMainFrameScrollTo(300), 1u);
 }
+
+#if ENABLE(IPC_TESTING_API)
+
+// When a web process's hit test for a mouse, wheel or modifier-flags event reaches a frame hosted by another process, it
+// replies with that frame and the point in its coordinates, and the UI process re-sends the event there. A web process
+// controls that reply, so the UI process must only follow it to a frame inside the part of this page it hosts.
+
+static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> loadedViewForEventRedispatch(const HTTPServer& server)
+{
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"IPCTestingAPIEnabled", true);
+    setFeatureEnabled(configuration.get(), @"IgnoreInvalidMessageWhenIPCTestingAPIEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+    return { webView, navigationDelegate };
+}
+
+// Counts the requests with the given message name that the main frame's process receives, and answers each one as if the
+// event were over the main frame itself, hosted by another process. The reply arguments are a JavaScript array expression
+// in which `remote` stands for the encoded RemoteUserInputEventData.
+static void countEventRequestsAndForgeRedispatchToTheSourceFrame(TestWKWebView *webView, NSString *messageName, NSString *replyArguments)
+{
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"(() => {"
+        "    window.eventRequestCounts = window.eventRequestCounts ?? { };"
+        "    window.eventRequestCounts['%1$@'] = 0;"
+        "    const requestName = IPC.messages['%1$@'].name;"
+        "    const replyName = IPC.messages['%1$@Reply'].name;"
+        "    const target = BigInt(IPC.frameID[0]);"
+        "    IPC.addIncomingMessageListener('UI', message => {"
+        "        if (message.name !== requestName || message.listenerID === undefined)"
+        "            return;"
+        "        if (++window.eventRequestCounts['%1$@'] > 3)"
+        "            return;"
+        "        const remote = ["
+        "            { type: 'FrameID', value: [target] },"
+        "            { type: 'double', value: 10 },"
+        "            { type: 'double', value: 10 },"
+        "        ];"
+        "        IPC.sendMessage('UI', message.listenerID, replyName, %2$@);"
+        "    });"
+        "})(); true", messageName, replyArguments]];
+}
+
+static int eventRequestCount(TestWKWebView *webView, NSString *messageName)
+{
+    return [[webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.eventRequestCounts['%@']", messageName]] intValue];
+}
+
+// Following the forged reply would send the same event back to the same process.
+static void expectEventRedispatchToTheSourceFrameIsRejected(TestWKWebView *webView, NSString *messageName)
+{
+    EXPECT_TRUE(Util::waitFor([&] {
+        return eventRequestCount(webView, messageName) >= 1;
+    }));
+    Util::runFor(0.5_s);
+    EXPECT_EQ(1, eventRequestCount(webView, messageName));
+    RetainPtr invalidMessage = [webView stringByEvaluatingJavaScript:@"(() => {"
+        "const reply = IPC.sendSyncMessage('UI', 0, IPC.messages.WebProcessProxy_TakeInvalidMessageStringForTesting.name, 1000, []);"
+        "return reply?.arguments?.[0]?.value ?? '';"
+        "})()"];
+    EXPECT_TRUE([invalidMessage containsString:@"Message check failed"]);
+}
+
+TEST(SiteIsolation, MouseEventRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = loadedViewForEventRedispatch(server);
+    // bool handled, then std::optional<RemoteUserInputEventData>.
+    countEventRequestsAndForgeRedispatchToTheSourceFrame(webView.get(), @"WebPage_MouseEvent", @"[{ type: 'bool', value: 0 }, { type: 'bool', value: 1 }, ...remote]");
+    [webView mouseMoveToPoint:NSMakePoint(10, 590) withFlags:0];
+    expectEventRedispatchToTheSourceFrameIsRejected(webView.get(), @"WebPage_MouseEvent");
+}
+
+TEST(SiteIsolation, WheelEventRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        // A non-passive wheel listener makes the main frame's process handle the event, rather than only the UI process.
+        { "/mainframe"_s, { makeString("<script>addEventListener('wheel', () => { }, { passive: false })</script>"_s, mainFrameTextWithCrossOriginIframe) } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = loadedViewForEventRedispatch(server);
+    // std::optional<ScrollingNodeID>, std::optional<WheelScrollGestureState>, bool handled, then std::optional<RemoteUserInputEventData>.
+    countEventRequestsAndForgeRedispatchToTheSourceFrame(webView.get(), @"WebPage_HandleWheelEvent", @"[{ type: 'bool', value: 0 }, { type: 'bool', value: 0 }, { type: 'bool', value: 0 }, { type: 'bool', value: 1 }, ...remote]");
+    [webView wheelEventAtPoint:CGPointMake(10, 590) wheelDelta:CGSizeMake(0, -10)];
+    expectEventRedispatchToTheSourceFrameIsRejected(webView.get(), @"WebPage_HandleWheelEvent");
+}
+
+TEST(SiteIsolation, ModifierFlagsHitTestRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto location = NSMakePoint(10, 590);
+    LocalEventMonitorSwizzler localMonitorSwizzler;
+    // The flags-changed monitor takes the mouse location from the window, which a test can't move.
+    InstanceMethodSwizzler mouseLocationSwizzler {
+        NSWindow.class,
+        @selector(mouseLocationOutsideOfEventStream),
+        imp_implementationWithBlock(^{
+            return location;
+        })
+    };
+
+    auto [webView, navigationDelegate] = loadedViewForEventRedispatch(server);
+    [webView _createFlagsChangedEventMonitorForTesting];
+    // Variant<WebHitTestResultData, RemoteUserInputEventData>, then OptionSet<WebEventModifier>.
+    countEventRequestsAndForgeRedispatchToTheSourceFrame(webView.get(), @"WebPage_PerformHitTestForModifierFlagsChangeOnMouseEvent", @"[{ type: 'uint8_t', value: 1 }, ...remote, { type: 'uint8_t', value: 0 }]");
+    localMonitorSwizzler.sendEventToMonitor([NSEvent mouseEventWithType:NSEventTypeMouseMoved location:location modifierFlags:NSEventModifierFlagCommand timestamp:0 windowNumber:[[webView hostWindow] windowNumber] context:nil eventNumber:0 clickCount:0 pressure:0]);
+    expectEventRedispatchToTheSourceFrameIsRejected(webView.get(), @"WebPage_PerformHitTestForModifierFlagsChangeOnMouseEvent");
+}
+
+#endif // ENABLE(IPC_TESTING_API)
 
 TEST(SiteIsolation, CloseWhileDispatchingNavigateEventBeforeProcessSwap)
 {

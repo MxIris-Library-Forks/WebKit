@@ -1133,6 +1133,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     css/values/primitives/CSSTypeSpecifier.h
     css/values/primitives/CSSURL.h
     css/values/primitives/CSSURLModifiers.h
+    css/values/primitives/CSSURLProvenance.h
     css/values/primitives/CSSUnevaluatedCalc.h
 
     css/values/shapes/CSSBasicShape.h
@@ -2709,6 +2710,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/displaylists/DisplayListItems.h
     platform/graphics/displaylists/DisplayListRecorder.h
     platform/graphics/displaylists/DisplayListRecorderImpl.h
+    platform/graphics/displaylists/DisplayListResourceCache.h
 
     platform/graphics/egl/BitmapTexture.h
     platform/graphics/egl/BitmapTexturePool.h
@@ -2959,6 +2961,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/video-codecs/VideoCodecType.h
 
     platform/xr/PlatformXR.h
+    platform/xr/XRAnchorIdentifier.h
     platform/xr/XRHitTestSourceIdentifier.h
 
     plugins/PluginData.h
@@ -3386,6 +3389,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     style/values/overflow/StyleScrollbarGutter.h
     style/values/overflow/StyleTextOverflow.h
 
+    style/values/page/StylePageName.h
     style/values/page/StylePageSize.h
 
     style/values/pointerevents/StyleTouchAction.h

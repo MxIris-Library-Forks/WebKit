@@ -392,6 +392,8 @@ public:
 
 #if ENABLE(WEBDRIVER_BIDI)
     bool isValidUserContext(const String& userContextID) const;
+    std::expected<String, AutomationCommandError> nodeHandleForSharedReference(const JSON::Object& sharedReference) const;
+    void setFilesForBidi(const String& pageHandle, const String& frameHandle, const String& nodeHandle, Vector<String>&& paths, AutomationCompletionHandler&&);
 #endif
 
 private:
@@ -429,6 +431,7 @@ private:
     void respondToPendingPageNavigationCallbacksWithTimeout(HashMap<WebPageProxyIdentifier, Vector<PendingPageNavigationCallback>>&);
     void respondToPendingFrameNavigationCallbacksWithTimeout(HashMap<WebCore::FrameIdentifier, Vector<Inspector::CommandCallback<void>>>&);
     void respondToPendingNavigationCallbacksWithSuccess(Vector<Inspector::CommandCallback<void>>&&);
+    void startLoadTimer(Seconds);
     void loadTimerFired();
 
     void exitFullscreenWindowForPage(WebPageProxy&, WTF::CompletionHandler<void()>&&);

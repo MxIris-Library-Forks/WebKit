@@ -3086,8 +3086,7 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
 
     // Cross-site SuspendedPageProxy entries follow the unsuspend() path; skip them here.
     auto shouldRestoreFromBackForwardCache = ShouldRestoreFromBackForwardCache::Unspecified;
-    std::optional<WebCore::ProcessIdentifier> takenBackForwardCacheMainFrameProcessIdentifier;
-    std::unique_ptr<PendingBackForwardIframeRestore> pendingIframeRestore;
+    std::optional<WebCore::ProcessIdentifier> backForwardCacheMainFrameProcessIdentifier;
     Ref preferences = this->preferences();
     if (preferences->siteIsolationEnabled() && preferences->multiProcessBackForwardCacheEnabled()) {
         RefPtr entry = item->backForwardCacheEntry();
@@ -3099,62 +3098,16 @@ RefPtr<API::Navigation> WebPageProxy::goToBackForwardItem(WebBackForwardListFram
         }
         shouldRestoreFromBackForwardCache = entry ? ShouldRestoreFromBackForwardCache::Yes : ShouldRestoreFromBackForwardCache::No;
 
-        if (entry && !item->suspendedPage()) {
-            auto [cachedChildren, iframeProcesses] = entry->takeForRestoration();
-            auto itemID = item->identifier();
-            takenBackForwardCacheMainFrameProcessIdentifier = entry->processIdentifier();
-
-            protect(backForwardCache())->removeEntry(*item);
-
-            if (!cachedChildren.isEmpty()) {
-                auto mainFrameItemID = item->mainFrameItem().identifier();
-
-                internals().pendingBackForwardCachedChildren.set(itemID, WTF::move(cachedChildren));
-
-                auto aggregator = MainRunLoopSuccessCallbackAggregator::create(
-                    [weakThis = WeakPtr { *this }, itemID](bool success) {
-                        if (success)
-                            return;
-                        RefPtr page = weakThis.get();
-                        if (!page)
-                            return;
-                        page->internals().pendingBackForwardCachedChildren.remove(itemID);
-                        RELEASE_LOG_ERROR(ProcessSwapping, "WebPageProxy::goToBackForwardItem: iframe restore failed, reloading");
-                        page->reload(ReloadOption::ExpiredOnly);
-                    });
-
-                iframeProcesses.removeAllMatching([&](auto& iframeProcess) {
-                    // Children cached in the same process as the restored main frame are local
-                    // WebFrameProxys and they're reattached directly via
-                    // pendingBackForwardCachedChildren/adoptChildFrames once the main frame commits.
-                    if (iframeProcess.ptr() == process.ptr())
-                        return true;
-
-                    if (!protect(browsingContextGroup())->remotePageInProcess(*this, iframeProcess)) {
-                        RELEASE_LOG_ERROR(ProcessSwapping, "WebPageProxy::goToBackForwardItem: no RemotePageProxy for pid %i, signaling failure", iframeProcess->processID());
-                        aggregator->failed();
-                        return true;
-                    }
-                    return false;
-                });
-
-                for (Ref iframeProcess : iframeProcesses)
-                    iframeProcess->send(Messages::WebPage::PrepareToRestoreWithFrameItem(mainFrameItemID), webPageIDInProcess(iframeProcess));
-
-                if (!iframeProcesses.isEmpty())
-                    pendingIframeRestore = makeUnique<PendingBackForwardIframeRestore>(process->coreProcessIdentifier(), mainFrameItemID, WTF::move(iframeProcesses), WTF::move(aggregator));
-            }
-        }
+        if (entry && !item->suspendedPage())
+            backForwardCacheMainFrameProcessIdentifier = entry->processIdentifier();
     }
 
     RefPtr<WebBackForwardListItem> fromItem = committedItem;
     if (!fromItem)
         fromItem = backForwardList().currentItem();
     Ref navigation = m_navigationState->createBackForwardNavigation(process->coreProcessIdentifier(), frameItem, RefPtr { fromItem }, frameLoadType);
-    if (takenBackForwardCacheMainFrameProcessIdentifier)
-        navigation->setBackForwardCacheMainFrameProcessIdentifier(*takenBackForwardCacheMainFrameProcessIdentifier);
-    if (pendingIframeRestore)
-        internals().pendingBackForwardIframeRestores.set(navigation->navigationID(), WTF::move(pendingIframeRestore));
+    if (backForwardCacheMainFrameProcessIdentifier)
+        navigation->setBackForwardCacheMainFrameProcessIdentifier(*backForwardCacheMainFrameProcessIdentifier);
     Ref pageLoadState = internals().pageLoadState;
     auto transaction = pageLoadState->transaction();
     pageLoadState->setPendingAPIRequest(transaction, { navigation->navigationID(), URL { item->url() } });
@@ -3684,6 +3637,10 @@ void WebPageProxy::setObscuredContentInsets(const WebCore::FloatBoxExtent& obscu
     if (RefPtr pageClient = this->pageClient())
         pageClient->obscuredContentInsetsDidChange();
 
+#if PLATFORM(COCOA) && ENABLE(MEDIA_STREAM) && HAVE(SCREEN_CAPTURE_KIT)
+    DisplayCaptureSessionManager::singleton().pageObscuredContentRectDidChange();
+#endif
+
     if (!hasRunningProcess())
         return;
 
@@ -3959,6 +3916,11 @@ void WebPageProxy::activityStateDidChange(OptionSet<ActivityState> mayHaveChange
 
     internals().potentiallyChangedActivityStateFlags.add(mayHaveChanged);
     m_activityStateChangeWantsSynchronousReply = m_activityStateChangeWantsSynchronousReply || replyMode == ActivityStateChangeReplyMode::Synchronous;
+
+#if PLATFORM(COCOA) && ENABLE(MEDIA_STREAM) && HAVE(SCREEN_CAPTURE_KIT)
+    if (mayHaveChanged.containsAny({ ActivityState::IsVisible, ActivityState::IsInWindow }))
+        DisplayCaptureSessionManager::singleton().pageVisibilityDidChange();
+#endif
 
     // We need to do this here instead of inside dispatchActivityStateChange() or viewIsBecomingVisible() because these don't run when the view doesn't
     // have a running WebProcess.
@@ -5164,16 +5126,15 @@ void WebPageProxy::sendMouseEvent(FrameIdentifier frameID, Ref<NativeWebMouseEve
             return;
         }
 
-        if (!isReplyForCurrentEvent) {
-            MESSAGE_CHECK_BASE(!remoteUserInputEventData || protect(protectedThis->preferences())->siteIsolationEnabled(), connection);
+        if (remoteUserInputEventData && !protectedThis->frameForRemoteUserInputEventRedispatch(connection, frameID, remoteUserInputEventData->targetFrameID))
+            remoteUserInputEventData = std::nullopt;
 
+        if (!isReplyForCurrentEvent) {
             if (eventType != WebEventType::MouseMove)
                 WebProcessProxy::fromConnection(*connection)->stopResponsivenessTimer();
             protectedThis->handleMouseEventReplyForParkedEvent(WTF::move(sentEvent), frameID, WTF::move(remoteUserInputEventData));
             return;
         }
-
-        MESSAGE_CHECK_BASE(!remoteUserInputEventData || protect(protectedThis->preferences())->siteIsolationEnabled(), connection);
 
         if (eventType != WebEventType::MouseMove)
             WebProcessProxy::fromConnection(*connection)->stopResponsivenessTimer();
@@ -5252,14 +5213,17 @@ void WebPageProxy::dispatchMouseDidMoveOverElementForModifierFlagsChange(Ref<Nat
 
 void WebPageProxy::performHitTestForModifierFlagsChangeInFrame(FrameIdentifier frameID, Ref<WebMouseEvent>&& event)
 {
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformHitTestForModifierFlagsChangeOnMouseEvent { frameID, event }, [this, protectedThis = Ref { *this }, event] (Variant<WebHitTestResultData, RemoteUserInputEventData>&& resultOrRemoteData, OptionSet<WebEventModifier> modifiers) mutable {
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformHitTestForModifierFlagsChangeOnMouseEvent { frameID, event }, [this, protectedThis = Ref { *this }, frameID, event](IPC::Connection* connection, Variant<WebHitTestResultData, RemoteUserInputEventData>&& resultOrRemoteData, OptionSet<WebEventModifier> modifiers) mutable {
         if (isClosed())
             return;
         WTF::switchOn(WTF::move(resultOrRemoteData), [&] (WebHitTestResultData&& hitTestResult) {
             mouseDidMoveOverElement(WTF::move(hitTestResult), modifiers);
         }, [&] (RemoteUserInputEventData&& remoteUserInputEventData) {
+            RefPtr targetFrame = frameForRemoteUserInputEventRedispatch(connection, frameID, remoteUserInputEventData.targetFrameID);
+            if (!targetFrame)
+                return;
             event->setPosition(remoteUserInputEventData.transformedPoint);
-            performHitTestForModifierFlagsChangeInFrame(remoteUserInputEventData.targetFrameID, WTF::move(event));
+            performHitTestForModifierFlagsChangeInFrame(targetFrame->frameID(), WTF::move(event));
         });
     });
 }
@@ -5600,11 +5564,9 @@ void WebPageProxy::sendWheelEvent(WebCore::FrameIdentifier frameID, Ref<WebWheel
             if (protectedThis->isClosed())
                 return;
 
-            MESSAGE_CHECK_BASE(!remoteWheelEventData || protect(protectedThis->preferences())->siteIsolationEnabled(), connection);
-
-            if (remoteWheelEventData) {
+            if (RefPtr targetFrame = remoteWheelEventData ? protectedThis->frameForRemoteUserInputEventRedispatch(connection, frameID, remoteWheelEventData->targetFrameID) : nullptr) {
                 wheelEvent->setPosition(roundedIntPoint(remoteWheelEventData->transformedPoint));
-                protectedThis->sendWheelEvent(remoteWheelEventData->targetFrameID, wheelEvent.copyRef(), processingSteps, rubberBandableEdges, willStartSwipe, wasHandledForScrolling);
+                protectedThis->sendWheelEvent(targetFrame->frameID(), wheelEvent.copyRef(), processingSteps, rubberBandableEdges, willStartSwipe, wasHandledForScrolling);
                 return;
             }
 
@@ -5929,7 +5891,7 @@ TrackingType WebPageProxy::touchEventTrackingType(const WebTouchEvent& touchStar
 #if ENABLE(MAC_GESTURE_EVENTS)
 void WebPageProxy::sendGestureEvent(FrameIdentifier frameID, Ref<NativeWebGestureEvent>&& event)
 {
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::EventDispatcher::GestureEvent(frameID, webPageIDInProcess(processContainingFrame(frameID)), WTF::move(event)), [protectedThis = Ref { *this }](IPC::Connection* connection, std::optional<WebEventType>&& eventType, bool handled, std::optional<WebCore::RemoteUserInputEventData>&& remoteUserInputEventData) {
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::EventDispatcher::GestureEvent(frameID, webPageIDInProcess(processContainingFrame(frameID)), WTF::move(event)), [protectedThis = Ref { *this }, frameID](IPC::Connection* connection, std::optional<WebEventType>&& eventType, bool handled, std::optional<WebCore::RemoteUserInputEventData>&& remoteUserInputEventData) {
         if (!protectedThis->m_pageClient)
             return;
         if (!eventType)
@@ -5938,7 +5900,8 @@ void WebPageProxy::sendGestureEvent(FrameIdentifier frameID, Ref<NativeWebGestur
         if (protectedThis->internals().gestureEventQueue.isEmpty())
             return;
 
-        MESSAGE_CHECK_BASE(!remoteUserInputEventData || protect(protectedThis->preferences())->siteIsolationEnabled(), connection);
+        if (remoteUserInputEventData && !protectedThis->frameForRemoteUserInputEventRedispatch(connection, frameID, remoteUserInputEventData->targetFrameID))
+            remoteUserInputEventData = std::nullopt;
 
         if (connection)
             WebProcessProxy::fromConnection(*connection)->stopResponsivenessTimer();
@@ -6842,6 +6805,9 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
             return;
         }
 
+        if (frame->isMainFrame())
+            takeBackForwardCacheEntryForAllowedNavigation(navigation, processNavigatingTo);
+
         RefPtr pageClientProtector = pageClient();
         // With site isolation, a subframe navigation may already be loading in a provisional frame in another process
         // (e.g. on a redirect). Keep using that provisional frame when the navigation stays in its process.
@@ -6936,6 +6902,8 @@ void WebPageProxy::receivedNavigationActionPolicyDecision(WebProcessProxy& proce
                     cancelled = true;
 
                 if (cancelled) {
+                    if (auto pendingRestore = protectedThis->internals().pendingBackForwardIframeRestores.take(navigation->navigationID()))
+                        protectedThis->restoreOrCancelPendingBackForwardIframes(*pendingRestore, RestoredFromBackForwardCache::No);
                     protectedThis->receivedPolicyDecision(processInitiatingNavigation, PolicyAction::Ignore, navigation.ptr(), std::nullopt, WTF::move(navigationAction), WillContinueLoadInNewProcess::No, std::nullopt, WTF::move(message), WTF::move(completionHandler));
                     return;
                 }
@@ -8334,6 +8302,21 @@ void WebPageProxy::setSuppressScrollbarAnimations(bool suppressAnimations)
     send(Messages::WebPage::SetSuppressScrollbarAnimations(suppressAnimations));
 }
 
+void WebPageProxy::setScrollbarStyleOverride(std::optional<WebCore::ScrollbarStyle> styleOverride)
+{
+    if (styleOverride == m_scrollbarStyleOverride)
+        return;
+
+    m_scrollbarStyleOverride = styleOverride;
+
+    if (!hasRunningProcess())
+        return;
+
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.send(Messages::WebPage::SetScrollbarStyleOverride(styleOverride), pageID);
+    });
+}
+
 RectEdges<bool> WebPageProxy::rubberBandableEdges() const
 {
     return internals().rubberBandableEdges;
@@ -9017,7 +9000,10 @@ void WebPageProxy::clearContentWorld(API::ContentWorld& world, CompletionHandler
     if (!hasRunningProcess())
         return completionHandler();
 
-    sendWithAsyncReply(Messages::WebPage::ClearContentWorld(world.identifier()), WTF::move(completionHandler));
+    auto callbackAggregator = CallbackAggregator::create(WTF::move(completionHandler));
+    forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        webProcess.sendWithAsyncReply(Messages::WebPage::ClearContentWorld(world.identifier()), [callbackAggregator] { }, pageID);
+    });
 }
 
 void WebPageProxy::getSourceForFrame(WebFrameProxy* frame, CompletionHandler<void(const String&)>&& callback)
@@ -17284,6 +17270,7 @@ WebPageCreationParameters WebPageProxy::creationParameters(WebProcessProxy& proc
     parameters.alwaysShowsHorizontalScroller = m_alwaysShowsHorizontalScroller;
     parameters.alwaysShowsVerticalScroller = m_alwaysShowsVerticalScroller;
     parameters.suppressScrollbarAnimations = m_suppressScrollbarAnimations;
+    parameters.scrollbarStyleOverride = m_scrollbarStyleOverride;
     parameters.paginationMode = m_paginationMode;
     parameters.paginationBehavesLikeColumns = m_paginationBehavesLikeColumns;
     parameters.pageLength = m_pageLength;
@@ -22319,14 +22306,14 @@ Ref<WebProcessProxy> WebPageProxy::processContainingFrame(std::optional<WebCore:
     return siteIsolatedProcess();
 }
 
-RefPtr<WebFrameProxy> WebPageProxy::frameForRemoteUserInputEventRedispatch(IPC::Connection* replyingConnection, WebCore::FrameIdentifier sourceFrameID, WebCore::FrameIdentifier targetFrameID)
+RefPtr<WebFrameProxy> WebPageProxy::frameForRemoteUserInputEventRedispatch(IPC::Connection* replyingConnection, std::optional<WebCore::FrameIdentifier> sourceFrameID, WebCore::FrameIdentifier targetFrameID)
 {
     if (!replyingConnection)
         return nullptr;
 
     MESSAGE_CHECK_WITH_RETURN_VALUE_BASE(protect(preferences())->siteIsolationEnabled(), *replyingConnection, nullptr);
 
-    RefPtr sourceFrame = WebFrameProxy::webFrame(sourceFrameID);
+    RefPtr sourceFrame = sourceFrameID ? WebFrameProxy::webFrame(*sourceFrameID) : m_mainFrame.get();
     RefPtr targetFrame = WebFrameProxy::webFrame(targetFrameID);
     if (!sourceFrame || !targetFrame)
         return nullptr;
@@ -22518,6 +22505,8 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME_WITHOUT_DESTINATIO
 
 #define INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(message) \
     template std::optional<IPC::AsyncReplyID> WebPageProxy::sendWithAsyncReplyToProcessContainingFrame<Messages::message, Messages::message::Reply>(std::optional<WebCore::FrameIdentifier>, Messages::message&&, Messages::message::Reply&&, OptionSet<IPC::SendOption>)
+#define INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(message) \
+    template std::optional<IPC::AsyncReplyID> WebPageProxy::sendWithAsyncReplyToProcessContainingFrame<Messages::message, ReplyWithConnection<Messages::message>>(std::optional<WebCore::FrameIdentifier>, Messages::message&&, ReplyWithConnection<Messages::message>&&, OptionSet<IPC::SendOption>)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::NavigateServiceWorkerClient);
 #if ENABLE(TWO_PHASE_CLICKS)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::CommitPotentialTap);
@@ -22526,9 +22515,9 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::HandleDou
 #endif
 #if PLATFORM(COCOA)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformDictionaryLookupAtLocation);
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithGesture);
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtPoint);
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTextWithGranularityAtPoint);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithGesture);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtPoint);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectTextWithGranularityAtPoint);
 #endif
 #if PLATFORM(IOS_FAMILY)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::AttemptSyntheticClick);
@@ -22537,7 +22526,7 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestEv
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::TapHighlightAtPosition);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::ShouldDismissKeyboardAfterTapAtPoint);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::UpdateSelectionWithTouches);
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithTwoTouches);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectWithTwoTouches);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::ApplyAutocorrection);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawToImage);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawToPDFiOS);
@@ -22546,9 +22535,9 @@ INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::DrawPrint
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::FocusNextFocusedElement);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PerformActionOnElement);
 #if ENABLE(REVEAL)
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::PrepareSelectionForContextMenuWithLocationInView);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::PrepareSelectionForContextMenuWithLocationInView);
 #endif
-INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtBoundaryWithDirection);
+INSTANTIATE_SEND_WITH_ASYNC_REPLY_WITH_CONNECTION_TO_PROCESS_CONTAINING_FRAME(WebPage::SelectPositionAtBoundaryWithDirection);
 #if ENABLE(DRAG_SUPPORT)
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestDragStart);
 INSTANTIATE_SEND_WITH_ASYNC_REPLY_TO_PROCESS_CONTAINING_FRAME(WebPage::RequestAdditionalItemsForDragSession);
@@ -23244,6 +23233,62 @@ void WebPageProxy::didCacheBackForwardItem(BackForwardItemIdentifier itemID, Com
     entry->setCachedChildren(mainFrame->takeChildFrames());
 
     suspendIframeProcessesForBackForwardCache(*item, WTF::move(iframeProcesses), WTF::move(completionHandler));
+}
+
+void WebPageProxy::takeBackForwardCacheEntryForAllowedNavigation(API::Navigation& navigation, WebProcessProxy& mainFrameProcess)
+{
+    if (!navigation.backForwardCacheMainFrameProcessIdentifier())
+        return;
+
+    RefPtr item = navigation.targetItem();
+    RefPtr entry = item ? item->backForwardCacheEntry() : nullptr;
+    if (!entry || item->suspendedPage())
+        return;
+
+    auto [cachedChildren, iframeProcesses] = entry->takeForRestoration();
+    auto itemID = item->identifier();
+
+    protect(backForwardCache())->removeEntry(*item);
+
+    if (cachedChildren.isEmpty())
+        return;
+
+    auto mainFrameItemID = item->mainFrameItem().identifier();
+
+    internals().pendingBackForwardCachedChildren.set(itemID, WTF::move(cachedChildren));
+
+    auto aggregator = MainRunLoopSuccessCallbackAggregator::create(
+        [weakThis = WeakPtr { *this }, itemID](bool success) {
+            if (success)
+                return;
+            RefPtr page = weakThis;
+            if (!page)
+                return;
+            page->internals().pendingBackForwardCachedChildren.remove(itemID);
+            RELEASE_LOG_ERROR(ProcessSwapping, "WebPageProxy::takeBackForwardCacheEntryForAllowedNavigation: iframe restore failed, reloading");
+            page->reload(ReloadOption::ExpiredOnly);
+        });
+
+    iframeProcesses.removeAllMatching([&](auto& iframeProcess) {
+        // Children cached in the same process as the restored main frame are local
+        // WebFrameProxys and they're reattached directly via
+        // pendingBackForwardCachedChildren/adoptChildFrames once the main frame commits.
+        if (iframeProcess.ptr() == &mainFrameProcess)
+            return true;
+
+        if (!protect(browsingContextGroup())->remotePageInProcess(*this, iframeProcess)) {
+            RELEASE_LOG_ERROR(ProcessSwapping, "WebPageProxy::takeBackForwardCacheEntryForAllowedNavigation: no RemotePageProxy for pid %i, signaling failure", iframeProcess->processID());
+            aggregator->failed();
+            return true;
+        }
+        return false;
+    });
+
+    for (Ref iframeProcess : iframeProcesses)
+        iframeProcess->send(Messages::WebPage::PrepareToRestoreWithFrameItem(mainFrameItemID), webPageIDInProcess(iframeProcess));
+
+    if (!iframeProcesses.isEmpty())
+        internals().pendingBackForwardIframeRestores.set(navigation.navigationID(), makeUnique<PendingBackForwardIframeRestore>(mainFrameProcess.coreProcessIdentifier(), mainFrameItemID, WTF::move(iframeProcesses), WTF::move(aggregator)));
 }
 
 void WebPageProxy::restoreOrCancelPendingBackForwardIframes(const PendingBackForwardIframeRestore& pendingRestore, RestoredFromBackForwardCache restoredFromBackForwardCache)

@@ -48,7 +48,7 @@ from twisted.trial import unittest
 
 from Shared.steps import *
 
-from . import send_email
+from . import relevance, send_email
 from .layout_test_failures import LayoutTestFailures
 from .results_db import EWSPayload, EWSRowDetails, FlakyVerdict
 from .steps import *
@@ -7048,282 +7048,25 @@ class TestCheckChangeRelevance(BuildStepMixinAdditions, unittest.TestCase):
     def tearDown(self):
         return self.tear_down_test_build_step()
 
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_jsc_change(self):
-        file_names = ['JSTests/', 'Source/JavaScriptCore/', 'Source/WTF/', 'Source/bmalloc/', 'Makefile', 'Makefile.shared',
-                      'Source/Makefile', 'Source/Makefile.shared', 'Tools/Scripts/build-webkit', 'Tools/Scripts/build-jsc',
-                      'Tools/Scripts/jsc-stress-test-helpers/', 'Tools/Scripts/run-jsc', 'Tools/Scripts/run-jsc-benchmarks',
-                      'Tools/Scripts/run-jsc-stress-tests', 'Tools/Scripts/run-javascriptcore-tests', 'Tools/Scripts/run-layout-jsc',
-                      'Tools/Scripts/update-javascriptcore-test-results', 'Tools/Scripts/webkitdirs.pm',
-                      'Source/cmake/OptionsJSCOnly.cmake']
-
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'JSC-Tests-EWS')
+    def test_relevant_change(self):
+        CheckChangeRelevance._get_changed_files = lambda x: b'+++ docs/a.md\n+++ Source/WebCore/dom/Node.cpp'
+        self.setup_step(CheckChangeRelevance(relevance.BUILD))
         self.assertEqual(CheckChangeRelevance.haltOnFailure, True)
         self.assertEqual(CheckChangeRelevance.flunkOnFailure, True)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_jsc_arm64_change(self):
-        file_names = ['JSTests/', 'Source/JavaScriptCore/', 'Source/WTF/', 'Source/bmalloc/', 'Makefile', 'Makefile.shared',
-                      'Source/Makefile', 'Source/Makefile.shared', 'Tools/Scripts/build-webkit', 'Tools/Scripts/build-jsc',
-                      'Tools/Scripts/jsc-stress-test-helpers/', 'Tools/Scripts/run-jsc', 'Tools/Scripts/run-jsc-benchmarks',
-                      'Tools/Scripts/run-jsc-stress-tests', 'Tools/Scripts/run-javascriptcore-tests', 'Tools/Scripts/run-layout-jsc',
-                      'Tools/Scripts/update-javascriptcore-test-results', 'Tools/Scripts/webkitdirs.pm',
-                      'Source/cmake/OptionsJSCOnly.cmake']
-
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'JSC-Tests-arm64-EWS')
-        self.assertEqual(CheckChangeRelevance.haltOnFailure, True)
-        self.assertEqual(CheckChangeRelevance.flunkOnFailure, True)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_wk1_change_multiple_files(self):
-        file_names = ['Source/WebKitLegacy', 'Source/WebCore', 'Source/WebInspectorUI', 'Source/WebDriver', 'Source/WTF',
-                      'Source/bmalloc', 'Source/JavaScriptCore', 'Source/ThirdParty', 'LayoutTests', 'Tools']
-
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'macOS-Catalina-Release-WK1-Tests-EWS')
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @expectedFailure
-    def test_relevant_monterey_builder_change(self):
-        file_names = ['Source/xyz', 'Tools/abc']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'macOS-Monterey-Release-Build-EWS')
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    def test_relevant_wk1_change(self):
-        CheckChangeRelevance._get_changed_files = lambda x: b'Sample change; file: Source/WebKitLegacy'
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'macOS-Monterey-Release-WK1-Tests-EWS')
         self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
         return self.run_step()
 
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_webkitpy_change(self):
-        file_names = ['Tools/Scripts/webkitpy', 'Tools/Scripts/libraries', 'Tools/Scripts/commit-log-editor']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'WebKitPy-Tests-EWS')
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_services_change(self):
-        file_names = ['Tools/CISupport/build-webkit-org', 'Tools/CISupport/ews-build', 'Tools/CISupport/Shared',
-                      'Tools/Scripts/libraries/resultsdbpy', 'Tools/Scripts/libraries/webkitcorepy', 'Tools/Scripts/libraries/webkitscmpy']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Services-EWS')
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_services_pull_request(self):
-        file_names = ['Tools/CISupport/build-webkit-org', 'Tools/CISupport/ews-build', 'Tools/CISupport/Shared',
-                      'Tools/Scripts/libraries/resultsdbpy', 'Tools/Scripts/libraries/webkitcorepy', 'Tools/Scripts/libraries/webkitscmpy']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Services-EWS')
+    def test_irrelevant_change(self):
+        CheckChangeRelevance._get_changed_files = lambda x: b'+++ docs/porting-webkit.md\n+++ docs/images/diagram.png'
+        self.setup_step(CheckChangeRelevance(relevance.BUILD))
         self.setProperty('github.number', 1234)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: file_name
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_relevant_safer_cpp_pull_request(self):
-        file_names = ['Tools/CISupport/Shared/download-and-install-build-tools', 'Tools/Scripts/build-and-analyze', 'Source/WebKit']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Safer-CPP-Checks-EWS')
-        self.setProperty('github.number', 1234)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: file_name
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    def test_relevant_safer_cpp_pull_request(self):
-        file_names = ['Tools/CISupport/safer-cpp-swift-version']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Safer-CPP-Checks-EWS')
-        self.setProperty('github.number', 1234)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: file_name
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @expectedFailure
-    def test_relevant_bindings_tests_change(self):
-        file_names = ['Source/WebCore', 'Tools']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Bindings-Tests-EWS')
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: f'Sample change; file: {file_name}'
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @expectedFailure
-    def test_relevant_bindings_tests_pull_request(self):
-        file_names = ['Source/WebCore', 'Tools']
-        self.setup_step(CheckChangeRelevance())
-        self.setProperty('buildername', 'Bindings-Tests-EWS')
-        self.setProperty('github.number', 1234)
-        for file_name in file_names:
-            CheckChangeRelevance._get_changed_files = lambda x: file_name
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_queues_without_relevance_info(self):
-        CheckChangeRelevance._get_changed_files = lambda x: 'Sample change'
-        queues = ['Commit-Queue', 'Style-EWS', 'GTK-Build-EWS', 'GTK-WK2-Tests-EWS',
-                  'iOS-13-Build-EWS', 'iOS-13-Simulator-Build-EWS', 'iOS-13-Simulator-WK2-Tests-EWS',
-                  'macOS-Catalina-Release-Build-EWS', 'macOS-Catalina-Release-WK2-Tests-EWS', 'macOS-Catalina-Debug-Build-EWS',
-                  'PlayStation-Build-EWS', 'Win-Build-EWS', 'WPE-Build-EWS', 'WebKitPerl-Tests-EWS', 'GTK-GTK3-GCC-Build-EWS']
-        for queue in queues:
-            self.setup_step(CheckChangeRelevance())
-            self.setProperty('buildername', queue)
-            self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_non_relevant_change_on_various_queues(self):
-        CheckChangeRelevance._get_changed_files = lambda x: 'Sample change'
-        queues = ['Bindings-Tests-EWS', 'JSC-Tests-EWS', 'macOS-Monterey-Release-Build-EWS',
-                  'macOS-Catalina-Debug-WK1-Tests-EWS', 'macOS-Safer-CPP-Checks-EWS', 'Services-EWS', 'WebKitPy-Tests-EWS']
-        for queue in queues:
-            self.setup_step(CheckChangeRelevance())
-            self.setProperty('buildername', queue)
-            self.expect_outcome(result=FAILURE, state_string='Pull request doesn\'t have relevant changes')
-            rc = self.run_step()
-        return rc
-
-    @skipTest("This should be expectedFailure, except https://github.com/twisted/twisted/issues/10969")
-    def test_non_relevant_pull_request_on_various_queues(self):
-        CheckChangeRelevance._get_changed_files = lambda x: '\n'
-        queues = ['Bindings-Tests-EWS', 'JSC-Tests-EWS', 'macOS-Monterey-Release-Build-EWS',
-                  'macOS-Catalina-Debug-WK1-Tests-EWS', 'macOS-Safer-CPP-Checks-EWS', 'Services-EWS', 'WebKitPy-Tests-EWS']
-        for queue in queues:
-            self.setup_step(CheckChangeRelevance())
-            self.setProperty('buildername', queue)
-            self.setProperty('github.number', 1234)
-            self.expect_outcome(result=FAILURE, state_string='Pull request doesn\'t have relevant changes')
-            rc = self.run_step()
-        return rc
-
-
-class TestCheckChangeRelevanceForWebDriver(unittest.TestCase):
-    BUILDER_NAME = 'macOS-Golden-Gate-Debug-WebDriver-Tests-EWS'
-
-    def test_relevant_files(self):
-        for file_name in [
-            'Source/WebDriver/Session.cpp',
-            'Tools/minidriver/minidriver.xcodeproj/project.pbxproj',
-            'Source/WebKit/UIProcess/Automation/WebAutomationSession.cpp',
-            'Source/WebKit/WebProcess/Automation/WebAutomationSessionProxy.cpp',
-            'Source/WebKit/Shared/Automation/AutomationProtocolObjects.h',
-            'Source/WebCore/automation/AutomationInstrumentation.cpp',
-            'Source/WebCore/Modules/webdriver/NavigatorWebDriver.cpp',
-            'Tools/MiniBrowser/mac/AutomationConnection.m',
-            'Tools/MiniBrowser/MiniBrowser.xcodeproj/project.pbxproj',
-            'WebDriverTests/TestExpectations.json',
-            'Tools/Scripts/webkitpy/webdriver_tests/webdriver_test_runner.py',
-            'Tools/Scripts/run-webdriver-tests',
-        ]:
-            self.assertTrue(CheckChangeRelevance()._change_is_relevant(f'Tools/ChangeLog\n{file_name}', self.BUILDER_NAME), file_name)
-
-    def test_irrelevant_files(self):
-        for file_name in [
-            'Source/WebKit/UIProcess/WebPageProxy.cpp',
-            'Source/WebCore/dom/Document.cpp',
-            'Tools/MiniBrowser/gtk/main.c',
-            'Tools/Scripts/run-webkit-tests',
-            'LayoutTests/imported/w3c/web-platform-tests/webdriver/tests/support/helpers.py',
-        ]:
-            self.assertFalse(CheckChangeRelevance()._change_is_relevant(file_name, self.BUILDER_NAME), file_name)
-
-    def test_queues_without_a_group_still_run_on_every_change(self):
-        self.assertTrue(CheckChangeRelevance()._change_is_relevant('Source/WebCore/dom/Document.cpp', 'macOS-Tahoe-Debug-API-Tests-EWS'))
-
-
-class TestCheckChangeRelevanceNoBuildInputs(unittest.TestCase):
-    def needs_build(self, *files):
-        return CheckChangeRelevance(skip_if_no_build_inputs=True)._change_is_relevant('\n'.join(files).encode(), 'Platform-Build-EWS')
-
-    def test_changes_without_build_inputs_are_skipped(self):
-        for files in [
-            ('+++ Websites/webkit.org/_posts/2026-10-19-foo.md',),
-            ('+++ docs/porting-webkit.md', '+++ docs/images/diagram.png'),
-            ('+++ metadata/contributors.json',),
-            ('+++ Tools/CISupport/ews-build/steps.py', '+++ Tools/CISupport/build-webkit-org/loadConfig.py', '+++ Tools/CISupport/ews-app/ews/views/status.py'),
-            ('+++ README.md', '+++ JSTests/README.md', '+++ LayoutTests/fast/README.md'),
-            ('+++ Websites/webkit.org/foo.html', '+++ docs/bar.md', '+++ metadata/contributors.json'),
-        ]:
-            self.assertFalse(self.needs_build(*files), files)
-
-    def test_changes_with_build_inputs_need_a_build(self):
-        for files in [
-            ('+++ Source/WebCore/dom/Node.cpp',),
-            ('+++ docs/a.md', '+++ Source/WebCore/dom/Node.cpp'),
-            ('+++ Tools/CISupport/kill-old-processes',),
-            ('+++ Tools/CISupport/built-product-archive',),
-            ('+++ Tools/CISupport/Shared/steps.py',),
-            ('+++ Source/WebKit/WPEPlatform/docs/overview.md',),
-            ('+++ Tools/Scripts/docs/foo.py',),
-            ('+++ SomeNewTopLevelDir/foo.txt',),
-        ]:
-            self.assertTrue(self.needs_build(*files), files)
-
-    def test_removed_or_renamed_files_need_a_build(self):
-        # GitHub lists both as '--- path', and a rename only keeps the new path.
-        self.assertTrue(self.needs_build('--- docs/old.md'))
-        self.assertTrue(self.needs_build('+++ docs/other.md', '--- docs/moved.md'))
-
-
-class TestCheckChangeRelevanceNoBuildInputsRun(BuildStepMixinAdditions, unittest.TestCase):
-    def setUp(self):
-        self.longMessage = True
-        return self.setup_test_build_step()
-
-    def tearDown(self):
-        return self.tear_down_test_build_step()
-
-    def test_run_skips_a_change_without_build_inputs(self):
-        CheckChangeRelevance._get_changed_files = lambda x: b'+++ docs/porting-webkit.md'
-        self.setup_step(CheckChangeRelevance(skip_if_no_build_inputs=True))
         self.expect_outcome(result=FAILURE, state_string="Pull request doesn't have relevant changes")
         return self.run_step()
 
-    def test_run_builds_a_change_with_build_inputs(self):
-        CheckChangeRelevance._get_changed_files = lambda x: b'+++ docs/a.md\n+++ Source/WebCore/dom/Node.cpp'
-        self.setup_step(CheckChangeRelevance(skip_if_no_build_inputs=True))
+    def test_no_change(self):
+        # Force builds don't have a change.
+        CheckChangeRelevance._get_changed_files = lambda x: None
+        self.setup_step(CheckChangeRelevance(relevance.JSC))
         self.expect_outcome(result=SUCCESS, state_string='Pull request contains relevant changes')
         return self.run_step()
 
@@ -10425,6 +10168,58 @@ class TestValidateChange(BuildStepMixinAdditions, unittest.TestCase):
         rc = self.run_step()
         return rc
 
+    def test_feature_branch(self):
+        self.setup_step(ValidateChange(verifyPRClosed=False))
+        ValidateChange.get_pr_json = lambda x, pull_request, repository_url=None, retry=None: self.get_pr(pr_number=pull_request)
+        self.setProperty('github.number', '1234')
+        self.setProperty('repository', 'https://github.com/WebKit/WebKit')
+        self.setProperty('github.head.sha', '7496f8ecc4cc8011f19c8cc1bc7b18fe4a88ad5c')
+        self.setProperty('github.base.ref', 'swift-adoption-experiments')
+
+        self.expect_outcome(result=FAILURE, state_string="Skipping as PR 1234 targets the 'swift-adoption-experiments' feature branch")
+        rc = self.run_step()
+        return rc
+
+    def test_feature_branch_allowed(self):
+        self.setup_step(ValidateChange(verifyPRClosed=False, excludeFeatureBranches=False))
+        ValidateChange.get_pr_json = lambda x, pull_request, repository_url=None, retry=None: self.get_pr(pr_number=pull_request)
+        self.setProperty('github.number', '1234')
+        self.setProperty('repository', 'https://github.com/WebKit/WebKit')
+        self.setProperty('github.head.sha', '7496f8ecc4cc8011f19c8cc1bc7b18fe4a88ad5c')
+        self.setProperty('github.base.ref', 'swift-adoption-experiments')
+
+        self.expect_outcome(result=SUCCESS, state_string='Validated change')
+        rc = self.run_step()
+        return rc
+
+    def test_feature_branch_prefix(self):
+        self.setup_step(ValidateChange(verifyPRClosed=False))
+        ValidateChange.get_pr_json = lambda x, pull_request, repository_url=None, retry=None: self.get_pr(pr_number=pull_request)
+        self.setProperty('github.number', '1234')
+        self.setProperty('repository', 'https://github.com/WebKit/WebKit')
+        self.setProperty('github.head.sha', '7496f8ecc4cc8011f19c8cc1bc7b18fe4a88ad5c')
+        self.setProperty('github.base.ref', 'feature/new-thing')
+
+        self.expect_outcome(result=FAILURE, state_string="Skipping as PR 1234 targets the 'feature/new-thing' feature branch")
+        rc = self.run_step()
+        return rc
+
+
+class TestIsFeatureBranch(unittest.TestCase):
+    def test_feature_branches(self):
+        self.assertTrue(is_feature_branch('swift-adoption-experiments'))
+        self.assertTrue(is_feature_branch('feature/new-thing'))
+        self.assertTrue(is_feature_branch('feature/nested/new-thing'))
+
+    def test_not_feature_branches(self):
+        self.assertFalse(is_feature_branch('main'))
+        self.assertFalse(is_feature_branch('swift-adoption'))
+        self.assertFalse(is_feature_branch('swift-adoption-experiments-2'))
+        self.assertFalse(is_feature_branch('feature/'))
+        self.assertFalse(is_feature_branch('eng/feature/new-thing'))
+        self.assertFalse(is_feature_branch('safari-7621-branch'))
+        self.assertFalse(is_feature_branch(None))
+
 
 class TestRetrievePRDataFromLabel(BuildStepMixinAdditions, unittest.TestCase):
     def setUp(self):
@@ -12183,6 +11978,26 @@ class TestMapBranchAlias(BuildStepMixinAdditions, unittest.TestCase):
         self.setProperty('github.number', '1234')
         self.expect_outcome(result=SKIPPED, state_string='finished (skipped)')
         return self.run_step()
+
+    def test_feature_branch(self):
+        self.setup_step(MapBranchAlias())
+        self.setProperty('remote', 'origin')
+        self.setProperty('github.base.ref', 'swift-adoption-experiments')
+        self.setProperty('github.number', '1234')
+        self.expect_outcome(result=SKIPPED, state_string='finished (skipped)')
+        rc = self.run_step()
+        self.expect_property('github.base.ref', 'swift-adoption-experiments')
+        return rc
+
+    def test_feature_branch_prefix(self):
+        self.setup_step(MapBranchAlias())
+        self.setProperty('remote', 'origin')
+        self.setProperty('github.base.ref', 'feature/new-thing')
+        self.setProperty('github.number', '1234')
+        self.expect_outcome(result=SKIPPED, state_string='finished (skipped)')
+        rc = self.run_step()
+        self.expect_property('github.base.ref', 'feature/new-thing')
+        return rc
 
     def test_prod_branch(self):
         self.setup_step(MapBranchAlias())

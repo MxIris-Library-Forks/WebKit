@@ -117,6 +117,9 @@ class WebsitePolicies;
 
 namespace Inspector {
 enum class InspectorTargetType : uint8_t;
+enum class NetworkInterceptOwner : uint8_t;
+struct InterceptPattern;
+struct NetworkInterception;
 }
 
 namespace IPC {
@@ -249,7 +252,7 @@ enum class HasInsecureContent : bool;
 enum class HighlightRequestOriginatedInApp : bool;
 enum class HighlightVisibility : bool;
 enum class InputMode : uint8_t;
-enum class InterruptScrollAnimation : bool;
+enum class InterruptScrollAnimation : uint8_t;
 enum class NavigationUpgradeToHTTPSBehavior : uint8_t;
 enum class LayerTreeAsTextOptions : uint16_t;
 enum class LayoutViewportConstraint : bool;
@@ -1614,11 +1617,11 @@ public:
     void recordUIProcessUserActivation(const WebEvent&);
     void dispatchMouseDidMoveOverElementForModifierFlagsChange(Ref<NativeWebMouseEvent>&&);
 
-    void doAfterProcessingAllPendingMouseEvents(Function<void()>&&);
+    void doAfterProcessingAllPendingMouseEvents(CompletionHandler<void()>&&);
     void didFinishProcessingAllPendingMouseEvents();
     void flushPendingMouseEventCallbacks();
 
-    void doAfterProcessingAllPendingKeyEvents(Function<void()>&&);
+    void doAfterProcessingAllPendingKeyEvents(CompletionHandler<void()>&&);
     void didFinishProcessingAllPendingKeyEvents();
     void flushPendingKeyEventCallbacks();
 
@@ -3169,6 +3172,20 @@ public:
 
     void forEachWebContentProcess(NOESCAPE const Function<void(WebProcessProxy&, WebCore::PageIdentifier)>&);
 
+    // Network interception authority. This page owns the one true copy of the interception
+    // configuration: the union of the patterns of every consumer. Each WebContent process hosting
+    // one of its frames holds a replica, refreshed on every write and seeded from the creation
+    // parameters of a process that joins the page later.
+    const Inspector::NetworkInterception& networkInterception() const;
+    // Replaces the patterns of one consumer. The handler runs once every hosting process has the new configuration.
+    void setNetworkInterceptPatterns(Inspector::NetworkInterceptOwner, Vector<Inspector::InterceptPattern>&&, CompletionHandler<void()>&&);
+    // Each of these returns whether it changed Web Inspector's configuration.
+    bool setInspectorNetworkInterceptionEnabled(bool);
+    bool addInspectorNetworkInterceptPattern(Inspector::InterceptPattern&&);
+    bool removeInspectorNetworkInterceptPattern(const Inspector::InterceptPattern&);
+    void clearInspectorNetworkInterception();
+    void updateNetworkInterception(CompletionHandler<void()>&&);
+
     void hitTestAtPoint(WebCore::FrameIdentifier, WebCore::FloatPoint, API::ContentWorld&, CompletionHandler<void(std::expected<std::optional<JSHandleInfo>, HitTestAtPointError>&&, WebHitTestResultData&&)>&&);
     void convertRectToMainFrameCoordinates(WebCore::FloatRect, std::optional<WebCore::FrameIdentifier>, CompletionHandler<void(std::optional<WebCore::FloatRect>)>&&);
 
@@ -3768,6 +3785,7 @@ private:
     void setFocusedElementInputType(InputType);
 
     void handleAcceptsFirstMouse(Variant<bool, WebCore::RemoteUserInputEventData>&&);
+    bool askFramesUnderMouseEvent(WebMouseEvent&, IPC::MessageName, NOESCAPE const Function<std::optional<Variant<bool, WebCore::RemoteUserInputEventData>>(WebProcessProxy&, std::optional<WebCore::FrameIdentifier>)>&);
 #endif // PLATFORM(MAC)
 
 #if PLATFORM(IOS_FAMILY)
@@ -3903,9 +3921,9 @@ private:
     void writePromisedAttachmentToPasteboard(IPC::Connection&, WebCore::PromisedAttachmentInfo&&, const String& authorizationToken);
 #endif
 
-    void requestAttachmentIcon(IPC::Connection&, const String& identifier, const String& type, const String& path, const String& title, const WebCore::FloatSize&);
+    void requestAttachmentIcon(IPC::Connection&, const String& identifier, const String& type, const String& fileExtension, const String& title, const WebCore::FloatSize&);
 
-    RefPtr<WebCore::ShareableBitmap> iconForAttachment(const String& fileName, const String& contentType, const String& title, WebCore::FloatSize&);
+    RefPtr<WebCore::ShareableBitmap> iconForAttachment(const String& fileExtension, const String& contentType, const String& title, WebCore::FloatSize&);
 #endif
 
     void reportPageLoadResult(const WebCore::ResourceError&);
@@ -4256,6 +4274,7 @@ private:
 #endif
 
     bool m_isTakingSnapshotsForApplicationSuspension { false };
+    bool m_shouldSuppressHDR { false };
 
 #if PLATFORM(MAC)
     bool m_acceptsFirstMouse { false };

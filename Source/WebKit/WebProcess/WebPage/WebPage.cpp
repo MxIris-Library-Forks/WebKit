@@ -64,6 +64,7 @@
 #include "MediaPlaybackState.h"
 #include "MessageSenderInlines.h"
 #include "NetworkConnectionToWebProcessMessages.h"
+#include "NetworkInterceptionSink.h"
 #include "NetworkProcessConnection.h"
 #include "NodeHitTestResult.h"
 #include "NotificationPermissionRequestManager.h"
@@ -373,6 +374,7 @@
 #include <ranges>
 #include <wtf/Borrow.h>
 #include <wtf/CoroutineUtilities.h>
+#include <wtf/FileSystem.h>
 #include <wtf/ProcessID.h>
 #include <wtf/RunLoop.h>
 #include <wtf/SaturatingArithmetic.h>
@@ -1102,6 +1104,7 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 #endif
 
     page->setControlledByAutomation(parameters.controlledByAutomation);
+    page->setNetworkInterception(Inspector::NetworkInterception { parameters.networkInterception });
     page->setHasResourceLoadClient(parameters.hasResourceLoadClient);
 
     page->setCanStartMedia(false);
@@ -1110,6 +1113,8 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
         page->suspendAllMediaPlayback();
     if (parameters.areActiveDOMObjectsAndAnimationsSuspended)
         page->suspendActiveDOMObjectsAndAnimations();
+    page->setShouldSuppressHDR(parameters.shouldSuppressHDR);
+    page->setIsTakingSnapshotsForApplicationSuspension(parameters.isTakingSnapshotsForApplicationSuspension);
 
     if (parameters.openedByDOM)
         page->setOpenedByDOM();
@@ -1216,6 +1221,9 @@ WebPage::WebPage(PageIdentifier pageID, WebPageCreationParameters&& parameters)
 
     if (parameters.viewScaleFactor != 1)
         scaleView(parameters.viewScaleFactor);
+
+    if (parameters.remotePageParameters && parameters.remotePageParameters->pageScaleFactor != 1)
+        didScalePage(parameters.remotePageParameters->pageScaleFactor, { });
 
     page->addLayoutMilestones(parameters.observedLayoutMilestones);
 
@@ -1928,6 +1936,13 @@ bool WebPage::isThrottleable() const
     bool isVisuallyIdle = m_activityState.contains(ActivityState::IsVisuallyIdle);
 
     return m_isAppNapEnabled && !isActive && isVisuallyIdle;
+}
+
+NetworkInterceptionSink& WebPage::networkInterceptionSink()
+{
+    if (!m_networkInterceptionSink)
+        m_networkInterceptionSink = makeUnique<NetworkInterceptionSink>(*this);
+    return *m_networkInterceptionSink;
 }
 
 WebPage::~WebPage()
@@ -3121,6 +3136,10 @@ void WebPage::goToBackForwardItem(GoToBackForwardItemParameters&& parameters, Co
     if (RefPtr targetLocalFrame = targetFrame->provisionalFrame() ? targetFrame->provisionalFrame() : targetFrame->coreLocalFrame()) {
         if (targetFrame.ptr() == m_mainFrame.ptr())
             targetLocalFrame->loader().setNavigationUpgradeToHTTPSBehavior(item->url().protocolIs("http"_s) ? NavigationUpgradeToHTTPSBehavior::Disabled : NavigationUpgradeToHTTPSBehavior::BasedOnPolicy);
+        targetLocalFrame->loader().setRedirectedRequestForContinuingHistoryLoad(WTF::move(parameters.redirectedRequest));
+        auto redirectedRequestScope = makeScopeExit([targetLocalFrame] {
+            targetLocalFrame->loader().setRedirectedRequestForContinuingHistoryLoad(std::nullopt);
+        });
         protect(corePage())->goToItem(*targetLocalFrame, item, parameters.backForwardType, parameters.shouldTreatAsContinuingLoad, parameters.shouldRestoreFromBackForwardCache, [weakTargetLocalFrame = WeakPtr { *targetLocalFrame }, item, navigationID = parameters.navigationID, completionHandler = WTF::move(completionHandler)] mutable {
             RefPtr targetLocalFrame = weakTargetLocalFrame;
             if (!targetLocalFrame) {
@@ -4951,6 +4970,15 @@ void WebPage::setControlledByAutomation(bool controlled)
     m_page->setControlledByAutomation(controlled);
 }
 
+void WebPage::setNetworkInterception(Inspector::NetworkInterception&& configuration, CompletionHandler<void()>&& completionHandler)
+{
+    // The UI process is the authority. Every process hosting a frame of the page stores the
+    // configuration on its page, where loading code consults it.
+    if (RefPtr page = m_page)
+        page->setNetworkInterception(WTF::move(configuration));
+    completionHandler();
+}
+
 CheckedRef<PageInspectorTarget> WebPage::ensureInspectorTarget()
 {
     if (!m_inspectorTarget)
@@ -5593,7 +5621,7 @@ void WebPage::getMainResourceDataOfFrame(FrameIdentifier frameID, CompletionHand
         if (!buffer)
 #endif
         {
-            if (RefPtr loader = coreFrame->loader().documentLoader())
+            if (RefPtr loader = coreFrame ? coreFrame->loader().documentLoader() : nullptr)
                 buffer = loader->mainResourceData();
         }
     }
@@ -5603,6 +5631,9 @@ void WebPage::getMainResourceDataOfFrame(FrameIdentifier frameID, CompletionHand
 
 static RefPtr<FragmentedSharedBuffer> resourceDataForFrame(LocalFrame* frame, const URL& resourceURL)
 {
+    if (!frame)
+        return nullptr;
+
     RefPtr loader = frame->loader().documentLoader();
     if (!loader)
         return nullptr;
@@ -8859,7 +8890,7 @@ void WebPage::didCommitLoad(WebFrame* frame)
         reportUsedFeatures();
 
     // Only restore the scale factor for standard frame loads (of the main frame).
-    if (frame->coreLocalFrame()->loader().loadType() == FrameLoadType::Standard) {
+    if (frame->isMainFrame() && frame->coreLocalFrame()->loader().loadType() == FrameLoadType::Standard) {
         RefPtr page = frame->coreLocalFrame()->page();
 
 #if PLATFORM(MAC)
@@ -10039,10 +10070,14 @@ void WebPage::updateAttachmentIcon(const String& identifier, std::optional<Share
 void WebPage::requestAttachmentIcon(const String& identifier, const WebCore::FloatSize& size)
 {
     if (RefPtr attachment = attachmentElementWithIdentifier(identifier)) {
-        String fileName;
-        if (RefPtr file = attachment->file())
-            fileName = file->path();
-        send(Messages::WebPageProxy::RequestAttachmentIcon(identifier, attachment->attachmentType(), fileName, attachment->attachmentTitle(), size));
+        String type = attachment->attachmentType();
+        String fileExtension;
+        if (RefPtr file = attachment->file()) {
+            fileExtension = FileSystem::pathExtension(file->name()).toString();
+            if (type.isEmpty() && file->isDirectory())
+                type = "public.folder"_s;
+        }
+        send(Messages::WebPageProxy::RequestAttachmentIcon(identifier, type, fileExtension, attachment->attachmentTitle(), size));
     }
 }
 

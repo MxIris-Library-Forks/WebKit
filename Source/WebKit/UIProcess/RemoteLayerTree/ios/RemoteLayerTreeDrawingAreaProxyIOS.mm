@@ -31,7 +31,6 @@
 #import "CAFrameRateRangeUtilities.h"
 #import "PageClient.h"
 #import "RemoteLayerTreeCommitBundle.h"
-#import "RemoteLayerTreeScrollingPerformanceData.h"
 #import "RemoteScrollingCoordinatorProxyIOS.h"
 #import "WebPageProxy.h"
 #import "WebPreferences.h"
@@ -154,7 +153,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (void)displayLinkFired:(CADisplayLink *)sender
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isUIThread());
+    RELEASE_ASSERT(isUIThread());
 
     _lastDisplayLinkFireTime = MonotonicTime::now();
 
@@ -184,7 +183,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
 - (void)_forcedRefreshTimerFired
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isUIThread());
+    RELEASE_ASSERT(isUIThread());
 
     if (MonotonicTime::now() >= _forcedRefreshStateWhileDisplayIsNotUpdating.deadline) {
         [self _stopForcedDisplayRefresh];
@@ -214,7 +213,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 #if ENABLE(TIMER_DRIVEN_DISPLAY_REFRESH_FOR_TESTING)
 - (void)timerFired
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isUIThread());
+    RELEASE_ASSERT(isUIThread());
     _lastDisplayLinkFireTime = MonotonicTime::now();
     if (RefPtr drawingArea = _drawingAreaProxy)
         drawingArea->didRefreshDisplay();
@@ -555,7 +554,7 @@ UIView *RemoteLayerTreeDrawingAreaProxyIOS::viewWithLayerIDForTesting(WebCore::P
     return nil;
 }
 
-void RemoteLayerTreeDrawingAreaProxyIOS::didCommitLayerTree(IPC::Connection&, const RemoteLayerTreeTransaction& transaction, const RemoteScrollingCoordinatorTransaction&, const std::optional<MainFrameData>& mainFrameData, const TransactionID&)
+void RemoteLayerTreeDrawingAreaProxyIOS::didCommitLayerTree(IPC::Connection&, const RemoteLayerTreeTransaction&, const RemoteScrollingCoordinatorTransaction&, const std::optional<MainFrameData>& mainFrameData, const TransactionID&)
 {
 #if ENABLE(THREADED_ANIMATIONS)
     updateHighImpactMonotonicAnimations();
@@ -570,13 +569,6 @@ void RemoteLayerTreeDrawingAreaProxyIOS::didCommitLayerTree(IPC::Connection&, co
 
     Ref scrollingCoordinatorProxy = *page->scrollingCoordinatorProxy();
     page->setScrollPerformanceDataCollectionEnabled(scrollingCoordinatorProxy->scrollingPerformanceTestingEnabled());
-
-    if (transaction.createdLayers().size() > 0) {
-        if (auto* scrollPerfData = page->scrollingPerformanceData()) {
-            auto visibleRect = WebCore::FloatRect(transaction.scrollPosition(), mainFrameData->baseLayoutViewportSize);
-            scrollPerfData->didCommitLayerTree(visibleRect);
-        }
-    }
 }
 
 } // namespace WebKit

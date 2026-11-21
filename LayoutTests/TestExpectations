@@ -120,6 +120,7 @@ scrollbars/mac [ Skip ]
 scrollingcoordinator [ Skip ]
 media/ios [ Skip ]
 media/audioSession/ios [ Skip ]
+media/wireless-playback-media-player [ Skip ]
 media/encrypted-media/encrypted-media-append-encrypted-unencrypted.html [ Skip ]
 media/media-source/media-source-append-play-corrupt-aac.html [ Skip ]
 media/media-source/media-source-audio-decoding-error-fatal.html [ Skip ]
@@ -492,33 +493,31 @@ imported/w3c/web-platform-tests/service-workers/service-worker/partitioned-cooki
 # This test is timing out in all browsers.
 imported/w3c/web-platform-tests/service-workers/service-worker/clients-matchall-frozen.https.html [ Skip ]
 
-# These tests rely on subdomains and can't work currently with local webserver.
-imported/w3c/web-platform-tests/referrer-policy/origin [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/strict-origin-when-cross-origin [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/no-referrer [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/origin-when-cross-origin [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/unsafe-url [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/no-referrer-when-downgrade [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/same-origin [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/strict-origin [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/unset-referrer-policy [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/iframe-inheritance.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/multiple-headers-and-values.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/multiple-headers-combined.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/multiple-headers-one-invalid.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/multiple-headers-one-unknown-token.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/multiple-headers.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/sandboxed-iframe-with-opaque-origin.html [ Skip ]
+# These tests fail with messages that include a random identifier or timestamp.
+imported/w3c/web-platform-tests/referrer-policy/css-integration/child-css/internal-import-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/child-css/processing-instruction.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/external-import-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/external-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/internal-import-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/processing-instruction.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/image/external-import-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/image/external-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/image/internal-import-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/image/processing-instruction.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/external-stylesheet.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/processing-instruction.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/image-decoding.html [ Skip ]
+
+# These tests print the request's headers, including User-Agent and Accept-Language, which differ by platform.
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/area-navigate.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/fetch-messaging.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/iframe-messaging.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/image-decoding.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/link-navigate.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/script-messaging.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/worker-messaging.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/xhr-messaging.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/generic/unsupported-csp-referrer-directive.html [ Skip ]
+
+imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/filter-no-referrer.html [ ImageOnlyFailure ]
 
 # These tests times out. We should fix that.
 imported/w3c/web-platform-tests/selection/collapse-30.html [ Skip ]
@@ -621,6 +620,9 @@ imported/w3c/web-platform-tests/scheduler/post-task-then-detach.html [ Skip ]
 imported/w3c/web-platform-tests/scheduler/tentative/yield/yield-priority-idle-callbacks.html [ Skip ]
 imported/w3c/web-platform-tests/scheduler/tentative/yield/yield-priority-timers.any.html [ Skip ]
 imported/w3c/web-platform-tests/scheduler/tentative/yield/yield-priority-timers.any.worker.html [ Skip ]
+
+# Test expectation is a failure, but output is unreliable due timing:
+webkit.org/b/301008 imported/w3c/web-platform-tests/html/webappapis/timers/timer-nesting-not-inherited-in-microtask.html [ Pass Failure ]
 
 # Requires additional test infrastructure.
 imported/w3c/web-platform-tests/service-workers/service-worker/update-after-oneday.https.html [ Skip ]
@@ -1040,8 +1042,37 @@ imported/w3c/web-platform-tests/html/user-activation/activation-trigger-keyboard
 imported/w3c/web-platform-tests/html/user-activation/activation-trigger-keyboard-escape.html [ Skip ]
 imported/w3c/web-platform-tests/html/user-activation/activation-trigger-mouse-left.html [ Skip ]
 imported/w3c/web-platform-tests/html/user-activation/activation-trigger-mouse-right.html [ Skip ]
-webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-to-crossorigin-redirect.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/activation-trigger-touch.tentative.html [ Skip ]
+
+# Sticky activation carry-over across navigations and traversals is not implemented yet.
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-clicked-after-navigation-started.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-navigated-by-itself-in-crossorigin-parent.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-navigated-to-inherited-origin.html?about-blank [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-navigated-to-inherited-origin.html?blob [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-navigated-to-inherited-origin.html?srcdoc [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-recreated-by-traversal.https.html?no-store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/iframe-recreated-by-traversal.https.html?store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-sameorigin-chain.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-to-javascript-url.html [ Skip ]
 webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-to-sameorigin.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-to-sameorigin-redirect.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigate-with-coop-group-switch.https.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigation-api-entry-points.html?go-zero [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigation-api-entry-points.html?navigate [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigation-api-entry-points.html?reload [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigation-api-entry-points.html?traverse [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/navigation-api-entry-points.html?traverse-to [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/reload-of-crossorigin-initiated-entry.html?history-go-zero [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/reload-of-crossorigin-initiated-entry.html?location-reload [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/reload-of-crossorigin-redirected-entry.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/reload-sameorigin.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/replace-sameorigin.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-carry-over-before-pageshow.https.html?no-store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-carry-over-before-pageshow.https.html?store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-started-by-crossorigin-iframe.html [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-to-pushed-entry.https.html?no-store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-to-sameorigin.https.html?no-store [ Skip ]
+webkit.org/b/313716 imported/w3c/web-platform-tests/html/user-activation/traverse-to-sameorigin.https.html?store [ Skip ]
 imported/w3c/web-platform-tests/html/webappapis/scripting/processing-model-2/unhandled-promise-rejections/allow-crossorigin.html [ Skip ]
 imported/w3c/web-platform-tests/html/webappapis/scripting/processing-model-2/unhandled-promise-rejections/disallow-crossorigin.html [ Skip ]
 imported/w3c/web-platform-tests/html/webappapis/scripting/processing-model-2/unhandled-promise-rejections/promise-rejection-events.html [ Skip ]
@@ -2551,7 +2582,6 @@ imported/w3c/web-platform-tests/mathml/relations/css-styling/lengths-1.html [ Im
 
 mathml/non-core/mathvariant/mathvariant-case-sensitivity.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/relations/css-styling/presentational-hints-001.html [ ImageOnlyFailure Pass ]
-imported/w3c/web-platform-tests/mathml/relations/css-styling/transform.html [ ImageOnlyFailure ]
 
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/mo-lspace-rspace-2.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/mathml/presentation-markup/operators/painting-stretchy-operator-001.html [ ImageOnlyFailure ]
@@ -6489,7 +6519,6 @@ webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/backgrou
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-attachment-local-inline-002.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-clip/clip-text-animated-text.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-gradient-interpolation-003.html [ ImageOnlyFailure ]
-webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-backgrounds/background-rounded-image-clip-002.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/border-radius-greater-than-width.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/tentative/border-radius-side-shorthands/border-radius-side-shorthands-001.html [ ImageOnlyFailure ]
 webkit.org/b/255101 imported/w3c/web-platform-tests/css/css-borders/tentative/border-radius-side-shorthands/border-radius-side-shorthands-002.html [ ImageOnlyFailure ]
@@ -8230,8 +8259,6 @@ webkit.org/b/317545 imported/w3c/web-platform-tests/digital-credentials/protocol
 
 # Hits assert in debug, tracked by https://bugs.webkit.org/show_bug.cgi?id=303414
 [ Debug ] fullscreen/fullscreen-grid-item-container-type-crash.html [ Skip ]
-
-media/wireless-playback-media-player/ [ Skip ]
 
 webkit.org/b/295810 [ Debug ] fast/dynamic/disappearing-content-on-size-change-crash.html [ Timeout Pass ]
 

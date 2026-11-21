@@ -402,6 +402,14 @@ bool PositionedLayoutConstraints::shouldAlignStaticPositionInInlineAxis() const
     return !m_style.justifySelf().resolve(m_renderer->parentStyle()).isNormalStretchOrLegacy();
 }
 
+static bool usesInitialContainingBlockAsStaticPositionRectangle(const RenderBox& renderer)
+{
+    // https://drafts.csswg.org/css-position-3/#staticpos-rect
+    // "Boxes in the top layer always use the initial containing block as their static-position rectangle."
+    RefPtr element = renderer.element();
+    return element && element->isInTopLayer();
+}
+
 // See CSS2 § 10.3.7-8 and 10.6.4-5.
 void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComputedValues& computedValues) const
 {
@@ -557,8 +565,14 @@ ItemPosition PositionedLayoutConstraints::resolveAlignmentValue() const
         // At the static position an explicit justify-self aligns the box within its
         // static-position rectangle, resolving against the parent (the static-position
         // containing block); auto resolves to the parent's justify-items.
-        if (shouldAlignStaticPositionInInlineAxis())
-            return m_style.justifySelf().resolve(m_renderer->parentStyle()).position();
+        if (shouldAlignStaticPositionInInlineAxis()) {
+            auto alignmentPosition = m_style.justifySelf().resolve(m_renderer->parentStyle()).position();
+            // https://drafts.csswg.org/css-anchor-position-1/#anchor-center
+            // "If the box is not absolutely positioned, or does not have a default anchor box, this value behaves as center"
+            // captureInsets() only uses the static position when there is no default anchor box.
+            ASSERT(!m_defaultAnchorBox);
+            return alignmentPosition == ItemPosition::AnchorCenter ? ItemPosition::Center : alignmentPosition;
+        }
 #if ASSERT_ENABLED
         ASSERT(m_isEligibleForStaticRangeAlignment);
 #endif
@@ -675,6 +689,12 @@ void PositionedLayoutConstraints::computeStaticPosition()
             shouldUseInsetBefore = false;
         return shouldUseInsetBefore;
     };
+    if (shouldAlignStaticPositionInInlineAxis() && usesInitialContainingBlockAsStaticPositionRectangle(m_renderer)) {
+        // A box in the top layer is laid out as if it were a sibling of the root element, so its containing block is the initial containing block,
+        // or the viewport, which has the same size, when it's fixed positioned. Both insets are zero, so the box aligns within all of it.
+        m_insetBefore = 0_css_px;
+        return;
+    }
     // Since the static position is computed during in flow layout, the computed
     // position should already have zoom computed in. We need to divide out the zoom
     // so that we get the same position when evaluating the inset.

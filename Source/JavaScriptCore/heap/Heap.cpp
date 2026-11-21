@@ -467,8 +467,8 @@ void Heap::shutDown()
     m_isSafeToCollect = false;
     dataLogIf(Options::logGC(), "disabled collection, ");
 
+    assertIsAccessHolder();
     if (hadJoined) {
-        assertIsAccessHolder();
         waitForMembershipChange(m_collector->requestMembershipChange({ Collector::MembershipChange::Kind::Leave, this, nullptr }));
         dataLogIf(Options::logGC(), "left the collector, ");
     }
@@ -1406,10 +1406,10 @@ void Heap::stopThePeriphery()
 {
     RELEASE_ASSERT(!m_worldIsStopped);
     
-    if (m_mutatorDidRun)
+    if (m_mutatorHadAccessSinceLastStop)
         m_mutatorExecutionVersion++;
     
-    m_mutatorDidRun = false;
+    m_mutatorHadAccessSinceLastStop = false;
 
     m_worldIsStopped = true;
 
@@ -1496,7 +1496,6 @@ void Heap::stopIfNecessarySlow()
 
     assertIsAccessHolder();
     stopIfNecessarySlow(m_worldState.load());
-    m_mutatorDidRun = true;
 }
 
 void Heap::stopIfNecessarySlow(unsigned oldState)
@@ -1521,6 +1520,7 @@ void Heap::stopIfNecessarySlow(unsigned oldState)
         RELEASE_ASSERT(state & hasAccessBit, state);
         RELEASE_ASSERT(!(state & stoppedBit), state);
         RELEASE_ASSERT(!(state & needCollectionEpilogueBit), state);
+        m_mutatorHadAccessSinceLastStop = true;
     }
 }
 
@@ -1544,7 +1544,6 @@ void Heap::waitForCollector(NOESCAPE const ConstInvocable<bool()> auto& isDone)
         unsigned oldState = m_worldState.load();
         stopIfNecessarySlow(oldState);
 
-        m_mutatorDidRun = true;
         // Give the conn back so the collector thread can carry the collection forward, since we won't poll while parked.
         // FIXME: Could conduct the whole collection here instead, since this thread has nothing else to do.
         relinquishConn();
@@ -1581,7 +1580,6 @@ void Heap::acquireAccessSlow()
             noteAccessAcquired();
             assertIsAccessHolder();
             handleNeedCollectionEpilogue();
-            m_mutatorDidRun = true;
             stopIfNecessary();
             return;
         }
@@ -1673,6 +1671,7 @@ void Heap::setNeedCollectionEpilogue()
 {
     unsigned oldState = m_worldState.exchangeOr(needCollectionEpilogueBit);
     // Only End sets this, once per collection, while the mutator is stopped or conducting.
+    ASSERT(isInPhase(CollectorPhase::End));
     RELEASE_ASSERT(!(oldState & needCollectionEpilogueBit), oldState);
     RELEASE_ASSERT((oldState & stoppedBit) || (oldState & mutatorHasConnBit), oldState);
     m_stopIfNecessaryTimer->scheduleSoon();
@@ -1684,9 +1683,9 @@ void Heap::waitWhileNeedCollectionEpilogue()
     for (;;) {
         unsigned oldState = m_worldState.load();
         if (!(oldState & needCollectionEpilogueBit)) {
-            // This means that either there was no epilogue request or the main thread will run it
-            // with heap access, so a subsequent call to stopTheWorld() will return only when
-            // the epilogue finishes.
+            // The mutator clears the bit just before running the epilogue, so the epilogue may still be running.
+            // Returning is still safe: the mutator holds access while it runs, so stopTheMutator() hands it the conn
+            // instead of stopping it, and the mutator conducts only once the epilogue has finished.
             return;
         }
         ParkingLot::compareAndPark(&m_worldState, oldState);
@@ -1752,8 +1751,13 @@ void Heap::runCollectionEpilogue()
 
     vm().immutableButterflyToStringCache.clear();
     
-    for (const GCCompletionCallback& callback : m_gcCompletionCallbacks)
+    // A callback may add or remove callbacks, so index into the vector rather than iterating it.
+    for (size_t i = 0; i < m_gcCompletionCallbacks.size();) {
+        GCCompletionCallback callback = m_gcCompletionCallbacks[i];
         callback.run(vm());
+        if (i < m_gcCompletionCallbacks.size() && m_gcCompletionCallbacks[i] == callback)
+            ++i;
+    }
     
     if (shouldSweepSynchronously())
         sweepSynchronously();
@@ -2420,7 +2424,7 @@ void Heap::didFreeBlock(size_t capacity)
 #if ENABLE(SAMPLING_PROFILER)
 constexpr bool samplingProfilerSupported = true;
 template<typename Visitor>
-static ALWAYS_INLINE void visitSamplingProfiler(VM& vm, Visitor& visitor)
+static ALWAYS_INLINE void visitSamplingProfiler(VM& vm, Visitor& visitor) WTF_REQUIRES_SHARED_CAPABILITY(markerWithWorldStoppedRole)
 {
     SamplingProfiler* samplingProfiler = vm.samplingProfiler();
     if (samplingProfiler) [[unlikely]] {
@@ -2433,7 +2437,7 @@ static ALWAYS_INLINE void visitSamplingProfiler(VM& vm, Visitor& visitor)
 };
 #else
 constexpr bool samplingProfilerSupported = false;
-static UNUSED_FUNCTION void visitSamplingProfiler(VM&, AbstractSlotVisitor&) { };
+static UNUSED_FUNCTION void visitSamplingProfiler(VM&, AbstractSlotVisitor&) WTF_REQUIRES_SHARED_CAPABILITY(markerWithWorldStoppedRole) { };
 #endif
 
 Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
@@ -2454,6 +2458,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
                 return;
             
             TimingScope preConvergenceTimingScope(*this, "Constraint: conservative scan"_s);
+            m_collector->assertIsMarkerWithWorldStopped();
             m_objectSpace.prepareForConservativeScan();
             m_jitStubRoutines->prepareForConservativeScan();
 
@@ -2463,7 +2468,6 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
                 // If we tried to scan while not under a safepoint we could stop a thread that's in the process of calling
                 // one of the callees we are looking for.
                 // FIXME: Should we have two constraints for this? One for concurrent and one under safepoint at the bitter end.
-                m_collector->assertIsMarkerWithWorldStopped();
                 ConservativeRoots conservativeRoots(*this);
 
                 gatherStackRoots(conservativeRoots);
@@ -2495,6 +2499,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "Msr"_s, "Misc Small Roots"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             VM& vm = this->vm();
 #if JSC_OBJC_API_ENABLED
             {
@@ -2539,6 +2544,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "Sh"_s, "Strong Handles"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             SetRootMarkReasonScope rootScope(visitor, RootMarkReason::StrongHandles);
             m_strongSet.visitAggregate(visitor);
             vm().visitAggregate(visitor);
@@ -2550,6 +2556,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "D"_s, "Debugger"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             SetRootMarkReasonScope rootScope(visitor, RootMarkReason::Debugger);
 
             VM& vm = this->vm();
@@ -2569,6 +2576,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "Ws"_s, "Weak Sets"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             SetRootMarkReasonScope rootScope(visitor, RootMarkReason::WeakSets);
             RefPtr<SharedTask<void(decltype(visitor)&)>> task = m_objectSpace.forEachWeakInParallel<decltype(visitor)>(visitor);
             visitor.addParallelConstraintTask(WTF::move(task));
@@ -2580,6 +2588,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "O"_s, "Output"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             auto callOutputConstraint = [] (auto& visitor, HeapCell* heapCell, HeapCell::Kind) {
                 SetRootMarkReasonScope rootScope(visitor, RootMarkReason::Output);
                 JSCell* cell = static_cast<JSCell*>(heapCell);
@@ -2630,6 +2639,8 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
             // pinballs whose conservative roots have already been gathered this cycle.
             ConservativeRoots conservativeRoots(*this);
             subspace->forEachMarkedCell([&](HeapCell* cell, HeapCell::Kind) {
+                // For thread-safety analysis, which does not carry the capability asserted above into this lambda.
+                m_collector->assertIsMarkerWithWorldStopped();
                 auto* pinball = uncheckedDowncast<PinballCompletion>(static_cast<JSCell*>(cell));
                 pinball->gatherConservativeRoots(conservativeRoots);
             });
@@ -2646,6 +2657,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
         constraints.append(makeUnique<SimpleMarkingConstraint>(
             "Jw"_s, "JIT Worklist"_s,
             MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+                m_collector->assertIsMarkerWithWorldStopped();
                 SetRootMarkReasonScope rootScope(visitor, RootMarkReason::JITWorkList);
 
                 ASSERT_IMPLIES(vm().numberOfActiveJITPlans(), m_collector->m_isCompilerThreadsSuspended);
@@ -2671,6 +2683,7 @@ Vector<std::unique_ptr<MarkingConstraint>> Heap::createCoreConstraints()
     constraints.append(makeUnique<SimpleMarkingConstraint>(
         "Cb"_s, "CodeBlocks"_s,
         MAKE_MARKING_CONSTRAINT_EXECUTOR_PAIR(([this] (auto& visitor) {
+            m_collector->assertIsMarkerWithWorldStopped();
             SetRootMarkReasonScope rootScope(visitor, RootMarkReason::CodeBlocks);
             iterateExecutingAndCompilingCodeBlocksWithoutHoldingLocks(visitor,
                 [&] (CodeBlock* codeBlock) {

@@ -1550,7 +1550,7 @@ void WebsiteDataStore::setTimeToLiveUserInteraction(Seconds seconds, CompletionH
 
 IsolatedSiteStore& WebsiteDataStore::isolatedSiteStore()
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(RunLoop::isMain());
+    RELEASE_ASSERT(RunLoop::isMain());
 
     if (!m_isolatedSiteStore) {
         IsolatedSiteStore::UserInteractionDomainFetcher fetcher = [weakThis = WeakPtr { *this }](CompletionHandler<void(std::optional<HashMap<WebCore::RegistrableDomain, WallTime>>&&)>&& completionHandler) mutable {
@@ -1570,7 +1570,8 @@ IsolatedSiteStore& WebsiteDataStore::isolatedSiteStore()
 bool WebsiteDataStore::computeSiteIsolationHighValueFraudTargetDomainsEnabled() const
 {
     for (Ref page : m_pages) {
-        if (protect(page->preferences())->siteIsolationHighValueFraudTargetDomainsEnabled())
+        Ref preferences = page->preferences();
+        if (preferences->siteIsolationEnabled() && preferences->siteIsolationSharedProcessEnabled() && preferences->siteIsolationHighValueFraudTargetDomainsEnabled())
             return true;
     }
 

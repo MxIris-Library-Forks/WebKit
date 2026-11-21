@@ -8209,12 +8209,12 @@ TEST(SiteIsolation, CrossSiteIframeReplaceKeepsItemURLBeforeCommit)
     };
     [webView setUIDelegate:uiDelegate.get()];
 
-    // Hiding the view makes both processes save state to the frame's history item. Hold the webkit.org process in
-    // an alert so it does so after the example.com process, which still has the frame's document.
+    // Removing the view from its window makes both processes save state to the frame's history item. Hold the
+    // webkit.org process in an alert so it does so after the example.com process, which still has the frame's document.
     [webView evaluateJavaScript:@"alert()" inFrame:webKitFrame.get() inContentWorld:WKContentWorld.pageWorld completionHandler:nil];
     while (!dismissAlert)
         Util::spinRunLoop();
-    [webView setHidden:YES];
+    [webView removeFromSuperview];
     EXPECT_TRUE(Util::waitFor([&] {
         return [[webView objectByEvaluatingJavaScript:@"document.visibilityState"] isEqualToString:@"hidden"];
     }));
@@ -9066,6 +9066,84 @@ TEST(SiteIsolation, CrossSiteIframeNoReferrerPolicyAfterPersistedSessionRestore)
 TEST(SiteIsolation, CrossSiteIframeUnsafeURLReferrerPolicyAfterPersistedSessionRestore)
 {
     testCrossSiteIframeReferrerAfterPersistedSessionRestore("unsafe-url"_s, @"https://example.com/main");
+}
+
+TEST(SiteIsolation, PostMessageToCrossSiteIframeAfterPersistedSessionRestoreWithSameSiteRedirectAndCOOP)
+{
+    HTTPServer server({
+        { "/start"_s, { "<script>history.replaceState(null, '', '/redirect'); alert('ready');</script>"_s } },
+        { "/redirect"_s, { 302, { { "Location"_s, "https://example.com/final"_s } }, "redirecting..."_s } },
+        { "/final"_s, { { { "Content-Type"_s, "text/html"_s }, { "Cross-Origin-Opener-Policy"_s, "same-origin"_s } }, "<iframe src='https://webkit.org/frame' onload='this.contentWindow.postMessage(\"ping\", \"*\")'></iframe>"_s } },
+        { "/frame"_s, { "<script>onmessage = (event) => alert(event.origin + ' ' + event.data);</script>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.example.com/start"]]];
+    EXPECT_WK_STREQ("ready", [webView _test_waitForAlert]);
+    EXPECT_WK_STREQ("https://www.example.com/redirect", [webView URL].absoluteString);
+
+    RetainPtr persistedSessionState = adoptNS([[_WKSessionState alloc] initWithData:[[webView _sessionState] data]]);
+    auto [newWebView, newNavigationDelegate] = siteIsolatedViewAndDelegate(server);
+    [newWebView _restoreSessionState:persistedSessionState.get() andNavigate:YES];
+    EXPECT_WK_STREQ("https://example.com ping", [newWebView _test_waitForAlert]);
+
+    EXPECT_WK_STREQ("https://example.com/final", [newWebView URL].absoluteString);
+    EXPECT_WK_STREQ("https://www.example.com/redirect", [newWebView backForwardList].currentItem.initialURL.absoluteString);
+    EXPECT_WK_STREQ("back_forward", [newWebView objectByEvaluatingJavaScript:@"performance.getEntriesByType('navigation')[0].type"]);
+}
+
+TEST(SiteIsolation, GoBackWithCrossSiteRedirect)
+{
+    Vector<String> requestedPaths;
+    HTTPServer server(HTTPServer::UseCoroutines::Yes, [&](Connection connection) -> ConnectionTask {
+        while (1) {
+            auto request = co_await connection.awaitableReceiveHTTPRequest();
+            auto path = HTTPServer::parsePath(request);
+            requestedPaths.append(path);
+            if (path == "/start"_s) {
+                co_await connection.awaitableSend(HTTPResponse("<script>history.replaceState(null, '', '/redirect'); alert('ready');</script>"_s).serialize());
+                continue;
+            }
+            if (path == "/other"_s) {
+                co_await connection.awaitableSend(HTTPResponse("other"_s).serialize());
+                continue;
+            }
+            if (path == "/redirect"_s) {
+                co_await connection.awaitableSend(HTTPResponse(302, { { "Location"_s, "https://webkit.org/final"_s } }, "redirecting..."_s).serialize());
+                continue;
+            }
+            if (path == "/final"_s) {
+                co_await connection.awaitableSend(HTTPResponse("<script>alert(location.href + ' ' + origin)</script>"_s).serialize());
+                continue;
+            }
+            EXPECT_FALSE(true);
+        }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    [configuration setProcessPool:processPoolWithBackForwardCacheDisabled().get()];
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.example.com/start"]]];
+    EXPECT_WK_STREQ("ready", [webView _test_waitForAlert]);
+    EXPECT_TRUE(Util::waitFor([&] { return ![webView isLoading]; }));
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.example.com/other"]]];
+    EXPECT_TRUE(Util::waitFor([&] { return [[webView URL].absoluteString isEqualToString:@"https://www.example.com/other"] && ![webView isLoading]; }));
+    EXPECT_WK_STREQ("https://www.example.com/redirect", [webView backForwardList].backItem.URL.absoluteString);
+
+    requestedPaths.clear();
+    [webView goBack];
+    EXPECT_WK_STREQ("https://webkit.org/final https://webkit.org", [webView _test_waitForAlert]);
+
+    EXPECT_EQ(requestedPaths.size(), 2u);
+    if (requestedPaths.size() == 2) {
+        EXPECT_WK_STREQ("/redirect", requestedPaths[0]);
+        EXPECT_WK_STREQ("/final", requestedPaths[1]);
+    }
+    EXPECT_WK_STREQ("https://webkit.org/final", [webView URL].absoluteString);
+    EXPECT_WK_STREQ("https://www.example.com/redirect", [webView backForwardList].currentItem.initialURL.absoluteString);
+    EXPECT_WK_STREQ("back_forward", [webView objectByEvaluatingJavaScript:@"performance.getEntriesByType('navigation')[0].type"]);
 }
 
 TEST(SiteIsolation, AdvancedPrivacyProtectionsHideScreenMetricsFromBindings)
@@ -15937,6 +16015,122 @@ TEST(SiteIsolation, DragSourceEndedAtCoordinateTransformation)
         }
     }
 }
+
+#if ENABLE(IPC_TESTING_API)
+
+// When a web process's hit test for a drag, an immediate action or a dictionary lookup reaches a frame hosted by another
+// process, it replies with that frame and the point in its coordinates, and the UI process re-sends the request there.
+// A web process controls that reply, so the UI process must only follow it to a frame inside the part of this page it
+// hosts. Each test below answers with the frame the request was sent to; following that would loop.
+
+static RetainPtr<WKWebViewConfiguration> redispatchToItselfConfiguration(const HTTPServer& server)
+{
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    enableSiteIsolation(configuration.get());
+    setFeatureEnabled(configuration.get(), @"IPCTestingAPIEnabled", true);
+    setFeatureEnabled(configuration.get(), @"IgnoreInvalidMessageWhenIPCTestingAPIEnabled", true);
+    return configuration;
+}
+
+static void loadForRedispatchToItself(TestWKWebView *webView, TestNavigationDelegate *navigationDelegate)
+{
+    [navigationDelegate allowAnyTLSCertificate];
+    [webView setNavigationDelegate:navigationDelegate];
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    [webView waitForNextPresentationUpdate];
+}
+
+// Counts the requests with the given message name that the main frame's process receives, and answers the first few as if
+// the hit test had found the main frame itself, hosted by another process. Stopping after a few keeps a UI process that
+// follows every answer from looping forever. In the reply arguments, `remote` stands for the encoded
+// RemoteUserInputEventData.
+static void countRequestsAndForgeRedispatchToItself(TestWKWebView *webView, NSString *messageName, NSString *replyArguments)
+{
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"(() => {"
+        "    window.redispatchToItselfCounts = window.redispatchToItselfCounts ?? { };"
+        "    window.redispatchToItselfCounts['%1$@'] = 0;"
+        "    const requestName = IPC.messages['%1$@'].name;"
+        "    const replyName = IPC.messages['%1$@Reply'].name;"
+        "    const remote = ["
+        "        { type: 'FrameID', value: [BigInt(IPC.frameID[0])] },"
+        "        { type: 'double', value: 10 },"
+        "        { type: 'double', value: 10 },"
+        "    ];"
+        "    IPC.addIncomingMessageListener('UI', message => {"
+        "        if (message.name !== requestName || message.listenerID === undefined)"
+        "            return;"
+        "        if (++window.redispatchToItselfCounts['%1$@'] > 3)"
+        "            return;"
+        "        IPC.sendMessage('UI', message.listenerID, replyName, %2$@);"
+        "    });"
+        "})(); true", messageName, replyArguments]];
+}
+
+static int redispatchToItselfRequestCount(TestWKWebView *webView, NSString *messageName)
+{
+    return [[webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.redispatchToItselfCounts['%@']", messageName]] intValue];
+}
+
+static RetainPtr<NSString> takeInvalidMessageStringAfterRedispatchToItself(TestWKWebView *webView)
+{
+    return [webView stringByEvaluatingJavaScript:@"(() => {"
+        "const reply = IPC.sendSyncMessage('UI', 0, IPC.messages.WebProcessProxy_TakeInvalidMessageStringForTesting.name, 1000, []);"
+        "return reply?.arguments?.[0]?.value ?? '';"
+        "})()"];
+}
+
+static constexpr auto draggableMainFrameWithCrossOriginIframe = "<body style='margin: 0'><div draggable='true' style='width: 100px; height: 100px; background-color: blue;'>Drag me</div>"
+    "<iframe src='https://webkit.org/iframe' style='position: absolute; left: 300px; top: 300px; width: 200px; height: 200px; border: none'></iframe></body>"_s;
+
+TEST(SiteIsolation, DragEndedRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { draggableMainFrameWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr simulator = adoptNS([[DragAndDropSimulator alloc] initWithWebViewFrame:NSMakeRect(0, 0, 600, 600) configuration:redispatchToItselfConfiguration(server).get()]);
+    RetainPtr webView = [simulator webView];
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    loadForRedispatchToItself(webView.get(), navigationDelegate.get());
+
+    // std::optional<RemoteUserInputEventData>.
+    countRequestsAndForgeRedispatchToItself(webView.get(), @"WebPage_DragEnded", @"[{ type: 'bool', value: 1 }, ...remote]");
+    [simulator runFrom:CGPointMake(50, 50) to:CGPointMake(150, 150)];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return redispatchToItselfRequestCount(webView.get(), @"WebPage_DragEnded") >= 1;
+    }));
+    Util::runFor(0.5_s);
+    EXPECT_EQ(1, redispatchToItselfRequestCount(webView.get(), @"WebPage_DragEnded"));
+    EXPECT_TRUE([takeInvalidMessageStringAfterRedispatchToItself(webView.get()) containsString:@"Message check failed"]);
+}
+
+TEST(SiteIsolation, DictionaryLookupRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:NSMakeRect(0, 0, 800, 600) configuration:redispatchToItselfConfiguration(server).get()]);
+    RetainPtr navigationDelegate = adoptNS([TestNavigationDelegate new]);
+    loadForRedispatchToItself(webView.get(), navigationDelegate.get());
+
+    // std::optional<RemoteUserInputEventData>.
+    countRequestsAndForgeRedispatchToItself(webView.get(), @"WebPage_PerformDictionaryLookupAtLocation", @"[{ type: 'bool', value: 1 }, ...remote]");
+    [webView _performDictionaryLookupAtLocationForTesting:CGPointMake(10, 10)];
+
+    EXPECT_TRUE(Util::waitFor([&] {
+        return redispatchToItselfRequestCount(webView.get(), @"WebPage_PerformDictionaryLookupAtLocation") >= 1;
+    }));
+    Util::runFor(0.5_s);
+    EXPECT_EQ(1, redispatchToItselfRequestCount(webView.get(), @"WebPage_PerformDictionaryLookupAtLocation"));
+    EXPECT_TRUE([takeInvalidMessageStringAfterRedispatchToItself(webView.get()) containsString:@"Message check failed"]);
+}
+
+#endif // ENABLE(IPC_TESTING_API)
 
 TEST(SiteIsolation, DragSourceEndedAtCoordinateTransformationNested)
 {
@@ -22986,8 +23180,7 @@ static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> si
     [viewConfiguration setWebsiteDataStore:dataStore.get()];
     enableSiteIsolation(viewConfiguration.get());
     setFeatureEnabled(viewConfiguration.get(), @"SiteIsolationSharedProcessEnabled", true);
-    if (enabled == SiteIsolationHighValueFraudTargetDomainsEnabled::Yes)
-        setFeatureEnabled(viewConfiguration.get(), @"SiteIsolationHighValueFraudTargetDomainsEnabled", true);
+    setFeatureEnabled(viewConfiguration.get(), @"SiteIsolationHighValueFraudTargetDomainsEnabled", enabled == SiteIsolationHighValueFraudTargetDomainsEnabled::Yes);
 
     RetainPtr webView = adoptNS([[TestWKWebView alloc] initWithFrame:CGRectMake(0, 0, 800, 600) configuration:viewConfiguration.get()]);
     webView.get().navigationDelegate = navigationDelegate.get();
@@ -25023,6 +25216,130 @@ TEST(SiteIsolation, CloseWhileDispatchingNavigateEventBeforeProcessSwap)
     // Give the reply a chance to arrive. This used to crash in WebPageProxy::continueNavigationInNewProcess.
     Util::runFor(0.5_s);
 }
+
+#if ENABLE(IPC_TESTING_API)
+
+// acceptsFirstMouse asks the main frame's process, then each process that answers with a frame hosted by another
+// process, in a loop that blocks the UI process. A web process controls those answers, so the UI process must only
+// follow one to a frame inside the part of this page that the answering process hosts, and must kill a process that
+// sends any other.
+
+static std::pair<RetainPtr<TestWKWebView>, RetainPtr<TestNavigationDelegate>> loadedViewForAcceptsFirstMouseRedispatch(WKWebViewConfiguration *configuration, NSString *url)
+{
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    return { webView, navigationDelegate };
+}
+
+static RetainPtr<WKWebViewConfiguration> acceptsFirstMouseRedispatchConfiguration(const HTTPServer& server)
+{
+    RetainPtr configuration = server.httpsProxyConfiguration();
+    setFeatureEnabled(configuration.get(), @"IPCTestingAPIEnabled", true);
+    return configuration;
+}
+
+// AppKit only asks a view in an inactive window whether it accepts the first mouse, and WebKit only says yes over a
+// range selection. TestWKWebView's own window is always key.
+static RetainPtr<NSWindow> moveToInactiveWindowWithSelection(TestWKWebView *webView)
+{
+    [webView objectByEvaluatingJavaScript:@"getSelection().setBaseAndExtent(document.body.firstChild, 0, document.body.firstChild, 4); true"];
+    RetainPtr window = adoptNS([[NSWindow alloc] initWithContentRect:[webView frame] styleMask:NSWindowStyleMaskBorderless backing:NSBackingStoreBuffered defer:NO]);
+    [[window contentView] addSubview:webView];
+    [webView waitForNextPresentationUpdate];
+    EXPECT_FALSE([window isKeyWindow]);
+    return window;
+}
+
+static void sendAcceptsFirstMouseOverMainFrameText(TestWKWebView *webView, NSWindow *window)
+{
+    // The window's coordinates are flipped.
+    NSPoint location = NSMakePoint(10, NSHeight([webView frame]) - 10);
+    [webView acceptsFirstMouse:[NSEvent mouseEventWithType:NSEventTypeLeftMouseDown location:location modifierFlags:0 timestamp:0 windowNumber:window.windowNumber context:nil eventNumber:1 clickCount:1 pressure:1]];
+}
+
+static RetainPtr<NSString> acceptsFirstMouseFrameIdentifier(TestWKWebView *webView)
+{
+    return [webView stringByEvaluatingJavaScript:@"IPC.frameID[0].toString()"];
+}
+
+// Counts the RequestAcceptsFirstMouse messages the web view's main frame process receives. If a target frame is given,
+// answers the first few as if the mouse were over that frame, hosted by another process. Stopping after a few keeps a
+// UI process that follows every answer from looping forever.
+static void countAcceptsFirstMouseRequestsAndForgeRedispatch(TestWKWebView *webView, NSString *forgedTargetFrameID = nil)
+{
+    // The forged answer has to arrive within the UI process's 250 ms wait, so look up the message names up front.
+    [webView objectByEvaluatingJavaScript:[NSString stringWithFormat:@"window.acceptsFirstMouseRequestCount = 0;"
+        "const requestName = IPC.messages.WebPage_RequestAcceptsFirstMouse.name;"
+        "const answerName = IPC.messages.WebPageProxy_HandleAcceptsFirstMouse.name;"
+        "IPC.addIncomingMessageListener('UI', message => {"
+        "    if (message.name !== requestName)"
+        "        return;"
+        "    ++window.acceptsFirstMouseRequestCount;"
+        "    const target = '%@';"
+        "    if (!target || window.acceptsFirstMouseRequestCount > 3)"
+        "        return;"
+        "    IPC.sendMessage('UI', IPC.pageID, answerName, ["
+        "        { type: 'uint8_t', value: 1 },"
+        "        { type: 'FrameID', value: [BigInt(target)] },"
+        "        { type: 'double', value: 10 },"
+        "        { type: 'double', value: 10 },"
+        "    ]);"
+        "}); true", forgedTargetFrameID ?: @""]];
+}
+
+static int acceptsFirstMouseRequestCount(TestWKWebView *webView)
+{
+    return [[webView objectByEvaluatingJavaScript:@"window.acceptsFirstMouseRequestCount"] intValue];
+}
+
+TEST(SiteIsolation, AcceptsFirstMouseRedispatchToTheSourceFrameIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate] = loadedViewForAcceptsFirstMouseRedispatch(acceptsFirstMouseRedispatchConfiguration(server).get(), @"https://example.com/mainframe");
+    RetainPtr window = moveToInactiveWindowWithSelection(webView.get());
+    __block bool didTerminate = false;
+    navigationDelegate.get().webContentProcessDidTerminate = ^(WKWebView *, _WKProcessTerminationReason) {
+        didTerminate = true;
+    };
+
+    // Following this answer would send the same request back to the same process, so the process that sent it is killed.
+    countAcceptsFirstMouseRequestsAndForgeRedispatch(webView.get(), acceptsFirstMouseFrameIdentifier(webView.get()).get());
+    sendAcceptsFirstMouseOverMainFrameText(webView.get(), window.get());
+    EXPECT_TRUE(Util::runFor(&didTerminate, 5_s));
+}
+
+TEST(SiteIsolation, AcceptsFirstMouseRedispatchToFrameInAnotherPageIsRejected)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } },
+        { "/other"_s, { "<body>another page</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = acceptsFirstMouseRedispatchConfiguration(server);
+    auto [webView, navigationDelegate] = loadedViewForAcceptsFirstMouseRedispatch(configuration.get(), @"https://example.com/mainframe");
+    auto [otherWebView, otherNavigationDelegate] = loadedViewForAcceptsFirstMouseRedispatch(configuration.get(), @"https://apple.com/other");
+    EXPECT_NE([webView _webProcessIdentifier], [otherWebView _webProcessIdentifier]);
+    RetainPtr window = moveToInactiveWindowWithSelection(webView.get());
+    __block bool didTerminate = false;
+    navigationDelegate.get().webContentProcessDidTerminate = ^(WKWebView *, _WKProcessTerminationReason) {
+        didTerminate = true;
+    };
+
+    // Following this answer would send the request into the other page's process, so the process that sent it is killed.
+    countAcceptsFirstMouseRequestsAndForgeRedispatch(otherWebView.get());
+    countAcceptsFirstMouseRequestsAndForgeRedispatch(webView.get(), acceptsFirstMouseFrameIdentifier(otherWebView.get()).get());
+    sendAcceptsFirstMouseOverMainFrameText(webView.get(), window.get());
+    EXPECT_TRUE(Util::runFor(&didTerminate, 5_s));
+    EXPECT_EQ(0, acceptsFirstMouseRequestCount(otherWebView.get()));
+}
+
+#endif // ENABLE(IPC_TESTING_API)
 
 } // namespace TestWebKitAPI
 

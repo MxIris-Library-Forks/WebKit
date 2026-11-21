@@ -135,7 +135,7 @@ RemoteLayerTreeEventDispatcher::~RemoteLayerTreeEventDispatcher()
 // This must be called to break the cycle between RemoteLayerTreeEventDispatcherDisplayLinkClient and this.
 void RemoteLayerTreeEventDispatcher::invalidate()
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
 
     protect(m_displayLinkClient)->invalidate();
 
@@ -229,7 +229,7 @@ void RemoteLayerTreeEventDispatcher::cacheWheelEventScrollingAccelerationCurve(c
 
 void RemoteLayerTreeEventDispatcher::willHandleWheelEvent(Ref<WebWheelEvent>&& wheelEvent)
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
     
     m_wheelEventActivityHysteresis.impulse();
     m_wheelEventsBeingProcessed.append(WTF::move(wheelEvent));
@@ -306,7 +306,7 @@ void RemoteLayerTreeEventDispatcher::scrollingThreadHandleWheelEvent(const WebWh
 
 void RemoteLayerTreeEventDispatcher::continueWheelEventHandling(WheelEventHandlingResult handlingResult)
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
     RefPtr scrollingCoordinator = m_scrollingCoordinator;
     if (!scrollingCoordinator)
         return;
@@ -332,7 +332,7 @@ OptionSet<WheelEventProcessingSteps> RemoteLayerTreeEventDispatcher::determineWh
 
 WheelEventHandlingResult RemoteLayerTreeEventDispatcher::internalHandleWheelEvent(const PlatformWheelEvent& wheelEvent, OptionSet<WheelEventProcessingSteps> processingSteps)
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(ScrollingThread::isCurrentThread());
+    RELEASE_ASSERT(ScrollingThread::isCurrentThread());
     ASSERT(processingSteps.contains(WheelEventProcessingSteps::AsyncScrolling));
 
     auto scrollingTree = this->scrollingTree();
@@ -389,7 +389,7 @@ RemoteLayerTreeDrawingAreaProxyMac& RemoteLayerTreeEventDispatcher::drawingAreaM
 
 DisplayLink* RemoteLayerTreeEventDispatcher::displayLink() const
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
 
     if (!m_scrollingCoordinator)
         return nullptr;
@@ -399,7 +399,7 @@ DisplayLink* RemoteLayerTreeEventDispatcher::displayLink() const
 
 DisplayLink* RemoteLayerTreeEventDispatcher::existingDisplayLink() const
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
 
     if (!m_scrollingCoordinator)
         return nullptr;
@@ -578,7 +578,7 @@ void RemoteLayerTreeEventDispatcher::delayedRenderingUpdateDetectionTimerFired()
 void RemoteLayerTreeEventDispatcher::waitForRenderingUpdateCompletionOrTimeout()
 {
     ASSERT(ScrollingThread::isCurrentThread());
-    ASSERT_WITH_SECURITY_IMPLICATION(m_scrollingTreeLock.isLocked());
+    RELEASE_ASSERT(m_scrollingTreeLock.isLocked());
 
     m_needsMainThreadFlush = m_delayedRenderingUpdateDetectionTimer && m_delayedRenderingUpdateDetectionTimer->isActive();
     if (m_delayedRenderingUpdateDetectionTimer)
@@ -897,6 +897,14 @@ void RemoteLayerTreeEventDispatcher::endMomentumSignpostInterval()
     }
 }
 
+void RemoteLayerTreeEventDispatcher::endMomentumSignpostIntervalBecauseMomentumIsIgnored()
+{
+    if (m_momentumIntervalIsActive) {
+        WTFEndSignpostAlways(nullptr, ScrollingPerformanceTestMomentumInterval, "isAnimation=YES; reason=momentumIgnored;");
+        m_momentumIntervalIsActive = false;
+    }
+}
+
 #if ENABLE(MOMENTUM_EVENT_DISPATCHER)
 void RemoteLayerTreeEventDispatcher::handleSyntheticWheelEvent(PageIdentifier pageID, const WebWheelEvent& event, RectEdges<WebCore::RubberBandingBehavior> rubberBandableEdges)
 {
@@ -921,7 +929,13 @@ void RemoteLayerTreeEventDispatcher::handleSyntheticWheelEvent(PageIdentifier pa
     if (!processingSteps.contains(WheelEventProcessingSteps::AsyncScrolling))
         return;
 
+    if (scrollingTree && scrollingTree->scrollingPerformanceTestingEnabled())
+        scrollingTree->setIsIgnoringMomentumScrollsDuringRubberBand(false);
+
     internalHandleWheelEvent(platformWheelEvent, processingSteps);
+
+    if (scrollingTree && scrollingTree->scrollingPerformanceTestingEnabled() && scrollingTree->isIgnoringMomentumScrollsDuringRubberBand())
+        endMomentumSignpostIntervalBecauseMomentumIsIgnored();
 }
 
 void RemoteLayerTreeEventDispatcher::didStartRubberbanding()

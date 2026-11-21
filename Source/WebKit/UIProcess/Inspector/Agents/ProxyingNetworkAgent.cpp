@@ -44,6 +44,7 @@
 #include <WebCore/HTTPHeaderMap.h>
 #include <WebCore/InspectorIdentifierRegistry.h>
 #include <WebCore/InspectorResourceUtilities.h>
+#include <WebCore/NetworkInterception.h>
 #include <WebCore/NetworkLoadMetrics.h>
 #include <WebCore/ProcessQualified.h>
 #include <optional>
@@ -286,6 +287,11 @@ CommandResult<void> ProxyingNetworkAgent::enable()
 
 CommandResult<void> ProxyingNetworkAgent::disable()
 {
+    // Web Inspector's interception patterns go away with the domain. Other consumers keep theirs. This
+    // comes before the early return because the interception commands do not require Network.enable, so
+    // patterns can be in place while the domain is not enabled.
+    protect(m_inspectedPage)->clearInspectorNetworkInterception();
+
     if (!m_enabled)
         return { };
 
@@ -481,25 +487,106 @@ void ProxyingNetworkAgent::loadResource(const Protocol::Network::FrameId& frameI
         *targetPageID);
 }
 
-CommandResult<Ref<Protocol::Runtime::RemoteObject>> ProxyingNetworkAgent::resolveWebSocket(const Protocol::Network::RequestId&, const String&)
+void ProxyingNetworkAgent::resolveWebSocket(const Protocol::Network::RequestId& requestId, const String& objectGroup, Ref<ResolveWebSocketCallback>&& callback)
 {
-    return makeUnexpected("Not yet implemented"_s);
+    // Routed by the process encoded in the requestId. The owning process wraps the socket with its frame's
+    // injected script, so the returned object id is only meaningful on that frame's target; the frontend
+    // pairs it with the frame target, as it does for DOM node ids.
+    auto parsed = IdentifierRegistry::parseProtocolWebSocketRequestId(requestId);
+    if (!parsed) {
+        callback->sendFailure("Missing web socket for given requestId"_s);
+        return;
+    }
+
+    auto [processIdentifier, channelID] = *parsed;
+
+    RefPtr inspectedPage = m_inspectedPage.get();
+    if (!inspectedPage) {
+        callback->sendFailure("Inspected page is gone"_s);
+        return;
+    }
+
+    RefPtr<WebKit::WebProcessProxy> targetProcess;
+    std::optional<PageIdentifier> targetPageID;
+    inspectedPage->forEachWebContentProcess([&](auto& webProcess, auto pageID) {
+        if (webProcess.coreProcessIdentifier() == processIdentifier) {
+            targetProcess = &webProcess;
+            targetPageID = pageID;
+        }
+    });
+
+    if (!targetProcess || !targetPageID) {
+        callback->sendFailure("WebProcess not found for requestId"_s);
+        return;
+    }
+
+    targetProcess->sendWithAsyncReply(
+        Messages::WebInspectorBackend::ResolveWebSocket { channelID, objectGroup },
+        [callback = WTF::move(callback)](std::expected<String, String>&& result) mutable {
+            if (!result) {
+                callback->sendFailure(replyFailureString(result.error()));
+                return;
+            }
+
+            RefPtr value = JSON::Value::parseJSON(result.value());
+            if (!value || !value->asObject()) {
+                callback->sendFailure("Internal error: unable to cast WebSocket"_s);
+                return;
+            }
+
+            callback->sendSuccess(Protocol::BindingTraits<Protocol::Runtime::RemoteObject>::runtimeCast(value.releaseNonNull()));
+        },
+        *targetPageID);
 }
 
 // FIXME: Forward interception to the WebContent processes. https://bugs.webkit.org/show_bug.cgi?id=324383
 
-CommandResult<void> ProxyingNetworkAgent::setInterceptionEnabled(bool)
+static NetworkInterceptionPhase toInterceptionPhase(Protocol::Network::NetworkStage stage)
 {
+    switch (stage) {
+    case Protocol::Network::NetworkStage::Request:
+        return NetworkInterceptionPhase::BeforeRequestSent;
+    case Protocol::Network::NetworkStage::Response:
+        return NetworkInterceptionPhase::ResponseStarted;
+    }
+    ASSERT_NOT_REACHED();
+    return NetworkInterceptionPhase::ResponseStarted;
+}
+
+static InterceptPattern toInterceptPattern(const String& url, Protocol::Network::NetworkStage stage, const std::optional<bool>& caseSensitive, const std::optional<bool>& isRegex)
+{
+    return InterceptPattern {
+        NetworkInterceptOwner::Inspector,
+        toInterceptionPhase(stage),
+        InspectorURLPattern { url, caseSensitive.value_or(true), isRegex.value_or(false) },
+    };
+}
+
+CommandResult<void> ProxyingNetworkAgent::setInterceptionEnabled(bool enabled)
+{
+    Ref inspectedPage = m_inspectedPage;
+
+    // Like InspectorNetworkAgent, a command that would change nothing is an error.
+    if (!inspectedPage->setInspectorNetworkInterceptionEnabled(enabled))
+        return makeUnexpected(enabled ? "Interception already enabled"_s : "Interception already disabled"_s);
     return { };
 }
 
-CommandResult<void> ProxyingNetworkAgent::addInterception(const String&, Protocol::Network::NetworkStage, std::optional<bool>&&, std::optional<bool>&&)
+CommandResult<void> ProxyingNetworkAgent::addInterception(const String& url, Protocol::Network::NetworkStage stage, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex)
 {
+    Ref inspectedPage = m_inspectedPage;
+
+    if (!inspectedPage->addInspectorNetworkInterceptPattern(toInterceptPattern(url, stage, caseSensitive, isRegex)))
+        return makeUnexpected("Intercept for given url, given isRegex, and given stage already exists"_s);
     return { };
 }
 
-CommandResult<void> ProxyingNetworkAgent::removeInterception(const String&, Protocol::Network::NetworkStage, std::optional<bool>&&, std::optional<bool>&&)
+CommandResult<void> ProxyingNetworkAgent::removeInterception(const String& url, Protocol::Network::NetworkStage stage, std::optional<bool>&& caseSensitive, std::optional<bool>&& isRegex)
 {
+    Ref inspectedPage = m_inspectedPage;
+
+    if (!inspectedPage->removeInspectorNetworkInterceptPattern(toInterceptPattern(url, stage, caseSensitive, isRegex)))
+        return makeUnexpected("Missing intercept for given url, given isRegex, and given stage"_s);
     return { };
 }
 
@@ -636,6 +723,100 @@ void ProxyingNetworkAgent::requestServedFromMemoryCache(ResourceID resourceID, F
         cachedResourceObject->setSourceMapURL(sourceMapURL);
 
     m_frontendDispatcher->requestServedFromMemoryCache(requestId, frameIdString, loaderId, documentURL, timestamp, ResourceUtilities::buildInitiatorObject(initiator), WTF::move(cachedResourceObject));
+}
+
+// WebSocket events. Only FrameNetworkAgentProxy sends these, so each socket is reported once, by the process
+// whose document opened it; the frame and loader on webSocketCreated attribute it to that frame.
+
+static Ref<Protocol::Network::WebSocketFrame> buildObjectForWebSocketFrame(int opcode, bool mask, const String& payloadData, uint64_t payloadLength)
+{
+    return Protocol::Network::WebSocketFrame::create()
+        .setOpcode(opcode)
+        .setMask(mask)
+        .setPayloadData(payloadData)
+        .setPayloadLength(payloadLength)
+        .release();
+}
+
+void ProxyingNetworkAgent::webSocketCreated(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, FrameID frameID, const String& loaderId, const String& requestURL)
+{
+    // The requestId names the reporting process, so only that process may report the socket.
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    auto requestId = IdentifierRegistry::protocolWebSocketRequestId(processID, channelID);
+    auto frameIdString = IdentifierRegistry::protocolFrameId(frameID, processID);
+    m_frontendDispatcher->webSocketCreated(requestId, requestURL, frameIdString, loaderId);
+}
+
+void ProxyingNetworkAgent::webSocketWillSendHandshakeRequest(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp, double walltime, const HTTPHeaderMap& headers)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    auto requestObject = Protocol::Network::WebSocketRequest::create()
+        .setHeaders(ResourceUtilities::buildObjectForHeaders(headers))
+        .release();
+    m_frontendDispatcher->webSocketWillSendHandshakeRequest(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp, walltime, WTF::move(requestObject));
+}
+
+void ProxyingNetworkAgent::webSocketHandshakeResponseReceived(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp, int statusCode, const String& statusText, const HTTPHeaderMap& headers)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    auto responseObject = Protocol::Network::WebSocketResponse::create()
+        .setStatus(statusCode)
+        .setStatusText(statusText)
+        .setHeaders(ResourceUtilities::buildObjectForHeaders(headers))
+        .release();
+    m_frontendDispatcher->webSocketHandshakeResponseReceived(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp, WTF::move(responseObject));
+}
+
+void ProxyingNetworkAgent::webSocketFrameReceived(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp, int opcode, bool mask, const String& payloadData, uint64_t payloadLength)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    m_frontendDispatcher->webSocketFrameReceived(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp, buildObjectForWebSocketFrame(opcode, mask, payloadData, payloadLength));
+}
+
+void ProxyingNetworkAgent::webSocketFrameSent(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp, int opcode, bool mask, const String& payloadData, uint64_t payloadLength)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    m_frontendDispatcher->webSocketFrameSent(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp, buildObjectForWebSocketFrame(opcode, mask, payloadData, payloadLength));
+}
+
+void ProxyingNetworkAgent::webSocketFrameError(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp, const String& errorMessage)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    m_frontendDispatcher->webSocketFrameError(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp, errorMessage);
+}
+
+void ProxyingNetworkAgent::webSocketClosed(IPC::Connection& connection, WebCore::ProcessIdentifier processID, uint64_t channelID, double timestamp)
+{
+    MESSAGE_CHECK_BASE(processID == WebKit::WebProcessProxy::fromConnection(connection)->coreProcessIdentifier(), connection);
+
+    if (!m_enabled)
+        return;
+
+    m_frontendDispatcher->webSocketClosed(IdentifierRegistry::protocolWebSocketRequestId(processID, channelID), timestamp);
 }
 
 } // namespace Inspector

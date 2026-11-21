@@ -45,11 +45,16 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <WebCore/Color.h>
 #import <WebKit/WKContentWorldPrivate.h>
+#import <WebKit/WKData.h>
+#import <WebKit/WKFrame.h>
 #import <WebKit/WKFrameInfoPrivate.h>
 #import <WebKit/WKHitTestResult.h>
 #import <WebKit/WKJSHandle.h>
 #import <WebKit/WKMenuItemIdentifiersPrivate.h>
+#import <WebKit/WKPage.h>
+#import <WebKit/WKStringCF.h>
 #import <WebKit/WKUIDelegatePrivate.h>
+#import <WebKit/WKURL.h>
 #import <WebKit/WKWebViewConfigurationPrivate.h>
 #import <WebKit/WKWebViewPrivate.h>
 #import <WebKit/WKWebViewPrivateForTesting.h>
@@ -606,6 +611,26 @@ TEST(SiteIsolation, SpeakSelectionInCrossOriginIframe)
 }
 
 #endif // PLATFORM(IOS_FAMILY)
+
+TEST(SiteIsolation, SelectionAsAttributedStringInCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { mainFrameTextWithCrossOriginIframe } },
+        { "/iframe"_s, { "<body>subframe text</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    auto [webView, navigationDelegate, childFrame] = webViewWithFocusedCrossOriginIframe(server);
+    setSelectionInFrame(webView.get(), childFrame.get(), @"getSelection().selectAllChildren(document.body)", _WKSelectionAttributeIsRange);
+
+    __block RetainPtr<NSAttributedString> result;
+    __block bool done = false;
+    [webView _getSelectionAsAttributedStringForTesting:^(NSAttributedString *attributedString) {
+        result = attributedString;
+        done = true;
+    }];
+    Util::run(&done);
+    EXPECT_WK_STREQ("subframe text", [result string]);
+}
 
 // Page-wide state set on the web view after load must reach every web content process, not just the
 // main frame's. A cross-origin iframe's process that already exists never hears about the change, even
@@ -2176,6 +2201,119 @@ TEST(SiteIsolation, ContextMenuQuickNoteInCrossOriginIframe)
 #endif // PLATFORM(MAC)
 
 #endif // ENABLE(APP_HIGHLIGHTS)
+
+#if PLATFORM(MAC) && HAVE(SUPPORT_HDR_DISPLAY_APIS)
+
+TEST(SiteIsolation, HDRSuppressionReachesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body><video></video><iframe src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body><video></video></body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    RetainPtr configuration = configurationWithInternals(server);
+    setFeatureEnabled(configuration.get(), @"SupportHDRDisplayEnabled", true);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+
+    auto setApplicationSuppressesHDR = [](bool suppress) {
+        [NSNotificationCenter.defaultCenter postNotificationName:suppress ? NSApplicationShouldBeginSuppressingHighDynamicRangeContentNotification : NSApplicationShouldEndSuppressingHighDynamicRangeContentNotification object:NSApp];
+    };
+    auto dynamicRangeLimit = [&](WKFrameInfo *frame) {
+        return [[webView objectByEvaluatingJavaScript:@"internals.effectiveDynamicRangeLimitValue(document.querySelector('video'))" inFrame:frame] doubleValue];
+    };
+
+    // The iframe's process is created after HDR is suppressed, so it has to learn it when it's created.
+    setApplicationSuppressesHDR(true);
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_NE(childFrame.get()._processIdentifier, [webView _webProcessIdentifier]);
+    auto suppressedLimit = dynamicRangeLimit(nil);
+    EXPECT_EQ(dynamicRangeLimit(childFrame.get()), suppressedLimit);
+
+    // Changes made after that have to reach the iframe's process too.
+    setApplicationSuppressesHDR(false);
+    double unsuppressedLimit = 0;
+    EXPECT_TRUE(Util::waitFor([&] {
+        unsuppressedLimit = dynamicRangeLimit(nil);
+        return unsuppressedLimit != suppressedLimit;
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return dynamicRangeLimit(childFrame.get()) == unsuppressedLimit;
+    }));
+
+    setApplicationSuppressesHDR(true);
+    EXPECT_TRUE(Util::waitFor([&] {
+        return dynamicRangeLimit(nil) == suppressedLimit;
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return dynamicRangeLimit(childFrame.get()) == suppressedLimit;
+    }));
+
+    setApplicationSuppressesHDR(false);
+}
+
+#endif // PLATFORM(MAC) && HAVE(SUPPORT_HDR_DISPLAY_APIS)
+
+#if PLATFORM(IOS_FAMILY)
+
+TEST(SiteIsolation, SnapshotSequenceForApplicationSuspensionReachesCrossOriginIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<body><iframe src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { "<body>subframe</body>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    // Give each site its own process, so the iframe added below needs a new one.
+    RetainPtr configuration = configurationWithInternals(server);
+    setFeatureEnabled(configuration.get(), @"SiteIsolationSharedProcessEnabled", false);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 800, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_NE(childFrame.get()._processIdentifier, [webView _webProcessIdentifier]);
+
+    auto isTakingSnapshots = [&](WKFrameInfo *frame) {
+        return [[webView objectByEvaluatingJavaScript:@"internals.pageIsTakingSnapshotsForApplicationSuspension()" inFrame:frame] boolValue];
+    };
+    EXPECT_FALSE(isTakingSnapshots(nil));
+    EXPECT_FALSE(isTakingSnapshots(childFrame.get()));
+
+    UIWindowScene *scene = [webView window].windowScene;
+    [NSNotificationCenter.defaultCenter postNotificationName:_UISceneWillBeginSystemSnapshotSequence object:scene];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return isTakingSnapshots(nil);
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return isTakingSnapshots(childFrame.get());
+    }));
+
+    // A process created during the snapshot sequence has to learn about it when it's created.
+    [webView evaluateJavaScript:@"let iframe = document.createElement('iframe'); iframe.src = 'https://apple.com/iframe'; document.body.appendChild(iframe)" completionHandler:nil];
+    EXPECT_TRUE(Util::waitFor([&] {
+        if ([webView mainFrame].childFrames.count < 2)
+            return false;
+        RetainPtr frame = [webView secondChildFrame];
+        return [frame.get().request.URL.host isEqualToString:@"apple.com"] && frame.get()._processIdentifier != [webView _webProcessIdentifier];
+    }));
+    RetainPtr newChildFrame = [webView secondChildFrame];
+    EXPECT_NE(newChildFrame.get()._processIdentifier, childFrame.get()._processIdentifier);
+    EXPECT_NE(newChildFrame.get()._processIdentifier, [webView _webProcessIdentifier]);
+    EXPECT_TRUE(isTakingSnapshots(newChildFrame.get()));
+
+    [NSNotificationCenter.defaultCenter postNotificationName:_UISceneDidCompleteSystemSnapshotSequence object:scene];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !isTakingSnapshots(nil);
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !isTakingSnapshots(childFrame.get());
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return !isTakingSnapshots(newChildFrame.get());
+    }));
+}
+
+#endif // PLATFORM(IOS_FAMILY)
 
 #if PLATFORM(IOS_FAMILY)
 
@@ -5045,6 +5183,135 @@ TEST(SiteIsolation, SelectWithTwoTouchesRedispatchToTheSourceFrameIsRejected)
 
 #endif // PLATFORM(IOS_FAMILY) && ENABLE(IPC_TESTING_API)
 
+//  Tests for frame-targeted data queries
+#if PLATFORM(MAC)
+
+struct CrossSiteChildFrame {
+    RetainPtr<TestWKWebView> webView;
+    RetainPtr<TestNavigationDelegate> navigationDelegate;
+    WKRetainPtr<WKFrameRef> frame;
+    bool mainFrameFinished { false };
+};
+
+static bool loadCrossSiteChildFrame(CrossSiteChildFrame& child, const HTTPServer& server)
+{
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(server, CGRectMake(0, 0, 800, 600));
+    child.webView = webView;
+    child.navigationDelegate = navigationDelegate;
+
+    WKPageLoaderClientV0 loaderClient;
+    zeroBytes(loaderClient);
+    loaderClient.base.version = 0;
+    loaderClient.base.clientInfo = &child;
+    loaderClient.didFinishLoadForFrame = [](WKPageRef, WKFrameRef frame, WKTypeRef, const void* clientInfo) {
+        auto* child = static_cast<CrossSiteChildFrame*>(const_cast<void*>(clientInfo));
+        if (WKFrameIsMainFrame(frame))
+            child->mainFrameFinished = true;
+        else
+            child->frame = frame;
+    };
+    WKPageSetPageLoaderClient([webView _pageRefForTransitionToWKWebView], &loaderClient.base);
+
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    return Util::waitFor([&] {
+        return child.mainFrameFinished && !!child.frame;
+    });
+}
+
+TEST(SiteIsolation, GetSourceForFrameInCrossSiteIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<html><body><!-- iframe-source-marker --><p>iframe</p></body></html>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    CrossSiteChildFrame child;
+    ASSERT_TRUE(loadCrossSiteChildFrame(child, server));
+
+    struct Result {
+        bool done { false };
+        RetainPtr<NSString> string;
+    } result;
+    WKPageGetSourceForFrame([child.webView _pageRefForTransitionToWKWebView], child.frame.get(), &result, [](WKStringRef string, WKErrorRef, void* context) {
+        auto* result = static_cast<Result*>(context);
+        if (string)
+            result->string = bridge_cast(adoptCF(WKStringCopyCFString(kCFAllocatorDefault, string)).get());
+        result->done = true;
+    });
+    EXPECT_TRUE(Util::runFor(&result.done, 10_s));
+    EXPECT_TRUE([result.string containsString:@"iframe-source-marker"]);
+}
+
+TEST(SiteIsolation, GetMainResourceDataOfCrossSiteIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<html><body><!-- iframe-main-resource-marker --><p>iframe</p></body></html>"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    CrossSiteChildFrame child;
+    ASSERT_TRUE(loadCrossSiteChildFrame(child, server));
+    pid_t mainFrameProcess = [child.webView _webProcessIdentifier];
+
+    struct Result {
+        bool done { false };
+        bool hasData { false };
+        RetainPtr<NSData> data;
+    } result;
+    WKFrameGetMainResourceData(child.frame.get(), [](WKDataRef data, WKErrorRef, void* context) {
+        auto* result = static_cast<Result*>(context);
+        if (data) {
+            result->hasData = true;
+            result->data = adoptNS([[NSData alloc] initWithBytes:WKDataGetBytes(data) length:WKDataGetSize(data)]);
+        }
+        result->done = true;
+    }, &result);
+    EXPECT_TRUE(Util::runFor(&result.done, 10_s));
+    EXPECT_TRUE(result.hasData);
+    RetainPtr resourceString = adoptNS([[NSString alloc] initWithData:result.data.get() encoding:NSUTF8StringEncoding]);
+    EXPECT_TRUE([resourceString containsString:@"iframe-main-resource-marker"]);
+
+    EXPECT_EQ(mainFrameProcess, [child.webView _webProcessIdentifier]);
+    EXPECT_WK_STREQ("2", [child.webView stringByEvaluatingJavaScript:@"String(1 + 1)"]);
+}
+
+TEST(SiteIsolation, GetResourceDataFromCrossSiteIframe)
+{
+    HTTPServer server({
+        { "/mainframe"_s, { "<iframe src='https://webkit.org/iframe'></iframe>"_s } },
+        { "/iframe"_s, { "<script src='/iframe-resource.js'></script>"_s } },
+        { "/iframe-resource.js"_s, { { { "Content-Type"_s, "text/javascript"_s } }, "// iframe-subresource-marker"_s } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    CrossSiteChildFrame child;
+    ASSERT_TRUE(loadCrossSiteChildFrame(child, server));
+    pid_t mainFrameProcess = [child.webView _webProcessIdentifier];
+
+    struct Result {
+        bool done { false };
+        bool hasData { false };
+        RetainPtr<NSData> data;
+    } result;
+    WKRetainPtr<WKURLRef> resourceURL = adoptWK(WKURLCreateWithUTF8CString("https://webkit.org/iframe-resource.js"));
+    WKFrameGetResourceData(child.frame.get(), resourceURL.get(), [](WKDataRef data, WKErrorRef, void* context) {
+        auto* result = static_cast<Result*>(context);
+        if (data) {
+            result->hasData = true;
+            result->data = adoptNS([[NSData alloc] initWithBytes:WKDataGetBytes(data) length:WKDataGetSize(data)]);
+        }
+        result->done = true;
+    }, &result);
+    EXPECT_TRUE(Util::runFor(&result.done, 10_s));
+    EXPECT_TRUE(result.hasData);
+    RetainPtr resourceString = adoptNS([[NSString alloc] initWithData:result.data.get() encoding:NSUTF8StringEncoding]);
+    EXPECT_TRUE([resourceString containsString:@"iframe-subresource-marker"]);
+
+    EXPECT_EQ(mainFrameProcess, [child.webView _webProcessIdentifier]);
+    EXPECT_WK_STREQ("2", [child.webView stringByEvaluatingJavaScript:@"String(1 + 1)"]);
+}
+
+#endif // PLATFORM(MAC)
+
 TEST(SiteIsolation, TopCloseFromCrossOriginIframeRunsMainFrameBeforeUnload)
 {
     HTTPServer server({
@@ -5114,5 +5381,66 @@ TEST(SiteIsolation, ClosePageFromIframeProcessIsCheckedAgainstClosePolicy)
 }
 
 #endif // ENABLE(IPC_TESTING_API)
+
+#if PLATFORM(IOS_FAMILY)
+
+TEST(SiteIsolation, PageScaleReachesCrossOriginIframesAfterZooming)
+{
+    static constexpr auto iframeHTML = "<body>iframe</body>"_s;
+    HTTPServer server({
+        { "/mainframe"_s, { "<meta name='viewport' content='width=device-width, initial-scale=1'><body><iframe src='https://webkit.org/iframe'></iframe></body>"_s } },
+        { "/iframe"_s, { iframeHTML } },
+        { "/iframe2"_s, { iframeHTML } }
+    }, HTTPServer::Protocol::HttpsProxy);
+
+    // Give each site its own process, so the iframe added below needs a new one.
+    RetainPtr configuration = configurationWithInternals(server);
+    setFeatureEnabled(configuration.get(), @"SiteIsolationSharedProcessEnabled", false);
+    auto [webView, navigationDelegate] = siteIsolatedViewAndDelegate(configuration, CGRectMake(0, 0, 400, 600));
+    [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://example.com/mainframe"]]];
+    [navigationDelegate waitForDidFinishNavigation];
+    RetainPtr childFrame = [webView firstChildFrame];
+    EXPECT_NE(childFrame.get()._processIdentifier, [webView _webProcessIdentifier]);
+
+    auto pageScale = [&](WKFrameInfo *frame) {
+        return [[webView objectByEvaluatingJavaScript:@"internals.pageScaleFactor()" inFrame:frame] doubleValue];
+    };
+
+    // Zooming only takes effect once the first layer tree commit has set the scroll view's zoom range.
+    [webView waitForNextPresentationUpdate];
+    EXPECT_TRUE(Util::waitFor([&] {
+        if (std::abs(pageScale(nil) - 2) < 0.01)
+            return true;
+        [[webView scrollView] setZoomScale:2 animated:NO];
+        return false;
+    }));
+    EXPECT_TRUE(Util::waitFor([&] {
+        return std::abs(pageScale(childFrame.get()) - 2) < 0.01;
+    }));
+
+    // A process created after zooming has to start out with the page's scale.
+    [webView objectByEvaluatingJavaScript:@"let iframe = document.createElement('iframe'); iframe.onload = () => window.addedIframeLoaded = true; iframe.src = 'https://apple.com/iframe'; document.body.appendChild(iframe); true"];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView objectByEvaluatingJavaScript:@"!!window.addedIframeLoaded"] boolValue];
+    }));
+    RetainPtr newChildFrame = [webView secondChildFrame];
+    EXPECT_NE(newChildFrame.get()._processIdentifier, childFrame.get()._processIdentifier);
+    EXPECT_TRUE(Util::waitFor([&] {
+        return std::abs(pageScale(newChildFrame.get()) - 2) < 0.01;
+    }));
+
+    // A load committing in an iframe's process keeps the page's scale.
+    [webView objectByEvaluatingJavaScript:@"location.href = '/iframe2'; true" inFrame:childFrame.get()];
+    EXPECT_TRUE(Util::waitFor([&] {
+        return [[webView firstChildFrame].request.URL.path isEqualToString:@"/iframe2"];
+    }));
+    RetainPtr navigatedChildFrame = [webView firstChildFrame];
+    EXPECT_EQ(navigatedChildFrame.get()._processIdentifier, childFrame.get()._processIdentifier);
+    EXPECT_TRUE(Util::waitFor([&] {
+        return std::abs(pageScale(navigatedChildFrame.get()) - 2) < 0.01;
+    }));
+}
+
+#endif // PLATFORM(IOS_FAMILY)
 
 } // namespace TestWebKitAPI

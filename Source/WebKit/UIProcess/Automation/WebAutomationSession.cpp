@@ -65,6 +65,7 @@
 #include <JavaScriptCore/MathCommon.h>
 #include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/MIMETypeRegistry.h>
+#include <WebCore/NetworkInterception.h>
 #include <WebCore/PointerEventTypeNames.h>
 #include <algorithm>
 #include <cmath>
@@ -343,6 +344,8 @@ void WebAutomationSession::terminate()
     }
 #endif // ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
 
+    clearNetworkInterceptionForAllPages();
+
 #if ENABLE(REMOTE_INSPECTOR)
     if (Inspector::FrontendChannel* channel = m_remoteChannel) {
         m_remoteChannel = nullptr;
@@ -444,7 +447,28 @@ std::optional<FrameIdentifier> WebAutomationSession::webFrameIDForHandle(const S
         return std::nullopt;
     }
 
+    // The child frames of a document in the back/forward cache keep their handles, so that they still have them when
+    // the document is restored, but commands cannot reach them once they are out of the frame tree. A handle can also
+    // outlive its frame until the next sweep, for example when a back/forward cache entry is discarded.
+    RefPtr frame = WebFrameProxy::webFrame(iter->value);
+    if (!frame || !isInFrameTreeOfItsPage(*frame)) {
+        frameNotFound = true;
+        return std::nullopt;
+    }
+
     return iter->value;
+}
+
+bool WebAutomationSession::isInFrameTreeOfItsPage(const WebFrameProxy& frame)
+{
+    RefPtr page = frame.page();
+    if (!page)
+        return false;
+
+    RefPtr ancestor = &frame;
+    while (RefPtr parent = ancestor->parentFrame())
+        ancestor = WTF::move(parent);
+    return ancestor == page->mainFrame();
 }
 
 String WebAutomationSession::handleForWebFrameID(std::optional<FrameIdentifier> frameID)
@@ -1457,24 +1481,15 @@ void WebAutomationSession::forgetFrameHandles(NOESCAPE const Function<bool(const
         didDestroyFrame(frameID);
 }
 
-void WebAutomationSession::forgetFramesOutsideFrameTree(const WebPageProxy& page)
+void WebAutomationSession::forgetDestroyedFrames()
 {
-    // A frame can leave the frame tree without being reported destroyed: the child frames of a document that goes
-    // into the back/forward cache still exist, and so do child frames detached from the previous main frame when a
-    // provisional page commits. Their handles must not reach those frames any more. Handles of frames that no longer
-    // exist at all are dropped too, whichever page they were in.
-    // FIXME: Child frames restored from the back/forward cache get new handles that no contextCreated event reported.
-    // They should keep their handles, and commands should fail while their document is in the cache. https://bugs.webkit.org/show_bug.cgi?id=332165
-    RefPtr mainFrame = page.mainFrame();
-    forgetFrameHandles([&](const WebFrameProxy* frame) {
-        if (!frame)
-            return true;
-        if (frame->page() != &page)
-            return false;
-        RefPtr ancestor = frame;
-        while (RefPtr parent = ancestor->parentFrame())
-            ancestor = WTF::move(parent);
-        return ancestor != mainFrame;
+    // Some frames go away without being reported destroyed, such as the child frames detached from the previous main
+    // frame when a provisional page commits, or those of a back/forward cache entry that is discarded. Frames that
+    // still exist keep their handles even when they are out of the frame tree: the child frames of a document in the
+    // back/forward cache are the same frames when it is restored. webFrameIDForHandle() keeps commands from reaching
+    // them in the meantime.
+    forgetFrameHandles([](const WebFrameProxy* frame) {
+        return !frame;
     });
 }
 
@@ -1485,11 +1500,10 @@ void WebAutomationSession::navigationOccurredForFrame(const WebFrameProxy& frame
 
         // Child frames keep their handles across a load or a same-document navigation of the main frame: the frames
         // that the new document created while it loaded, the frames of a document that only navigated within itself,
-        // and those of a document that stayed after a failed provisional load are still in the frame tree. The tree
-        // is the page's current one: after a failed cross-process provisional load, frame is the provisional page's
-        // main frame, which the current document's frames do not descend from.
+        // those of a document that stayed after a failed provisional load, and those of a document that went into the
+        // back/forward cache all still exist.
         if (notification == NavigationNotification::LoadEnded)
-            forgetFramesOutsideFrameTree(page);
+            forgetDestroyedFrames();
 
         // A wait for the eager strategy normally ends when the document has loaded. The navigation it is bound
         // to may have failed and never get there, and a same-document target has no document load, so those
@@ -1987,6 +2001,21 @@ void WebAutomationSession::setViewportForPage(WebPageProxy& page, std::optional<
 }
 
 #endif
+
+void WebAutomationSession::clearNetworkInterceptionForAllPages()
+{
+    // The intercepts of a session end with it. Other consumers, such as Web Inspector, keep theirs.
+    RefPtr processPool = m_processPool;
+    if (!processPool)
+        return;
+
+    for (Ref process : borrow(processPool->processes()).get()) {
+        for (Ref page : process->pages()) {
+            if (page->isControlledByAutomation())
+                page->setNetworkInterceptPatterns(Inspector::NetworkInterceptOwner::Automation, { }, [] { });
+        }
+    }
+}
 
 void WebAutomationSession::willClosePage(const WebPageProxy& page)
 {

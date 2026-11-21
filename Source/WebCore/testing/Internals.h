@@ -336,6 +336,7 @@ public:
     void setUserAgentPart(Element&, const AtomString&);
 
     // DOMTimers throttling testing.
+    int timerNestingLevel();
     ExceptionOr<bool> isTimerThrottled(int timeoutId);
     ExceptionOr<bool> isTimerAligned(int timeoutId);
     String requestAnimationFrameThrottlingReasons() const;
@@ -942,6 +943,7 @@ public:
     ExceptionOr<bool> isCanvasContextHDR(const HTMLCanvasElement&);
 
     ExceptionOr<void> setPageShouldSuppressHDR(bool);
+    bool pageIsTakingSnapshotsForApplicationSuspension();
 
     ExceptionOr<void> setIsPlayingToBluetoothOverride(std::optional<bool>);
 
@@ -1782,6 +1784,7 @@ public:
     void getImageBufferResourceLimits(ImageBufferResourceLimitsPromise&&);
 
     void setResourceCachingDisabledByWebInspector(bool);
+    bool isNetworkInterceptionConfiguredForTesting(const String& url);
     ExceptionOr<void> lowerAllFrameMemoryMonitorLimits();
 
 #if ENABLE(DAMAGE_TRACKING)
@@ -1811,6 +1814,7 @@ public:
     unsigned numberOfHostedPromotedChildrenInSpatialPortal(Element&);
     NODELETE bool establishesSpatialPortal(Element&);
     NODELETE RefPtr<Element> spatialPortalAnchorForModel(HTMLModelElement&);
+    RefPtr<Element> spatialPortalAnchorForPromotedChild(Element&);
     NODELETE std::optional<Vector<double>> spatialPortalResolvedTransform(Element&);
     NODELETE String effectiveEnvironmentMap(Element&);
 #endif

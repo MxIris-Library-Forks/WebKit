@@ -1690,6 +1690,9 @@ void RenderLayer::verifySkippedLayerPositionsAfterDocumentScroll()
     if (!m_hasVisibleDescendant && !m_hasVisibleContent)
         return;
 
+    if (renderer().view().frameView().layoutContext().needsLayout())
+        return;
+
     updateLayerPosition(nullptr, Verify);
 
     for (auto* child = firstChild(); child; child = child->nextSibling())
@@ -4874,7 +4877,15 @@ std::optional<TransformationMatrix> RenderLayer::hostedPortalContentProjection(c
     auto portalOffset = offsetFromAncestor(&space) - offsetFromAncestor(portalLayer.get());
     TransformationMatrix projection;
     projection.translate(portalOffset.width(), portalOffset.height());
-    projection.multiply(controller->hostedContentProjection());
+
+    RefPtr element = renderer().element();
+    if (auto anchoredProjection = element ? controller->anchoredPromotedChildProjection(element->nodeIdentifier()) : std::nullopt) {
+        projection.multiply(*anchoredProjection);
+        auto offsetInPortal = offsetFromAncestor(portalLayer.get());
+        projection.translate(-offsetInPortal.width(), -offsetInPortal.height());
+    } else
+        projection.multiply(controller->hostedContentProjection());
+
     projection.translate(-portalOffset.width(), -portalOffset.height());
     return projection;
 }

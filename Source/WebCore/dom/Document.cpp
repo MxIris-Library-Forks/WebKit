@@ -3574,17 +3574,20 @@ void Document::destroyRenderTree()
 
     // FIXME: RenderObject::view() uses m_renderView and we can't null it before destruction is completed
     {
-        RenderTreeBuilder builder(protect(*m_renderView));
-        // FIXME: This is a workaround for leftover content (see webkit.org/b/182547).
-        while (WeakPtr child = m_renderView->firstChild()) {
-            // destroy() deletes the renderer, so it cannot be protected.
-            SUPPRESS_UNCHECKED_ARG builder.destroy(*child);
-        }
+        {
+            // The builder refers to the RenderView, so it must go away before the RenderView is destroyed.
+            RenderTreeBuilder builder(protect(*m_renderView));
+            // FIXME: This is a workaround for leftover content (see webkit.org/b/182547).
+            while (WeakPtr child = m_renderView->firstChild()) {
+                // destroy() deletes the renderer, so it cannot be protected.
+                SUPPRESS_UNCHECKED_ARG builder.destroy(*child);
+            }
 
-        if (RefPtr view = this->view()) {
-            CheckedRef layoutContext = view->layoutContext();
-            layoutContext->deleteDetachedRenderersNow();
-            layoutContext->deleteDetachedInlineContentNow();
+            if (RefPtr view = this->view()) {
+                CheckedRef layoutContext = view->layoutContext();
+                layoutContext->deleteDetachedRenderersNow();
+                layoutContext->deleteDetachedInlineContentNow();
+            }
         }
 
         // destroy() deletes the RenderView, so it cannot be protected.
@@ -5172,7 +5175,7 @@ SocketProvider* Document::socketProvider()
 
 RefPtr<RTCDataChannelRemoteHandlerConnection> Document::createRTCDataChannelRemoteHandlerConnection()
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainThread());
+    RELEASE_ASSERT(isMainThread());
     RefPtr page = this->page();
     if (!page)
         return nullptr;
@@ -7373,7 +7376,7 @@ void Document::dispatchWindowEvent(Event& event, EventTarget* target)
 
 void Document::dispatchWindowLoadEvent()
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(ScriptDisallowedScope::InMainThread::isScriptAllowed());
+    RELEASE_ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
     if (!m_domWindow)
         return;
     protect(window())->dispatchLoadEvent();
@@ -8287,7 +8290,7 @@ void Document::applyPendingXSLTransformsTimerFired()
         return;
 
     m_hasPendingXSLTransforms = false;
-    ASSERT_WITH_SECURITY_IMPLICATION(ScriptDisallowedScope::InMainThread::isScriptAllowed());
+    RELEASE_ASSERT(ScriptDisallowedScope::InMainThread::isScriptAllowed());
     for (auto& processingInstruction : styleScope().collectXSLTransforms()) {
         ASSERT(processingInstruction->isXSL());
 
@@ -8970,6 +8973,9 @@ void Document::setAgentClusterIdentifier(std::optional<AgentClusterIdentifier> i
 
 String Document::agentClusterID() const
 {
+    if (RefPtr contextDocument = m_contextDocument)
+        return contextDocument->agentClusterID();
+
     Ref origin = securityOrigin();
     auto& data = origin->data();
     // FIXME: The UI process should know when a document ends up with an opaque origin, so its identifier can account for that.
@@ -8980,6 +8986,8 @@ String Document::agentClusterID() const
     if (m_agentClusterIdentifier)
         return makeString("agent-cluster-"_s, m_agentClusterIdentifier->toUInt64());
     // Without a UI process, as in WebKitLegacy, there is no identifier.
+    if (data.protocol() == "file"_s)
+        return "file://"_s;
     return Site(data).toString();
 }
 
@@ -9170,10 +9178,7 @@ WindowEventLoop& Document::windowEventLoop()
 {
     ASSERT_WITH_SECURITY_IMPLICATION(isMainThread());
     if (!m_eventLoop) [[unlikely]] {
-        if (RefPtr contextDocument = m_contextDocument)
-            m_eventLoop = contextDocument->windowEventLoop();
-        else
-            m_eventLoop = WindowEventLoop::eventLoopForSecurityOrigin(protect(securityOrigin()));
+        m_eventLoop = WindowEventLoop::eventLoopForAgentCluster(agentClusterID());
         protect(m_eventLoop)->addAssociatedContext(*this);
     }
     return *m_eventLoop;

@@ -2008,6 +2008,7 @@ inspector/InspectorInstrumentation.cpp @header:RenderStyleGetters
 inspector/InspectorInstrumentationPublic.cpp
 inspector/InspectorInstrumentationWebKit.cpp
 inspector/InspectorNetworkIntercept.cpp
+inspector/NetworkInterception.cpp
 inspector/InspectorNodeFinder.cpp
 inspector/InspectorOverlay.cpp @header:RenderStyleGetters
 inspector/InspectorOverlayConfigParser.cpp
@@ -3445,7 +3446,6 @@ style/values/color/StyleColorLayers.cpp
 style/values/color/StyleColorMix.cpp
 style/values/color/StyleColorOptions.cpp
 style/values/color/StyleContrastColor.cpp
-style/values/color/StyleCurrentAccentColor.cpp
 style/values/color/StyleCurrentColor.cpp
 style/values/color/StyleDynamicRangeLimit.cpp
 style/values/color/StyleDynamicRangeLimitMix.cpp

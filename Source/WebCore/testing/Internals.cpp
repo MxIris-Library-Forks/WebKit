@@ -1846,6 +1846,12 @@ void Internals::setUserAgentPart(Element& element, const AtomString& part)
     return element.setUserAgentPart(part);
 }
 
+int Internals::timerNestingLevel()
+{
+    RefPtr context = scriptExecutionContext();
+    return context->timerNestingLevel();
+}
+
 ExceptionOr<bool> Internals::isTimerThrottled(int timeoutId)
 {
     RefPtr context = scriptExecutionContext();
@@ -5491,6 +5497,13 @@ ExceptionOr<void> Internals::setPageShouldSuppressHDR(bool shouldSuppressHDR)
 
     protect(document->page())->setShouldSuppressHDR(shouldSuppressHDR);
     return { };
+}
+
+bool Internals::pageIsTakingSnapshotsForApplicationSuspension()
+{
+    RefPtr document = contextDocument();
+    RefPtr page = document ? document->page() : nullptr;
+    return page && page->isTakingSnapshotsForApplicationSuspension();
 }
 
 bool Internals::isSelectPopupVisible(HTMLSelectElement& element)
@@ -9429,6 +9442,19 @@ void Internals::setResourceCachingDisabledByWebInspector(bool disabled)
     document->page()->setResourceCachingDisabledByWebInspector(disabled);
 }
 
+// Witnesses the network interception configuration active in THIS web content process.
+// Under Site Isolation each process hosting a frame of the page holds its own replica, so a
+// test can evaluate this inside a cross-origin subframe to confirm the configuration reached
+// that subframe's process.
+bool Internals::isNetworkInterceptionConfiguredForTesting(const String& url)
+{
+    RefPtr document = contextDocument();
+    if (!document || !document->page())
+        return false;
+
+    return document->page()->networkInterception().isConfiguredForURL(URL { url });
+}
+
 ExceptionOr<void> Internals::lowerAllFrameMemoryMonitorLimits()
 {
     RefPtr document = contextDocument();
@@ -9711,6 +9737,16 @@ RefPtr<Element> Internals::spatialPortalAnchorForModel(HTMLModelElement& model)
         return nullptr;
 
     return controller->anchorModelForChild(model.nodeIdentifier());
+}
+
+RefPtr<Element> Internals::spatialPortalAnchorForPromotedChild(Element& element)
+{
+    RefPtr portal = element.parentElement();
+    CheckedPtr controller = portal ? portal->spatialPortalController() : nullptr;
+    if (!controller)
+        return nullptr;
+
+    return controller->anchorModelForPromotedChild(element.nodeIdentifier());
 }
 
 // Returned as column-major values.

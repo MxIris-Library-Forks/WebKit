@@ -510,7 +510,7 @@ void WebPageProxy::beginSafeBrowsingCheck(const URL& url, API::Navigation& navig
 #if HAVE(SAFE_BROWSING)
 void WebPageProxy::completeSafeBrowsingCheckForModals(bool userProceeded)
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
 
     m_isSafeBrowsingCheckInProgress = false;
 
@@ -522,7 +522,7 @@ void WebPageProxy::completeSafeBrowsingCheckForModals(bool userProceeded)
 
 void WebPageProxy::drainDeferredModalsForNewNavigation()
 {
-    ASSERT_WITH_SECURITY_IMPLICATION(isMainRunLoop());
+    RELEASE_ASSERT(isMainRunLoop());
     purgeQueuedModalDialogs();
 
     if (m_isSafeBrowsingCheckInProgress) {
@@ -696,12 +696,12 @@ static RefPtr<WebCore::ShareableBitmap> convertPlatformImageToBitmap(CocoaImage 
     return bitmap;
 }
 
-RefPtr<WebCore::ShareableBitmap> WebPageProxy::iconForAttachment(const String& fileName, const String& contentType, const String& title, FloatSize& size)
+RefPtr<WebCore::ShareableBitmap> WebPageProxy::iconForAttachment(const String& fileExtension, const String& contentType, const String& title, FloatSize& size)
 {
 #if PLATFORM(IOS_FAMILY)
-    auto iconAndSize = RenderThemeIOS::iconForAttachment(fileName, contentType, title);
+    auto iconAndSize = RenderThemeIOS::iconForAttachment(fileExtension, contentType, title);
 #else
-    auto iconAndSize = RenderThemeMac::iconForAttachment(fileName, contentType, title);
+    auto iconAndSize = RenderThemeMac::iconForAttachment(fileExtension, contentType, title);
 #endif
     auto icon = iconAndSize.icon;
     size = iconAndSize.size;
@@ -724,11 +724,14 @@ void WebPageProxy::performDictionaryLookupAtLocation(const WebCore::FloatPoint& 
 
 void WebPageProxy::performDictionaryLookupAtLocationInFrame(WebCore::FrameIdentifier frameID, const WebCore::FloatPoint& point)
 {
-    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformDictionaryLookupAtLocation(frameID, point), Messages::WebPage::PerformDictionaryLookupAtLocation::Reply { [weakThis = WeakPtr { *this }](std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) {
+    sendWithAsyncReplyToProcessContainingFrame(frameID, Messages::WebPage::PerformDictionaryLookupAtLocation(frameID, point), ReplyWithConnection<Messages::WebPage::PerformDictionaryLookupAtLocation> { [weakThis = WeakPtr { *this }, frameID](IPC::Connection* connection, std::optional<WebCore::RemoteUserInputEventData> remoteUserInputEventData) {
         RefPtr protectedThis = weakThis.get();
         if (!protectedThis || !remoteUserInputEventData)
             return;
-        protectedThis->performDictionaryLookupAtLocationInFrame(remoteUserInputEventData->targetFrameID, WebCore::FloatPoint(remoteUserInputEventData->transformedPoint));
+        RefPtr targetFrame = protectedThis->frameForRemoteUserInputEventRedispatch(connection, frameID, remoteUserInputEventData->targetFrameID);
+        if (!targetFrame)
+            return;
+        protectedThis->performDictionaryLookupAtLocationInFrame(targetFrame->frameID(), WebCore::FloatPoint(remoteUserInputEventData->transformedPoint));
     } });
 }
 

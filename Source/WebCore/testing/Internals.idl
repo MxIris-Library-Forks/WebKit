@@ -865,6 +865,7 @@ enum LayerType {
     boolean testProcessIncomingSyncMessagesWhenWaitingForSyncReply();
 
     undefined setResourceCachingDisabledByWebInspector(boolean disabled);
+    boolean isNetworkInterceptionConfiguredForTesting(DOMString url);
     undefined lowerAllFrameMemoryMonitorLimits();
 
     [Conditional=DAMAGE_TRACKING] sequence<FrameDamage> getFrameDamageHistory();
@@ -1025,6 +1026,7 @@ enum LayerType {
     undefined setCanvasNoiseInjectionSalt(HTMLCanvasElement element, unsigned long long salt);
     boolean doesCanvasHavePendingCanvasNoiseInjection(HTMLCanvasElement element);
 
+    long timerNestingLevel();
     // Query if a timer is currently throttled, to debug timer throttling.
     boolean isTimerThrottled(long timerHandle);
     boolean isTimerAligned(long timerHandle);
@@ -1132,6 +1134,7 @@ enum LayerType {
     double getContextEffectiveDynamicRangeLimitValue(HTMLCanvasElement canvas);
     boolean isCanvasContextHDR(HTMLCanvasElement canvas);
     undefined setPageShouldSuppressHDR(boolean shouldSuppressHDR);
+    boolean pageIsTakingSnapshotsForApplicationSuspension();
 
     [Conditional=VIDEO&FULLSCREEN_API] boolean isChildOfElementFullscreen(HTMLMediaElement media);
 
@@ -1688,6 +1691,7 @@ enum LayerType {
     [Conditional=SPATIAL_PORTAL] unsigned long numberOfHostedPromotedChildrenInSpatialPortal(Element element);
     [Conditional=SPATIAL_PORTAL] boolean establishesSpatialPortal(Element element);
     [Conditional=SPATIAL_PORTAL] Element? spatialPortalAnchorForModel(HTMLModelElement model);
+    [Conditional=SPATIAL_PORTAL] Element? spatialPortalAnchorForPromotedChild(Element element);
     [Conditional=SPATIAL_PORTAL] sequence<unrestricted double>? spatialPortalResolvedTransform(Element element);
     [Conditional=SPATIAL_PORTAL] DOMString effectiveEnvironmentMap(Element element);
 

@@ -29,6 +29,7 @@ ipc/cocoa [ Pass ]
 ipc/ios [ Pass ]
 media/ios [ Pass ]
 media/audioSession/ios [ Pass ]
+media/wireless-playback-media-player [ Pass ]
 pdf [ Pass ]
 quicklook [ Pass ]
 system-preview [ Pass ]
@@ -1192,6 +1193,7 @@ fast/events/input-event-insert-link.html [ Failure ]
 
 # No tab navigation support on iOS
 fast/events/sequential-focus-navigation-after-clicking-editable-text.html [ Failure ]
+imported/w3c/web-platform-tests/html/interaction/focus/sequential-focus-navigation-starting-point.tentative.html [ Failure ]
 fast/shadow-dom/focus-on-iframe.html [ Failure ]
 webkit.org/b/116046 fast/events/sequential-focus-navigation-starting-point.html [ Skip ]
 webkit.org/b/159240 fast/events/remove-focus-navigation-starting-point-crash.html [ Skip ]
@@ -7218,6 +7220,29 @@ imported/w3c/web-platform-tests/html/user-activation/consumption-crossorigin.sub
 imported/w3c/web-platform-tests/html/user-activation/navigation-state-reset-crossorigin.sub.html [ Skip ]
 imported/w3c/web-platform-tests/html/user-activation/navigation-state-reset-sameorigin.html [ Skip ]
 imported/w3c/web-platform-tests/html/user-activation/user-activation-interface.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/iframe-navigated-by-crossorigin-parent.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/iframe-sandboxed-navigated-by-itself.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/iframe-traverse-to-entry-initiated-by-crossorigin-parent.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-initiated-by-crossorigin.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-to-crossorigin-redirect.html?cross-site [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-to-crossorigin-redirect.html?same-site [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-to-crossorigin.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-to-csp-sandboxed-document.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/navigate-top-initiated-by-crossorigin-iframe.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/reload-through-crossorigin-redirect.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/reload-to-crossorigin.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-aborted-by-204.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-after-crossorigin-redirect.https.html?no-store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-after-crossorigin-redirect.https.html?store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-forward-to-entry-initiated-by-crossorigin.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-keeps-own-activation.https.html?no-store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-keeps-own-activation.https.html?store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-refetch-through-crossorigin-redirect.https.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-same-document-keeps-activation.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-to-crossorigin.html [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-to-entry-initiated-by-crossorigin.https.html?no-store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-to-entry-initiated-by-crossorigin.https.html?store [ Skip ]
+imported/w3c/web-platform-tests/html/user-activation/traverse-to-pushed-entry.https.html?store [ Skip ]
 
 # WebGL in OffscreenCanvas requires the GPUP.
 imported/w3c/web-platform-tests/html/canvas/offscreen/manual/the-offscreen-canvas/offscreencanvas.getcontext.worker.html [ Skip ]
@@ -9294,6 +9319,11 @@ imported/w3c/web-platform-tests/mediacapture-record/MediaRecorder-blob-timecode.
 imported/w3c/web-platform-tests/paint-timing/fcp-only/fcp-video-frame.html [ Failure ] # rdar://178008235
 
 imported/w3c/web-platform-tests/preload/preload-referrer-policy.html [ Failure ] # rdar://178008433
+
+# After these upgrade-insecure-requests tests, later subresource loads from http://web-platform.test:8800
+# go out over TLS, so the tests that follow on the same simulator fail.
+imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-cross-origin.sub.html [ Skip ]
+imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-same-origin.sub.https.html [ Skip ]
 
 imported/w3c/web-platform-tests/service-workers/service-worker/controlled-iframe-postMessage.https.html [ Failure ] # rdar://178008306
 

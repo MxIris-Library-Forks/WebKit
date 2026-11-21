@@ -61,6 +61,7 @@
 #include <WebCore/FrameIdentifier.h>
 #include <WebCore/FrameLoaderTypes.h>
 #include <WebCore/IntPointHash.h>
+#include <WebCore/NetworkInterception.h>
 #include <WebCore/PrivateClickMeasurement.h>
 #include <WebCore/RegistrableDomain.h>
 #include <WebCore/RemoteUserInputEventData.h>
@@ -235,6 +236,13 @@ public:
     CompletionHandler<void(std::expected<WebCore::DigitalCredentialsResponseData, WebCore::ExceptionData>&&)> testingPendingDigitalCredentialHandler;
 #endif
 
+    // The authoritative network interception configuration for this page, the union of the
+    // patterns of every consumer; see WebPageProxy::networkInterception().
+    Inspector::NetworkInterception networkInterception;
+    Vector<Inspector::InterceptPattern> inspectorInterceptPatterns;
+    bool inspectorInterceptionEnabled { false };
+    Vector<Inspector::InterceptPattern> automationInterceptPatterns;
+
     uint32_t checkedPtrCount() const { return WebPopupMenuProxy::Client::checkedPtrCount(); }
     uint32_t checkedPtrCountWithoutThreadCheck() const { return WebPopupMenuProxy::Client::checkedPtrCountWithoutThreadCheck(); }
     void incrementCheckedPtrCount() const { WebPopupMenuProxy::Client::incrementCheckedPtrCount(); }
@@ -264,8 +272,8 @@ public:
     std::optional<WebCore::Color> backgroundColor;
     WebCore::LayoutSize baseLayoutViewportSize;
     std::optional<WebCore::FontAttributes> cachedFontAttributesAtSelectionStart;
-    Vector<Function<void()>> callbackHandlersAfterProcessingPendingMouseEvents;
-    Vector<Function<void()>> callbackHandlersAfterProcessingPendingKeyEvents;
+    Vector<CompletionHandler<void()>> callbackHandlersAfterProcessingPendingMouseEvents;
+    Vector<CompletionHandler<void()>> callbackHandlersAfterProcessingPendingKeyEvents;
 #if ENABLE(TOUCH_EVENTS) && !ENABLE(IOS_TOUCH_EVENTS)
     Vector<Function<void()>> callbackHandlersAfterProcessingPendingWheelEvents;
     Vector<Function<void()>> callbackHandlersAfterProcessingPendingTouchEvents;

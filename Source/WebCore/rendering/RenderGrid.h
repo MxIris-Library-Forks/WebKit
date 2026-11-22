@@ -176,6 +176,7 @@ public:
     bool isExtrinsicallySized() const;
 
     LayoutRange gridAreaRangeForOutOfFlow(const RenderBox&, Style::GridTrackSizingDirection) const;
+    void setGridAreaContentSizeForOutOfFlow(RenderBox&) const;
 
 protected:
     void willBeDestroyed() override;
@@ -235,7 +236,6 @@ private:
     bool canPerformSimplifiedLayout() const final;
     void prepareGridItemForPositionedLayout(RenderBox&);
     NODELETE bool hasStaticPositionForGridItem(const RenderBox&, Style::GridTrackSizingDirection) const;
-    void layoutOutOfFlowBox(RenderBox&, RelayoutChildren, bool fixedPositionObjectsOnly) override;
 
     void computeTrackSizesForDefiniteSize(Style::GridTrackSizingDirection, LayoutUnit availableSpace, RenderGridLayoutState&);
     std::pair<LayoutUnit, LayoutUnit> computeTrackSizesForIndefiniteSize(GridTrackSizingAlgorithm&, Style::GridTrackSizingDirection, RenderGridLayoutState&) const;
@@ -255,6 +255,7 @@ private:
 
     GridAxisPosition columnAxisPositionForGridItem(const RenderBox&) const;
     GridAxisPosition rowAxisPositionForGridItem(const RenderBox&) const;
+    std::pair<LayoutUnit, LayoutUnit> alignmentStartAndOffsetForGridItem(const RenderBox&, Style::GridTrackSizingDirection, GridLanesResultRef, LayoutUnit gridItemSize) const;
     LayoutUnit columnAxisOffsetForGridItem(const RenderBox&, GridLanesResultRef) const;
     LayoutUnit rowAxisOffsetForGridItem(const RenderBox&, GridLanesResultRef) const;
     ContentAlignmentData computeContentPositionAndDistributionOffset(Style::GridTrackSizingDirection, const LayoutUnit& availableFreeSpace, unsigned numberOfGridTracks) const;

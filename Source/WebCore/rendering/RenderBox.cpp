@@ -2524,12 +2524,12 @@ LayoutSize RenderBox::offsetFromContainer(const RenderElement& container, const 
 
     if (isOutOfFlowPositioned() && container.isInlineBox()) {
         // An out-of-flow box is only mapped to an inline box when the inline box is its containing block. The box is positioned relative
-        // to the border box of the inline box's first fragment, which is in the coordinate space of the inline box's own containing block.
+        // to the border box of the inline box's first fragment, which is in the coordinate space of the inline box's block container.
         auto& inlineBox = downcast<RenderBoxModelObject>(container);
         auto borderBoxRect = LayoutRect { location() + toLayoutSize(inlineBox.blockStartRelativeFirstFragmentBorderBoxRect().location()), borderBoxSize() };
         if (inlineBox.writingMode().isBlockFlipped()) {
-            if (CheckedPtr containingBlock = inlineBox.containingBlock())
-                containingBlock->blockStartRelativeToPhysical(borderBoxRect);
+            if (CheckedPtr blockContainer = LayoutIntegration::LineLayout::blockContainer(inlineBox))
+                blockContainer->blockStartRelativeToPhysical(borderBoxRect);
         }
         return offset + toLayoutSize(borderBoxRect.location());
     }
@@ -4181,7 +4181,7 @@ LayoutUnit RenderBox::availableLogicalHeightUsing(const Style::PreferredSize& lo
     return availableHeight;
 }
 
-void RenderBox::computeBlockDirectionMargins(const RenderBlock& containingBlock, LayoutUnit& marginBefore, LayoutUnit& marginAfter) const
+void RenderBox::computeBlockDirectionMargins(const RenderBoxModelObject& containingBlock, LayoutUnit& marginBefore, LayoutUnit& marginAfter) const
 {
     // First assert that we're not calling this method on box types that don't support margins.
     ASSERT(!isRenderTableCell());
@@ -5631,50 +5631,6 @@ bool RenderBox::requiresLayer() const
         || style().spatial() == SpatialType::Portal
 #endif
         || !style().usedZIndex().isAuto();
-}
-
-void RenderBox::updateFloatPainterAfterSelfPaintingLayerChange()
-{
-    ASSERT(isFloating());
-    ASSERT(!hasLayer() || !layer()->isSelfPaintingLayer());
-
-    // Find the ancestor renderer that is supposed to paint this float now that it is not self painting anymore.
-    auto floatingObjectForFloatPainting = [&]() -> FloatingObject* {
-        auto& layoutContext = view().frameView().layoutContext();
-        if (!layoutContext.isInLayout() || layoutContext.subtreeLayoutRoot() != this)
-            return nullptr;
-
-        FloatingObject* floatPainter = nullptr;
-        for (auto* ancestor = containingBlock(); ancestor; ancestor = ancestor->containingBlock()) {
-            auto* blockFlow = dynamicDowncast<RenderBlockFlow>(*ancestor);
-            if (!blockFlow) {
-                ASSERT_NOT_REACHED();
-                break;
-            }
-            auto* floatingObjects = blockFlow->floatingObjectSet();
-            if (!floatingObjects)
-                break;
-            auto blockFlowContainsThisFloat = false;
-            for (auto& floatingObject : *floatingObjects) {
-                if (!floatingObject->renderer())
-                    continue;
-                blockFlowContainsThisFloat = floatingObject->renderer() == this;
-                if (blockFlowContainsThisFloat) {
-                    floatPainter = floatingObject.get();
-                    if (blockFlow->hasLayer() && blockFlow->layer()->isSelfPaintingLayer())
-                        return floatPainter;
-                    break;
-                }
-            }
-            if (!blockFlowContainsThisFloat)
-                break;
-        }
-        // There has to be an ancestor with a floating object assigned to this renderer.
-        ASSERT(floatPainter);
-        return floatPainter;
-    };
-    if (auto* floatingObject = floatingObjectForFloatPainting())
-        floatingObject->setPaintsFloat(true);
 }
 
 using ShapeOutsideInfoMap = SingleThreadWeakHashMap<const RenderBox, std::unique_ptr<ShapeOutsideInfo>>;

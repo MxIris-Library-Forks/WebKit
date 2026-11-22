@@ -46,6 +46,7 @@ class BlockPainter;
 
 enum CaretType { CursorCaret, DragCaret };
 enum class RelayoutChildren : bool { No, Yes };
+enum class FixedPositionObjectsOnly : bool { No, Yes };
 
 enum TextRunFlag {
     DefaultTextRunFlags = 0,
@@ -250,7 +251,10 @@ public:
 
     Node* nodeForHitTest() const override;
 
-    void layoutOutOfFlowBoxes(RelayoutChildren, bool fixedPositionObjectsOnly = false);
+    void layoutOutOfFlowBoxes(RelayoutChildren, FixedPositionObjectsOnly = FixedPositionObjectsOnly::No);
+
+    void estimateFragmentRangeForBoxChild(const RenderBox&) const;
+    bool updateFragmentRangeForBoxChild(const RenderBox&) const;
 
     static void relayoutRenderBlockForScrollbarChange(RenderBlock&);
 
@@ -264,9 +268,7 @@ protected:
 
     void layout() override;
 
-    virtual void layoutOutOfFlowBox(RenderBox&, RelayoutChildren, bool fixedPositionObjectsOnly);
-    
-    void markFixedPositionBoxForLayoutIfNeeded(RenderBox& child);
+    bool hitTestFloat(RenderBox&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint&);
 
     std::pair<LayoutUnit, LayoutUnit> intrinsicLogicalMarginStartAndEnd(const RenderBox&) const;
     inline LayoutUnit marginIntrinsicLogicalWidthForChild(const RenderBox&) const;
@@ -312,9 +314,6 @@ protected:
 
     void computeFragmentRangeForBoxChild(const RenderBox&) const;
 
-    void estimateFragmentRangeForBoxChild(const RenderBox&) const;
-    bool updateFragmentRangeForBoxChild(const RenderBox&) const;
-
     void updateBlockChildDirtyBitsBeforeLayout(RelayoutChildren, RenderBox&);
 
     void preparePaginationBeforeBlockLayout(RelayoutChildren&);
@@ -347,8 +346,6 @@ private:
     void paintSelection(PaintInfo&, const LayoutPoint&);
 
     virtual bool hitTestContents(const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction);
-    // FIXME-BLOCKFLOW: Remove virtualization when all callers have moved to RenderBlockFlow
-    virtual bool hitTestFloats(const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint&) { return false; }
     virtual bool hitTestChildren(const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& adjustedLocation, HitTestAction);
     virtual bool hitTestInlineChildren(const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint&, HitTestAction) { return false; }
 

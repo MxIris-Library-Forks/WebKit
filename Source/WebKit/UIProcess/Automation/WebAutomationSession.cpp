@@ -3422,6 +3422,29 @@ void WebAutomationSession::simulateKeyboardInteraction(WebPageProxy& page, Keybo
 #if ENABLE(WEBDRIVER_WHEEL_INTERACTIONS)
 void WebAutomationSession::simulateWheelInteraction(WebPageProxy& page, const WebCore::IntPoint& locationInViewport, const WebCore::IntSize& delta, AutomationCompletionHandler&& completionHandler)
 {
+#if PLATFORM(MAC)
+    // The UI process scrolling tree only sends a wheel event to the web process if the event region
+    // at its location has a wheel event listener. Event regions arrive with layer tree commits, so a
+    // listener added since the last rendering update would miss the event. Wait for a presentation
+    // update first, but only when the view is visible, as the update can be postponed otherwise.
+    if (page.isViewVisible()) {
+        page.callAfterNextPresentationUpdate([this, protectedThis = Ref { *this }, weakPage = WeakPtr { page }, locationInViewport, delta, completionHandler = WTF::move(completionHandler)] mutable {
+            RefPtr page = weakPage;
+            if (!page || page->isClosed()) {
+                completionHandler(AUTOMATION_COMMAND_ERROR_WITH_NAME(WindowNotFound));
+                return;
+            }
+            dispatchWheelInteraction(*page, locationInViewport, delta, WTF::move(completionHandler));
+        });
+        return;
+    }
+#endif
+
+    dispatchWheelInteraction(page, locationInViewport, delta, WTF::move(completionHandler));
+}
+
+void WebAutomationSession::dispatchWheelInteraction(WebPageProxy& page, const WebCore::IntPoint& locationInViewport, const WebCore::IntSize& delta, AutomationCompletionHandler&& completionHandler)
+{
     page.getWindowFrameWithCallback([this, protectedThis = Ref { *this }, completionHandler = WTF::move(completionHandler), page = protect(page), locationInViewport, delta](WebCore::FloatRect windowFrame) mutable {
         auto clippedX = std::min(std::max(0.0f, static_cast<float>(locationInViewport.x())), windowFrame.size().width());
         auto clippedY = std::min(std::max(0.0f, static_cast<float>(locationInViewport.y())), windowFrame.size().height());
@@ -3511,6 +3534,24 @@ void WebAutomationSession::evaluateBidiScript(const Inspector::Protocol::Automat
         if (!callback)
             return;
 
+        if (!errorType.isEmpty()) {
+            callback(makeUnexpected(normalizedBidiScriptEvaluationError(errorType, result)));
+            return;
+        }
+
+        callback(WTF::move(result));
+    } });
+}
+
+void WebAutomationSession::locateNodesForBidi(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, const String& locator, std::optional<Vector<String>>&& startNodeIdentifiers, std::optional<uint64_t> maxNodeCount, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, CommandCallback<String>&& callback)
+{
+    RefPtr page = webPageProxyForHandle(browsingContextHandle);
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!page, FrameNotFound, "The browsing context is no longer available."_s);
+    bool frameNotFound = false;
+    auto frameID = webFrameIDForHandle(frameHandle, frameNotFound);
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(frameNotFound, FrameNotFound, "The browsing context is no longer available."_s);
+
+    page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::LocateNodesForBidi(page->webPageIDInProcessForFrame(frameID), frameID, locator, WTF::move(startNodeIdentifiers), maxNodeCount, maxObjectDepth, maxDomDepth, includeShadowTree), CompletionHandler<void(String&&, String&&)> { [callback = WTF::move(callback)](String&& result, String&& errorType) mutable {
         if (!errorType.isEmpty()) {
             callback(makeUnexpected(normalizedBidiScriptEvaluationError(errorType, result)));
             return;

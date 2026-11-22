@@ -258,10 +258,7 @@
             "test_capture_screenshot_with_parameters": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288325"}, "gtk": { "status": ["PASS"]}}},
             "test_set_viewport": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288333"]}}},
             "test_set_viewport_with_device_pixel_ratio": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288333"]}}},
-            "test_print_page": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288331"]}}},
-            "test_locate_nodes_with_xpath_locator": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288329"]}}},
-            "test_locate_nodes_with_inner_text": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288329"]}}},
-            "test_locate_nodes_given_start_nodes": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288329"]}}}
+            "test_print_page": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288331"]}}}
         }
     },
 
@@ -349,7 +346,7 @@
             "test_call_function_with_serialization_options": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/296255"}}},
             "test_call_function_with_await_promise": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/296255"}}},
             "test_call_function_with_result_ownership": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/296255"}}},
-            "test_disown_handles": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/288059"]}}},
+            "test_disown_handles": { "expected": { "all": { "status": ["FAIL"], "bug": ["webkit.org/b/296255", "webkit.org/b/328254"]}}},
             "test_execute_script_returns_promise": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/296255"}}},
             "test_execute_script_accessing_dom": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/296255"}}}
         }
@@ -1890,7 +1887,7 @@
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/320956"}}
             },
             "test_pretty_print_xml": {
-                "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
+                "expected": {"all": {"status": ["FAIL"], "note": "Fails with developer extras on, as in every MiniBrowser: WebKit replaces a top-level XML document with its tree view"}}
             },
             "test_no_such_element_with_shadow_root": {
                 "expected": {"all": {"status": ["FAIL"], "bug": "webkit.org/b/230612"}}
@@ -2637,6 +2634,9 @@
             "test_early_same_document_navigation": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
+            "test_iframe": {
+                "expected": {"all": {"status": ["PASS"]}}
+            },
             "test_page_with_base_tag": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
@@ -2853,6 +2853,9 @@
             "test_early_same_document_navigation": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
+            "test_iframe": {
+                "expected": {"all": {"status": ["PASS"]}}
+            },
             "test_page_with_base_tag": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
@@ -2882,46 +2885,27 @@
     },
     "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/context.py": {
         "subtests": {
-            "test_params_context_invalid_value": {
-                "expected": { "all": { "status": ["PASS"]}}
-            }
-        },
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}
+            "test_locate_in_iframe[css-cross_origin]": { "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770"}}},
+            "test_locate_in_iframe[accessibility-cross_origin]": { "expected": { "glib": { "status": ["FAIL"], "bug": "webkit.org/b/331770"}}}
+        }
     },
     "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/invalid.py": {
-        "expected": { "all": { "status": ["PASS"] }},
         "subtests": {
-            "test_params_locator_context_value_invalid_context[]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_locator_context_value_invalid_context[non_existing_context]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_locator_value_invalid_value[xpath-]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_locator_value_invalid_value[innerText-]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_locator_value_invalid_value[accessibility-value3]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_locator_xpath_unknown_error": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_empty_list": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_not_dom_node[value0]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_not_dom_node[value1]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_not_dom_node[value2]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_not_dom_node[value3]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.querySelector('input#button').attributes[0]]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.querySelector('#with-text-node').childNodes[0]]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.createProcessingInstruction(\"xml-stylesheet\", \"href='foo.css'\")]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.querySelector('#with-comment').childNodes[0]]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.doctype]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.getElementsByTagName('div')]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}},
-            "test_params_start_nodes_dom_node_not_element[document.querySelectorAll('div')]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}}
+            "test_params_locator_context_value_invalid_context[]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_params_locator_context_value_invalid_context[non_existing_context]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}}
         }
     },
     "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/locator.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}
-    },
-    "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/max_node_count.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}
-    },
-    "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/serialization_options.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}
-    },
-    "imported/w3c/webdriver/tests/bidi/browsing_context/locate_nodes/start_nodes.py": {
-        "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288329"}}
+        "subtests": {
+            "test_locate_by_context[same_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context[cross_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_iframe[same_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_iframe[cross_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_shadow_dom[open-same_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_shadow_dom[open-cross_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_shadow_dom[closed-same_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}},
+            "test_locate_by_context_in_shadow_dom[closed-cross_origin]": { "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/332540"}}}
+        }
     },
     "imported/w3c/webdriver/tests/bidi/browsing_context/navigate/about_blank.py": {
         "subtests": {
@@ -3183,7 +3167,13 @@
             "test_basic_auth": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
+            "test_iframe": {
+                "expected": {"all": {"status": ["PASS"]}}
+            },
             "test_navigate_history_pushstate": {
+                "expected": {"all": {"status": ["PASS"]}}
+            },
+            "test_nested_iframes": {
                 "expected": {"all": {"status": ["PASS"]}}
             },
             "test_redirect_http_equiv": {
@@ -3331,6 +3321,12 @@
             },
             "test_close_iframe": {
                 "expected": { "all": { "status": ["TIMEOUT"], "bug": "webkit.org/b/330715", "note": "WebKit commits a navigation when the first bytes of the body arrive, not when the response starts as in HTML, so wait none waits out the 10 seconds the page delays its body"}}
+            },
+            "test_with_x_frame_options_header[DENY]": {
+                "expected": {"mac": {"status": ["PASS"]}}
+            },
+            "test_with_x_frame_options_header[SAMEORIGIN]": {
+                "expected": {"mac": {"status": ["PASS"]}}
             }
         },
         "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/287933"}}
@@ -4854,10 +4850,10 @@
         "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288058"}}
     },
     "imported/w3c/webdriver/tests/bidi/script/disown/handles.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/288059"}}
+        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/328254"}}
     },
     "imported/w3c/webdriver/tests/bidi/script/disown/target.py": {
-        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/288059"}}
+        "expected": { "all": { "status": ["SKIP"], "bug": "webkit.org/b/328254"}}
     },
     "imported/w3c/webdriver/tests/bidi/script/evaluate/evaluate.py": {
         "expected": { "all": { "status": ["PASS"] }},
@@ -4960,7 +4956,7 @@
         "expected": { "all": { "status": ["PASS"] }},
         "subtests": {
             "test_cdata_node[basic]": {
-                "expected": { "all": { "status": ["FAIL"], "bug": "webkit.org/b/288060"}}
+                "expected": {"all": {"status": ["FAIL"], "note": "Fails with developer extras on, as in every MiniBrowser: WebKit replaces a top-level XML document with its tree view"}}
             }
         }
     },
@@ -6662,6 +6658,14 @@
             },
             "test_wheel_event_in_iframe[cross-origin]": {
                 "expected": {"glib": {"status": ["FAIL"], "bug": "webkit.org/b/331458"}}
+            }
+        }
+    },
+
+    "imported/w3c/webdriver/tests/classic/perform_actions/wheel_new_listener.py": {
+        "subtests": {
+            "test_listener_added_right_before_action": {
+                "expected": {"wpe": {"status": ["FAIL"], "bug": "webkit.org/b/331460"}}
             }
         }
     },

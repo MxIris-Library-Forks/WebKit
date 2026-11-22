@@ -149,6 +149,19 @@ bool PositionedLayoutConstraints::usesStaticPosition(const Style::ComputedStyle&
     return style.hasStaticBlockPosition(isHorizontalWritingMode) && !style.alignSelf().isAnchorCenter();
 }
 
+bool PositionedLayoutConstraints::alignmentDependsOnStaticPositionRectangleSize(const RenderBox& outOfFlowBox)
+{
+    CheckedPtr parent = outOfFlowBox.parent();
+    auto& style = outOfFlowBox.style();
+    if (!parent || !style.hasStaticInlinePosition(parent->isHorizontalWritingMode()))
+        return false;
+    auto justifySelf = style.justifySelf().resolve(&parent->style());
+    if (justifySelf.positionType() == ItemPositionType::Legacy)
+        return false;
+    auto alignment = StyleSelfAlignmentData::resolvePositionalAlignment(justifySelf.position(), LogicalBoxAxis::Inline, parent->writingMode(), outOfFlowBox.writingMode());
+    return alignment == ItemPosition::Center || alignment == ItemPosition::End;
+}
+
 void PositionedLayoutConstraints::captureInsets()
 {
     bool isHorizontal = BoxAxis::Horizontal == m_physicalAxis;
@@ -410,6 +423,67 @@ static bool usesInitialContainingBlockAsStaticPositionRectangle(const RenderBox&
     return element && element->isInTopLayer();
 }
 
+WritingMode PositionedLayoutConstraints::staticPositionContainingBlockWritingMode() const
+{
+    ASSERT(shouldAlignStaticPositionInInlineAxis());
+    // https://drafts.csswg.org/css-position-3/#staticpos-rect
+    // "To the extent the box alignment properties have an effect, they use the static-position containing block as the effective containing block, including using its writing mode for resolving alignment axes and directions."
+    // A box in the top layer is laid out as if it were a sibling of the root element, so its static-position containing block is the initial containing block.
+    if (usesInitialContainingBlockAsStaticPositionRectangle(m_renderer))
+        return m_containingWritingMode;
+    // FIXME: The inline axis of a parent orthogonal to the box is the box's block axis, so its writing mode can't resolve justify-self here.
+    if (m_parentWritingMode.isOrthogonal(m_writingMode))
+        return m_containingWritingMode;
+    // shouldAlignStaticPositionInInlineAxis() requires the parent to be a block container, which makes it the static-position containing block.
+    return m_parentWritingMode;
+}
+
+void PositionedLayoutConstraints::resolveAutoInsetsFromAlignment(LayoutUnit staticDistance)
+{
+    ASSERT(shouldAlignStaticPositionInInlineAxis());
+
+    // https://drafts.csswg.org/css-position-3/#staticpos-rect
+    // "The static-position rectangle is a zero-thickness rectangle spanning between the inline-axis sides of the box's static-position containing block"
+    CheckedRef staticPositionContainingBlock = downcast<RenderBox>(*m_renderer->parent());
+    auto rectangleSize = staticPositionContainingBlock->contentBoxLogicalWidth();
+    bool startIsLeftOrTop = m_parentWritingMode.isLogicalLeftInlineStart();
+    auto distanceFromStartEdgeToRectangleStart = startIsLeftOrTop ? staticDistance : containingSize() - staticDistance;
+    auto& startEdgeInset = startIsLeftOrTop ? m_insetBefore : m_insetAfter;
+    auto& endEdgeInset = startIsLeftOrTop ? m_insetAfter : m_insetBefore;
+    auto fixedInset = [&](LayoutUnit inset) -> Style::InsetEdge {
+        return Style::InsetEdge::Fixed { inset / m_style.usedZoomForLength().value };
+    };
+
+    // https://drafts.csswg.org/css-position-3/#resolving-inset-auto
+    // "If both inset properties in a given axis are auto, then, depending on the box's self-alignment property in the relevant axis:"
+    // "For the rules above, ignore overflow alignment, and treat normal as start and any baseline or stretch alignment value as its fallback alignment."
+    // FIXME: css-align-3 gives first baseline a self-start fallback and last baseline a self-end one.
+    switch (StyleSelfAlignmentData::resolvePositionalAlignment(resolveAlignmentValue(), LogicalBoxAxis::Inline, m_parentWritingMode, m_writingMode)) {
+    case ItemPosition::Start:
+        // "for self-start alignment or its equivalent: Set its start-edge inset property to the static position, and its end-edge inset property to zero."
+        startEdgeInset = fixedInset(distanceFromStartEdgeToRectangleStart);
+        return;
+    case ItemPosition::End:
+        // "for self-end alignment or its equivalent: Set its end-edge inset property to the static position, and its start-edge inset property to zero."
+        endEdgeInset = fixedInset(containingSize() - distanceFromStartEdgeToRectangleStart - rectangleSize);
+        return;
+    case ItemPosition::Center: {
+        // "for center alignment: Let start distance be the distance from the center of its static-position rectangle to the start edge of its containing block, and end distance be the distance from the center of its static-position rectangle to the end edge of its containing block. If start distance is less than or equal to end distance, then set the start-edge inset property to zero, and set the end-edge inset property to (containing block size - 2 x |start distance|); otherwise, set the end-edge inset property to zero and the start-edge inset property to (containing block size - 2 x |end distance|)."
+        auto startDistance = distanceFromStartEdgeToRectangleStart + rectangleSize / 2;
+        auto endDistance = containingSize() - startDistance;
+        if (startDistance <= endDistance) {
+            endEdgeInset = fixedInset(containingSize() - 2 * startDistance.abs());
+            return;
+        }
+        startEdgeInset = fixedInset(containingSize() - 2 * endDistance.abs());
+        return;
+    }
+    default:
+        ASSERT_NOT_REACHED();
+        return;
+    }
+}
+
 // See CSS2 § 10.3.7-8 and 10.6.4-5.
 void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComputedValues& computedValues) const
 {
@@ -449,16 +523,16 @@ void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComput
             usedMarginAfter = remainingSpace;
     } else {
         if (auto staticRemainingSpace = remainingSpaceForStaticAlignment(outerSize))
-            alignmentShift = resolveAlignmentShift(*staticRemainingSpace, outerSize);
+            alignmentShift = resolveAlignmentShift(*staticRemainingSpace, outerSize, m_containingWritingMode);
         else if (shouldAlignStaticPositionInInlineAxis()) {
             // Both insets were auto (static position) and an explicit justify-self was specified:
             // align the box's margin box within its static-position rectangle.
             // https://drafts.csswg.org/css-align-3/#justify-abspos
-            alignmentShift = resolveAlignmentShift(remainingSpace, outerSize);
+            alignmentShift = resolveAlignmentShift(remainingSpace, outerSize, staticPositionContainingBlockWritingMode());
         } else if (hasAutoBeforeInset != hasAutoAfterInset)
             alignmentShift = hasAutoAfterInset ? 0_lu : remainingSpace;
         else // Align into remaining space.
-            alignmentShift = resolveAlignmentShift(remainingSpace, outerSize);
+            alignmentShift = resolveAlignmentShift(remainingSpace, outerSize, m_containingWritingMode);
     };
 
     auto position = m_insetModifiedContainingRange.min() + usedMarginBefore + alignmentShift;
@@ -481,9 +555,9 @@ void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComput
     }
 }
 
-LayoutUnit PositionedLayoutConstraints::resolveAlignmentShift(LayoutUnit unusedSpace, LayoutUnit itemSize) const
+LayoutUnit PositionedLayoutConstraints::resolveAlignmentShift(LayoutUnit unusedSpace, LayoutUnit itemSize, WritingMode alignmentWritingMode) const
 {
-    bool startIsBefore = this->startIsBefore();
+    bool startIsBefore = m_containingAxis == LogicalBoxAxis::Block || alignmentWritingMode.isLogicalLeftInlineStart();
     bool isOverflowing = unusedSpace < 0_lu;
 
     ItemPosition resolvedAlignment = resolveAlignmentValue();
@@ -510,7 +584,7 @@ LayoutUnit PositionedLayoutConstraints::resolveAlignmentShift(LayoutUnit unusedS
                 shift = unusedSpace;
         }
     } else {
-        auto alignmentSpace = StyleSelfAlignmentData::adjustmentFromStartEdge(unusedSpace, resolvedAlignment, m_containingAxis, m_containingWritingMode, m_writingMode);
+        auto alignmentSpace = StyleSelfAlignmentData::adjustmentFromStartEdge(unusedSpace, resolvedAlignment, m_containingAxis, alignmentWritingMode, m_writingMode);
         shift = startIsBefore ? alignmentSpace : unusedSpace - alignmentSpace;
     }
 
@@ -693,6 +767,11 @@ void PositionedLayoutConstraints::computeStaticPosition()
         // A box in the top layer is laid out as if it were a sibling of the root element, so its containing block is the initial containing block,
         // or the viewport, which has the same size, when it's fixed positioned. Both insets are zero, so the box aligns within all of it.
         m_insetBefore = 0_css_px;
+        return;
+    }
+    if (shouldAlignStaticPositionInInlineAxis() && !m_style.originalDisplay().isInlineType() && !m_parentWritingMode.isOrthogonal(m_writingMode)) {
+        // FIXME: Implement the static-position rectangle for originally inline-level boxes and for boxes orthogonal to their parent.
+        resolveAutoInsetsFromAlignment(staticDistance);
         return;
     }
     // Since the static position is computed during in flow layout, the computed

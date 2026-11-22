@@ -45,6 +45,7 @@
 #include "HitTestResult.h"
 #include "ImageBuffer.h"
 #include "InlineIteratorInlineBox.h"
+#include "LayoutIntegrationLineLayout.h"
 #include "LayoutRepainter.h"
 #include "LayoutScope.h"
 #include "LocalFrame.h"
@@ -791,7 +792,7 @@ bool RenderBlock::simplifiedLayout()
     // are statically positioned and thus need to move with their absolute ancestors.
     bool canContainFixedPosObjects = canContainFixedPositionObjects();
     if (outOfFlowChildNeedsLayout() || canContainFixedPosObjects)
-        layoutOutOfFlowBoxes(RelayoutChildren::No, !outOfFlowChildNeedsLayout() && canContainFixedPosObjects);
+        layoutOutOfFlowBoxes(RelayoutChildren::No, !outOfFlowChildNeedsLayout() && canContainFixedPosObjects ? FixedPositionObjectsOnly::Yes : FixedPositionObjectsOnly::No);
     addOverflowFromOutOfFlowBoxes();
 
     // Transform-origin depends on box size. When simplified layout doesn't change our
@@ -809,13 +810,13 @@ bool RenderBlock::simplifiedLayout()
     return true;
 }
 
-void RenderBlock::markFixedPositionBoxForLayoutIfNeeded(RenderBox& positionedChild)
+static void markFixedPositionBoxForLayoutIfNeeded(RenderBox& positionedChild, const RenderBoxModelObject& containingBlock)
 {
     if (positionedChild.style().position() != PositionType::Fixed)
         return;
 
-    bool hasStaticBlockPosition = positionedChild.style().hasStaticBlockPosition(isHorizontalWritingMode());
-    bool hasStaticInlinePosition = positionedChild.style().hasStaticInlinePosition(isHorizontalWritingMode());
+    bool hasStaticBlockPosition = positionedChild.style().hasStaticBlockPosition(containingBlock.isHorizontalWritingMode());
+    bool hasStaticInlinePosition = positionedChild.style().hasStaticInlinePosition(containingBlock.isHorizontalWritingMode());
     if (!hasStaticBlockPosition && !hasStaticInlinePosition)
         return;
 
@@ -826,7 +827,7 @@ void RenderBlock::markFixedPositionBoxForLayoutIfNeeded(RenderBox& positionedChi
         return;
 
     if (hasStaticInlinePosition) {
-        LogicalExtentComputedValues computedValues;
+        RenderBox::LogicalExtentComputedValues computedValues;
         positionedChild.computeLogicalWidth(computedValues);
         LayoutUnit newLeft = computedValues.position;
         if (newLeft != positionedChild.logicalLeft())
@@ -848,22 +849,33 @@ std::pair<LayoutUnit, LayoutUnit> RenderBlock::intrinsicLogicalMarginStartAndEnd
     return { startValue, endValue };
 }
 
-void RenderBlock::layoutOutOfFlowBox(RenderBox& outOfFlowBox, RelayoutChildren relayoutChildren, bool fixedPositionObjectsOnly)
+static void layoutOutOfFlowBox(RenderBox& outOfFlowBox, RenderBoxModelObject& containingBlock, RelayoutChildren relayoutChildren, FixedPositionObjectsOnly fixedPositionObjectsOnly)
 {
     ASSERT(outOfFlowBox.isOutOfFlowPositioned());
 
-    if (layoutContext().isSkippedContentRootForLayout(*this)) {
+    // A box that skips its contents also contains its out-of-flow descendants (layout containment). An inline box can't skip its contents.
+    if (CheckedPtr box = dynamicDowncast<RenderBox>(containingBlock); box && box->layoutContext().isSkippedContentRootForLayout(*box)) {
         outOfFlowBox.clearNeedsLayoutForSkippedContent();
         return;
     }
 
-    estimateFragmentRangeForBoxChild(outOfFlowBox);
+    if (CheckedPtr grid = dynamicDowncast<RenderGrid>(containingBlock))
+        grid->setGridAreaContentSizeForOutOfFlow(outOfFlowBox);
+
+    // An inline box has no fragment range or layout state of its own, so fragmentation and pagination use its block container.
+    CheckedRef enclosingBlock = [&] -> RenderBlock& {
+        if (containingBlock.isInlineBox())
+            return *LayoutIntegration::LineLayout::blockContainer(containingBlock);
+        return downcast<RenderBlock>(containingBlock);
+    }();
+
+    enclosingBlock->estimateFragmentRangeForBoxChild(outOfFlowBox);
 
     // A fixed position element with an absolute positioned ancestor has no way of knowing if the latter has changed position. So
     // if this is a fixed position element, mark it for layout if it has an abspos ancestor and needs to move with that ancestor, i.e. 
     // it has static position.
-    markFixedPositionBoxForLayoutIfNeeded(outOfFlowBox);
-    if (fixedPositionObjectsOnly) {
+    markFixedPositionBoxForLayoutIfNeeded(outOfFlowBox, containingBlock);
+    if (fixedPositionObjectsOnly == FixedPositionObjectsOnly::Yes) {
         outOfFlowBox.layoutIfNeeded();
         return;
     }
@@ -876,11 +888,11 @@ void RenderBlock::layoutOutOfFlowBox(RenderBox& outOfFlowBox, RelayoutChildren r
     auto needsLayout = [&] {
         if (relayoutChildren == RelayoutChildren::Yes)
             return true;
-        if (outOfFlowBox.parent() == this)
+        if (outOfFlowBox.parent() == &containingBlock)
             return false;
-        if (outOfFlowBoxStyle.hasStaticBlockPosition(isHorizontalWritingMode()))
+        if (outOfFlowBoxStyle.hasStaticBlockPosition(containingBlock.isHorizontalWritingMode()))
             return true;
-        if (outOfFlowBoxStyle.hasStaticInlinePosition(isHorizontalWritingMode())) {
+        if (outOfFlowBoxStyle.hasStaticInlinePosition(containingBlock.isHorizontalWritingMode())) {
             // FIXME: We could just set the logical left on this out-of-flow box since the box itself does not really need layout (we are just moving an out-of-flow renderer here).
             return outOfFlowBox.logicalLeft() != PositionedLayoutConstraints { outOfFlowBox, LogicalBoxAxis::Inline }.computedInlineStaticDistance();
         }
@@ -905,15 +917,18 @@ void RenderBlock::layoutOutOfFlowBox(RenderBox& outOfFlowBox, RelayoutChildren r
 
     // If we are paginated or in a line grid, compute a vertical position for our object now.
     // If it's wrong we'll lay out again.
+    auto logicalTopInContainingBlock = [&] {
+        return containingBlock.isHorizontalWritingMode() ? outOfFlowBox.y() : outOfFlowBox.x();
+    };
     LayoutUnit oldLogicalTop;
-    auto* layoutState = view().frameView().layoutContext().layoutState();
+    auto* layoutState = outOfFlowBox.layoutContext().layoutState();
     bool needsBlockDirectionLocationSetBeforeLayout = outOfFlowBox.needsLayout() && layoutState && layoutState->needsBlockDirectionLocationSetBeforeLayout();
     if (needsBlockDirectionLocationSetBeforeLayout) {
-        if (isHorizontalWritingMode() == outOfFlowBox.isHorizontalWritingMode())
+        if (containingBlock.isHorizontalWritingMode() == outOfFlowBox.isHorizontalWritingMode())
             outOfFlowBox.updateLogicalHeight();
         else
             outOfFlowBox.updateLogicalWidth();
-        oldLogicalTop = logicalTopForChild(outOfFlowBox);
+        oldLogicalTop = logicalTopInContainingBlock();
     }
 
     outOfFlowBox.layoutIfNeeded();
@@ -929,25 +944,25 @@ void RenderBlock::layoutOutOfFlowBox(RenderBox& outOfFlowBox, RelayoutChildren r
     }
 
     // Lay out again if our estimate was wrong.
-    if (layoutChanged || (needsBlockDirectionLocationSetBeforeLayout && logicalTopForChild(outOfFlowBox) != oldLogicalTop)) {
+    if (layoutChanged || (needsBlockDirectionLocationSetBeforeLayout && logicalTopInContainingBlock() != oldLogicalTop)) {
         outOfFlowBox.setChildNeedsLayout(MarkingBehavior::OnlyThis);
         outOfFlowBox.layoutIfNeeded();
     }
 
-    if (updateFragmentRangeForBoxChild(outOfFlowBox)) {
+    if (enclosingBlock->updateFragmentRangeForBoxChild(outOfFlowBox)) {
         outOfFlowBox.setNeedsLayout(MarkingBehavior::OnlyThis);
         outOfFlowBox.layoutIfNeeded();
     }
     
     if (layoutState && layoutState->isPaginated()) {
-        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(*this)) {
-            auto offset = offsetFromBlock(*this, outOfFlowBox);
+        if (CheckedPtr blockFlow = dynamicDowncast<RenderBlockFlow>(enclosingBlock)) {
+            auto offset = offsetFromBlock(*blockFlow, outOfFlowBox);
             blockFlow->adjustSizeContainmentChildForPagination(outOfFlowBox, outOfFlowBox.isHorizontalWritingMode() ? offset.height() : offset.width());
         }
     }
 }
 
-void RenderBlock::layoutOutOfFlowBoxes(RelayoutChildren relayoutChildren, bool fixedPositionObjectsOnly)
+void RenderBlock::layoutOutOfFlowBoxes(RelayoutChildren relayoutChildren, FixedPositionObjectsOnly fixedPositionObjectsOnly)
 {
     auto* outOfFlowDescendants = outOfFlowBoxes();
     if (!outOfFlowDescendants)
@@ -956,7 +971,7 @@ void RenderBlock::layoutOutOfFlowBoxes(RelayoutChildren relayoutChildren, bool f
     // Do not cache outOfFlowDescendants->end() in a local variable, since |outOfFlowDescendants| can be mutated
     // as it is walked. We always need to fetch the new end() value dynamically.
     for (auto& descendant : *outOfFlowDescendants)
-        layoutOutOfFlowBox(descendant, relayoutChildren, fixedPositionObjectsOnly);
+        layoutOutOfFlowBox(descendant, *this, relayoutChildren, fixedPositionObjectsOnly);
     setOutOfFlowChildNeedsLayoutBit(false);
 }
 
@@ -1629,8 +1644,6 @@ bool RenderBlock::hitTestChildren(const HitTestRequest& request, HitTestResult& 
     const LayoutSize localOffset = toLayoutSize(adjustedLocation);
     const LayoutSize scrolledOffset(localOffset - toLayoutSize(scrollPosition()));
 
-    if (hitTestAction == HitTestAction::Float && hitTestFloats(request, result, locationInContainer, toLayoutPoint(scrolledOffset)))
-        return true;
     if (hitTestContents(request, result, locationInContainer, toLayoutPoint(scrolledOffset), hitTestAction)) {
         updateHitTestResult(result, physicalToBlockStartRelative(locationInContainer.point() - localOffset));
         return true;
@@ -1700,11 +1713,38 @@ bool RenderBlock::hitTestContents(const HitTestRequest& request, HitTestResult& 
         childHitTest = HitTestAction::ChildBlockBackground;
     for (auto* child = lastChildBox(); child; child = child->previousSiblingBox()) {
         LayoutPoint childPoint = blockStartRelativeToPhysicalForChild(*child, accumulatedOffset);
-        if (!child->hasSelfPaintingLayer() && !child->isFloating() && child->nodeAtPoint(request, result, locationInContainer, childPoint, childHitTest))
+        if (child->hasSelfPaintingLayer())
+            continue;
+        if (child->isFloating()) {
+            // Like BlockPainter::paintChild, in reverse.
+            if (hitTestAction == HitTestAction::Float && is<RenderBlockFlow>(*this) && hitTestFloat(*child, request, result, locationInContainer, childPoint))
+                return true;
+            continue;
+        }
+        if (child->nodeAtPoint(request, result, locationInContainer, childPoint, childHitTest))
             return true;
     }
 
     return false;
+}
+
+bool RenderBlock::hitTestFloat(RenderBox& floatBox, const HitTestRequest& request, HitTestResult& result, const HitTestLocation& locationInContainer, const LayoutPoint& floatBoxLocation)
+{
+    ASSERT(floatBox.isFloating() && !floatBox.hasSelfPaintingLayer());
+
+    // Layout skips the floats that line-clamp hides after the clamp point.
+    if (floatBox.isForceHiddenByLineClamp())
+        return false;
+
+    auto adjustedFloatBoxLocation = floatBoxLocation;
+    if (auto* renderView = dynamicDowncast<RenderView>(*this))
+        adjustedFloatBoxLocation += toLayoutSize(protect(renderView->frameView())->scrollPosition());
+
+    // Like BlockPainter::paintFloat, as a whole.
+    if (!floatBox.hitTest(request, result, locationInContainer, adjustedFloatBoxLocation))
+        return false;
+    updateHitTestResult(result, locationInContainer.point() - toLayoutSize(adjustedFloatBoxLocation));
+    return true;
 }
 
 static inline bool isEditingBoundary(RenderElement* ancestor, RenderBox& child)
@@ -1762,21 +1802,6 @@ NODELETE static inline bool isChildHitTestCandidate(const RenderBox& box, HitTes
     return box.borderBoxHeight() && isVisible && !box.isOutOfFlowPositioned() && !box.isRenderFragmentedFlow();
 }
 
-// Valid candidates in a FragmentedFlow must be rendered by the fragment.
-static inline bool isChildHitTestCandidate(const RenderBox& box, const RenderFragmentContainer* fragment, const LayoutPoint& point, HitTestSource source)
-{
-    if (!isChildHitTestCandidate(box, source))
-        return false;
-    if (!fragment)
-        return true;
-    auto& block = [&]() -> const RenderBlock& {
-        if (auto* block = dynamicDowncast<RenderBlock>(box))
-            return *block;
-        return *box.containingBlock();
-    }();
-    return block.fragmentAtBlockOffset(point.y()) == fragment;
-}
-
 PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, HitTestSource source, const RenderFragmentContainer* fragment)
 {
     if (isRenderTable())
@@ -1832,10 +1857,22 @@ PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, Hit
 
     RenderBox* lastCandidateBox = lastChildBox();
 
+    CheckedPtr fragmentAtPoint = fragmentAtBlockOffset(pointInLogicalContents.y());
     if (!fragment)
-        fragment = fragmentAtBlockOffset(pointInLogicalContents.y());
+        fragment = fragmentAtPoint.get();
 
-    while (lastCandidateBox && !isChildHitTestCandidate(*lastCandidateBox, fragment, pointInLogicalContents, source))
+    // Valid candidates in a FragmentedFlow must be rendered by the fragment.
+    auto isChildHitTestCandidateInFragment = [&](const RenderBox& box) {
+        if (!isChildHitTestCandidate(box, source))
+            return false;
+        if (!fragment)
+            return true;
+        if (auto* block = dynamicDowncast<RenderBlock>(box))
+            return block->fragmentAtBlockOffset(pointInLogicalContents.y()) == fragment;
+        return fragmentAtPoint == fragment;
+    };
+
+    while (lastCandidateBox && !isChildHitTestCandidateInFragment(*lastCandidateBox))
         lastCandidateBox = lastCandidateBox->previousSiblingBox();
 
     // Hit testing includes a box's physical top and left edges, which are its block-end edges in vertical-rl and horizontal-bt.
@@ -1846,7 +1883,7 @@ PositionWithAffinity RenderBlock::positionForPoint(const LayoutPoint& point, Hit
             return positionForPointRespectingEditingBoundaries(*this, *lastCandidateBox, pointInContents, source);
 
         for (auto& childBox : childrenOfType<RenderBox>(*this)) {
-            if (!isChildHitTestCandidate(childBox, fragment, pointInLogicalContents, source))
+            if (!isChildHitTestCandidateInFragment(childBox))
                 continue;
             auto childLogicalBottom = logicalTopForChild(childBox) + logicalHeightForChild(childBox);
             if (auto* blockFlow = dynamicDowncast<RenderBlockFlow>(childBox))

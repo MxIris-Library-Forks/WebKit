@@ -58,6 +58,7 @@
 #include "WebPageProxy.h"
 #include <WebCore/Filter.h>
 #include <WebCore/FontCustomPlatformData.h>
+#include <WebCore/FreeformGradient.h>
 #include <WebCore/Gradient.h>
 #include <WebCore/HTMLCanvasElement.h>
 #include <WebCore/MeshGradient.h>
@@ -606,6 +607,20 @@ void RemoteRenderingBackend::releaseGradient(RemoteGradientIdentifier identifier
     MESSAGE_CHECK(success, "Gradient released before being cached.");
 }
 
+void RemoteRenderingBackend::cacheFreeformGradient(Ref<FreeformGradient>&& gradient, RemoteFreeformGradientIdentifier identifier)
+{
+    assertIsCurrent(workQueue());
+    bool success = m_remoteResourceCache.cacheFreeformGradient(identifier, WTF::move(gradient));
+    MESSAGE_CHECK(success, "Freeform gradient already cached.");
+}
+
+void RemoteRenderingBackend::releaseFreeformGradient(RemoteFreeformGradientIdentifier identifier)
+{
+    assertIsCurrent(workQueue());
+    bool success = m_remoteResourceCache.releaseFreeformGradient(identifier);
+    MESSAGE_CHECK(success, "Freeform gradient released before being cached.");
+}
+
 void RemoteRenderingBackend::cacheMeshGradient(Ref<MeshGradient>&& gradient, RemoteMeshGradientIdentifier identifier)
 {
     assertIsCurrent(workQueue());
@@ -824,6 +839,12 @@ void RemoteRenderingBackend::releaseTextDetector(ShapeDetectionIdentifier identi
 #else
     UNUSED_PARAM(identifier);
 #endif
+}
+
+RefPtr<RemoteImageBufferSet> RemoteRenderingBackend::imageBufferSet(ImageBufferSetIdentifier identifier)
+{
+    assertIsCurrent(workQueue());
+    return m_remoteImageBufferSets.get(identifier);
 }
 
 RefPtr<ImageBuffer> RemoteRenderingBackend::imageBuffer(RenderingResourceIdentifier renderingResourceIdentifier)

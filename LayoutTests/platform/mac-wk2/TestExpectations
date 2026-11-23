@@ -693,6 +693,8 @@ webkit.org/b/173188 fast/mediastream/getUserMedia-grant-persistency3.html [ Pass
 
 webkit.org/b/167757 workers/bomb.html [ Pass Timeout ]
 
+webkit.org/b/332775 [ Debug ] workers/worker-set-delete-terminate-crash.html [ Pass Timeout ]
+
 webkit.org/b/187649 editing/selection/update-selection-by-style-change.html [ Pass ImageOnlyFailure ]
 
 # Touch events are not available on open source bots, thus only tested on Mac.
@@ -790,7 +792,7 @@ http/wpt/cache-storage/cache-quota-after-restart.any.html [ Slow ]
 
 webkit.org/b/181750 imported/w3c/web-platform-tests/service-workers/service-worker/fetch-request-redirect.https.html [ Pass Failure Crash ]
 
-webkit.org/b/181839 [ Debug ] inspector/debugger/breakpoint-action-log.html [ Pass Timeout ]
+webkit.org/b/326556 webkit.org/b/181839 [ Debug ] inspector/debugger/breakpoint-action-log.html [ Failure Timeout ]
 
 webkit.org/b/179352 imported/w3c/web-platform-tests/service-workers/service-worker/windowclient-navigate.https.html [ Pass Failure Slow ]
 
@@ -1242,6 +1244,9 @@ webkit.org/b/332407 [ x86_64 ] fast/webgpu/render-bundle-fragment-depth-after-dy
 # Takes about 30 seconds on Intel Macs.
 webkit.org/b/332404 [ x86_64 ] http/wpt/webcodecs/configure-encoder-big-frame-size.html [ Slow ]
 
+# The HEVC Main 10 cases get an encoder error on Intel Macs.
+webkit.org/b/332774 [ x86_64 ] http/wpt/webcodecs/videoEncoder-high-bit-depth.html [ Failure ]
+
 webkit.org/b/259464 fast/events/wheel/redispatched-wheel-event.html [ Pass Failure ]
 
 webkit.org/b/260113 [ arm64 ] http/wpt/webauthn/ctap-hid-failure.https.html [ Pass Failure ]
@@ -1487,7 +1492,8 @@ http/tests/webgpu/webgpu/api/validation/capability_checks/limits/maxSamplersPerS
 [ x86_64 ] http/tests/webgpu/webgpu/api/validation/createBindGroup.html [ Skip ]
 
 # shader tests that timeout
-http/tests/webgpu/webgpu/shader/execution/expression/binary/bitwise.html [ Pass Slow ]
+[ Release ] http/tests/webgpu/webgpu/shader/execution/expression/binary/bitwise.html [ Pass Slow ]
+webkit.org/b/332766 [ Debug ] http/tests/webgpu/webgpu/shader/execution/expression/binary/bitwise.html [ Skip ]
 [ arm64 ] http/tests/webgpu/webgpu/shader/execution/expression/binary/f32_matrix_matrix_multiplication.html [ Pass Timeout ]
 
 # One CTS file per test, so the longest in the suite; they clear 150s only outside a parallel run.
@@ -2180,6 +2186,7 @@ webkit.org/b/304995 [ Release ] imported/w3c/web-platform-tests/largest-contentf
 
 webkit.org/b/305086 imported/w3c/web-platform-tests/media-source/mediasource-changetype-play-without-codecs-parameter.html [ Pass Failure ]
 
+webkit.org/b/305403 [ Sequoia Release arm64 ] http/tests/performance/performance-resource-timing-cross-origin-media.html [ Pass Timeout ]
 webkit.org/b/305403 [ Sequoia ] http/tests/performance/performance-resource-timing-redirection-cross-origin-media.html [ Failure ]
 
 # webkit.org/b/296008 [macOS Debug] http/tests/media/hls and platform/mac/media/encrypted-media tests are timing out on some EWS bots
@@ -2292,6 +2299,12 @@ webkit.org/b/314356 imported/w3c/web-platform-tests/websockets/constructor/013.h
 webkit.org/b/314746 [ Release ] fast/images/decode-render-animated-image.html [ Pass ImageOnlyFailure ]
 
 webkit.org/b/315225 http/tests/site-isolation/inspector/network/cross-origin-iframe-request-id-uniqueness.html [ Skip ]
+
+webkit.org/b/332772 http/tests/site-isolation/inspector/layers/layers-frame-target-node-scope.html [ Failure ]
+
+webkit.org/b/332767 http/tests/site-isolation/inspector/cpu-profiler/same-process-frame-targets.html [ Failure ]
+
+webkit.org/b/332773 [ Release ] http/tests/site-isolation/inspector/page/resources-finish-loading-after-reload.html [ Failure ]
 
 # Skipped on mac-wk2-stress in site-isolation mode: stress parallelism races with
 # BackendResourceDataStore lifecycle / event ordering. Tests pass cleanly on the
@@ -2641,7 +2654,6 @@ webkit.org/b/323902 [ x86_64 ] http/tests/webgpu/webgpu/shader/execution/express
 [ GoldenGate ] imported/w3c/web-platform-tests/webvtt/rendering/cues-with-video/processing-model/bidi/u0628_first.html [ ImageOnlyFailure ]
 [ GoldenGate ] editing/inserting/typing-space-to-trigger-smart-link.html [ Failure ]
 [ GoldenGate ] fast/events/input-event-insert-link.html [ Failure ]
-[ GoldenGate ] fast/quirks/active-quirks-by-domain.html [ Failure ]
 [ GoldenGate arm64 ] fast/webgpu/nocrash/fuzz-283943.html [ Failure ]
 [ GoldenGate arm64 ] fast/webgpu/nocrash/fuzz-284326.html [ Failure ]
 [ GoldenGate ] http/tests/resourceLoadStatistics/website-data-removal-for-site-navigated-to-with-filtered-link-decoration-after-long-deletion.html [ Failure ]
@@ -2653,7 +2665,6 @@ webkit.org/b/323902 [ x86_64 ] http/tests/webgpu/webgpu/shader/execution/express
 [ GoldenGate ] imported/w3c/web-platform-tests/pointerevents/pointerevent_touch-action-mouse.html [ Failure ]
 [ GoldenGate ] inspector/timeline/timeline-event-RenderingFrame.html [ Failure Timeout ]
 [ GoldenGate arm64 ] inspector/timeline/timeline-event-TimerRemove.html [ Failure Timeout ]
-[ GoldenGate ] webaudio/audioworklet-stops-on-document-stop.html [ Failure ]
 [ GoldenGate ] webgl/video-formats/upload-path-av1-420-bt709-videorange.html [ Failure ]
 
 # webkit.org/b/304362 REGRESSION(Tahoe): editing/selection/select-across-readonly-input* broken by Liquid Glass
@@ -2675,6 +2686,14 @@ webkit.org/b/326899 [ Sequoia+ ] http/tests/cache/cancel-multiple-post-xhrs.html
 
 webkit.org/b/293973 [ Debug ] http/tests/ipc/cocoa/gpu-load-error-empty-user-info-crssh.html [ Skip ]
 [ Debug ] ipc/cocoa/media-containment-bypass-create-player.html [ Crash ]
+
+# These IPC tests only send their messages in Debug builds, where the IPC testing API exists.
+webkit.org/b/332770 [ Debug ] http/tests/ipc/createnewpage-file-body-sandbox-extension.html [ Failure ]
+webkit.org/b/332770 [ Debug ] ipc/digital-credentials-chooser-frame-check.html [ Failure ]
+webkit.org/b/332770 [ Debug ] ipc/mac/start-drag-promised-attachment-file-url.html [ Failure ]
+webkit.org/b/332769 [ Debug ] http/tests/ipc/provisional-page-forged-provisional-url-message-check.html [ Failure ]
+webkit.org/b/332768 [ Debug ] ipc/back-forward-list-item-for-id-cross-page.html [ Failure Timeout ]
+webkit.org/b/332771 [ Debug ] ipc/webgpu-write-texture-unaligned-offset-marks-slice-cleared.html [ Failure ]
 
 webkit.org/b/327426 [ Debug arm64 ] http/wpt/webauthn/public-key-credential-get-success-hid.https.html [ Pass Failure ]
 webkit.org/b/327429 [ Debug arm64 ] imported/w3c/web-platform-tests/content-security-policy/frame-ancestors/frame-ancestors-nested-same-in-same-url-block.html [ Pass Failure ]

@@ -517,6 +517,33 @@ imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/script-
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/worker-messaging.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/xhr-messaging.html [ Skip ]
 
+# These leave upgrade-insecure-requests behind, so later tests on the same worker that load from the same origin fail.
+webkit.org/b/332751 imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-cross-origin.sub.html [ Skip ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-same-origin.sub.https.html [ Skip ]
+
+# These expect requests to http://localhost:9443 to be blocked, but the requests are upgraded when an earlier
+# test on the same worker used upgrade-insecure-requests.
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/fetch.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/sharedworker-classic.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/sharedworker-module.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worker-import-data.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worker-import.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worklet-audio.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worklet-audio-import-data.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/xhr.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/fetch.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/sharedworker-classic.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/sharedworker-module.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worker-import-data.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worker-import.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worklet-audio.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worklet-audio-import-data.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/xhr.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-classic-data.meta/unset/fetch.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-classic-data.meta/unset/xhr.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/fetch.https.html [ Failure Pass ]
+webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/xhr.https.html [ Failure Pass ]
+
 imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/filter-no-referrer.html [ ImageOnlyFailure ]
 
 # These tests times out. We should fix that.
@@ -1814,6 +1841,9 @@ webkit.org/b/112521 [ Debug ] webaudio/audioprocessingevent.html [ Skip ]
 
 webkit.org/b/308024 webaudio/automatic-pull-node.html [ Pass Failure ]
 
+# Fails when a worklet global scope from an earlier test is still alive in the same web process.
+webkit.org/b/330318 webaudio/audioworklet-stops-on-document-stop.html [ Pass Failure ]
+
 # The test frequently times out, and is just unsuccessful at detecting incorrect behavior when it passes.
 webkit.org/b/72698 media/audio-garbage-collect.html [ Skip ]
 
@@ -1871,6 +1901,8 @@ inspector/console/console-oom.html [ Slow ]
 webkit.org/b/129639 inspector/dom/dom-search-crash.html [ Skip ]
 
 webkit.org/b/134982 inspector/debugger/setBreakpoint-dfg-and-modify-local.html [ Failure Pass ]
+
+webkit.org/b/326556 inspector/debugger/breakpoint-action-log.html [ Failure ]
 
 webkit.org/b/326767 [ Debug ] http/tests/site-isolation/inspector/canvas/console-record-canvas-moved-from-iframe.html [ Crash ]
 

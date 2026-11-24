@@ -493,19 +493,7 @@ imported/w3c/web-platform-tests/service-workers/service-worker/partitioned-cooki
 # This test is timing out in all browsers.
 imported/w3c/web-platform-tests/service-workers/service-worker/clients-matchall-frozen.https.html [ Skip ]
 
-# These tests fail with messages that include a random identifier or timestamp.
-imported/w3c/web-platform-tests/referrer-policy/css-integration/child-css/internal-import-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/child-css/processing-instruction.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/external-import-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/external-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/internal-import-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/font-face/processing-instruction.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/image/external-import-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/image/external-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/image/internal-import-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/image/processing-instruction.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/external-stylesheet.html [ Skip ]
-imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/processing-instruction.html [ Skip ]
+# This test fails with a message that includes a random identifier or timestamp.
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/image-decoding.html [ Skip ]
 
 # These tests print the request's headers, including User-Agent and Accept-Language, which differ by platform.
@@ -543,8 +531,6 @@ webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/ge
 webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-classic-data.meta/unset/xhr.https.html [ Failure Pass ]
 webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/fetch.https.html [ Failure Pass ]
 webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/xhr.https.html [ Failure Pass ]
-
-imported/w3c/web-platform-tests/referrer-policy/css-integration/svg/filter-no-referrer.html [ ImageOnlyFailure ]
 
 # These tests times out. We should fix that.
 imported/w3c/web-platform-tests/selection/collapse-30.html [ Skip ]
@@ -2971,7 +2957,6 @@ fast/webgpu/nocrash/fuzz-286689.html [ Failure ]
 fast/webgpu/nocrash/fuzz-286956.html [ Failure ]
 fast/webgpu/nocrash/fuzz-286967.html [ Failure ]
 fast/webgpu/nocrash/fuzz-287418.html [ Failure ]
-fast/webgpu/nocrash/fuzz-287519.html [ Failure ]
 fast/webgpu/nocrash/fuzz-287580.html [ Failure ]
 fast/webgpu/nocrash/fuzz-287868.html [ Failure ]
 fast/webgpu/nocrash/fuzz-290344.html [ Failure ]
@@ -3250,9 +3235,6 @@ fast/mediastream/RTCPeerConnection-overloaded-operations-params.html [ Skip ]
 fast/mediastream/RTCRtpSender-replaceTrack.html [ Skip ]
 fast/mediastream/RTCPeerConnection-inspect-offer-bundlePolicy-bundle-only.html [ Failure ]
 
-imported/w3c/web-platform-tests/webrtc/simulcast/rid-manipulation.html [ Skip ]
-imported/w3c/web-platform-tests/webrtc/simulcast/setParameters-encodings.https.html [ Skip ]
-imported/w3c/web-platform-tests/webrtc/simulcast/vp9-scalability-mode.https.html [ Skip ]
 imported/w3c/web-platform-tests/webrtc/simulcast/vp9.https.html [ Skip ]
 
 # Missing API support.
@@ -4355,7 +4337,23 @@ imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-05
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-auto-063.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/webkit-line-clamp-035.html [ ImageOnlyFailure ]
 
-imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-bidi-004.html [ ImageOnlyFailure ]
+# Tests that failed on the 2026-11-23 import of css-overflow/line-clamp
+# Removing characters when no soft wrap opportunity fits the block ellipsis (https://github.com/w3c/csswg-drafts/issues/14448).
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-043.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-044.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/block-ellipsis-045.tentative.html [ ImageOnlyFailure ]
+# line-clamp on form controls.
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-button-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-button-002.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-button-003.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-fieldset-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-select-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-textarea-001.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-textarea-002.tentative.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-textarea-003.tentative.html [ ImageOnlyFailure ]
+# Floats must not make the line-clamp container taller when the content has exactly as many lines as line-clamp allows.
+imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-with-floats-017.html [ ImageOnlyFailure ]
+
 imported/w3c/web-platform-tests/css/css-overflow/overflow-clip-margin-013.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/overflow-clip-margin-014.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overflow/overflow-clip-margin-015.html [ ImageOnlyFailure ]
@@ -5879,11 +5877,15 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.any.html [ Pas
 imported/w3c/web-platform-tests/webcodecs/videoFrame-drawImage.any.html [ Pass Failure ]
 imported/w3c/web-platform-tests/webcodecs/videoFrame-drawImage.any.worker.html [ Pass Failure ]
 
-# Flac and Vorbis decoding requires an extra description which isn't provided. Skipped as the tests time out.
-imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.html?flac [ Skip ]
-imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.html?vorbis [ Skip ]
-imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.worker.html?flac [ Skip ]
-imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.worker.html?vorbis [ Skip ]
+# The tests check support with isConfigSupported() without the description that Flac and Vorbis decoding requires.
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.html?flac [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.html?vorbis [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.worker.html?flac [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-codec-specific.https.any.worker.html?vorbis [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-reconfigure.https.any.html?flac [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-reconfigure.https.any.html?vorbis [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-reconfigure.https.any.worker.html?flac [ Failure ]
+imported/w3c/web-platform-tests/webcodecs/audioDecoder-reconfigure.https.any.worker.html?vorbis [ Failure ]
 
 # HEVC support may not be available to all platforms.
 imported/w3c/web-platform-tests/webcodecs/full-cycle-test.https.any.html?h265_annexb [ Pass Failure ]

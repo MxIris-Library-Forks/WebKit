@@ -888,6 +888,7 @@
 				WebCore/cocoa/TestGraphicsContextGLCocoa.mm,
 				WebCore/cocoa/TestUTIRegistry.cpp,
 				WebCore/cocoa/TestUTIUtilities.cpp,
+				WebCore/cocoa/VideoMediaSampleRendererTests.mm,
 				WebCore/cocoa/WebCoreDecompressionSessionTests.mm,
 				WebCore/cocoa/WebCoreNSURLSession.mm,
 				WebCore/cocoa/XMLParsing.mm,
@@ -1586,6 +1587,7 @@
 		07C913DF2F820CCA003A09D8 /* Exceptions for "Tests" folder in "TestWGSL" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				WebGPU/DeviceLostTests.cpp,
 				WebGPU/InstanceDestroyTests.cpp,
 				WebGPU/UncapturedErrorCallbackTests.cpp,
 				WGSL/ASTStringDumperTests.cpp,

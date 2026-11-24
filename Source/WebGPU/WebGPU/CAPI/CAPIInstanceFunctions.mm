@@ -35,11 +35,14 @@ NODELETE void wgpuInstanceAddRef(WGPUInstance instance)
     WebGPU::CAPI::fromAPI(instance).ref();
 }
 
+// Releasing the last reference destroys the instance first: destroy() waits for the work in flight
+// that holds the instance on other threads, so that the instance is released on this thread.
 void wgpuInstanceRelease(WGPUInstance instance)
 {
     @autoreleasepool {
-        protect(WebGPU::CAPI::metalFromAPI(instance))->waitForCommandBufferCompletions();
-        WebGPU::CAPI::metalFromAPI(instance).deref();
+        Ref protectedInstance = adoptRef(WebGPU::CAPI::fromAPI(instance));
+        if (protectedInstance->hasOneRef())
+            protectedInstance->destroy();
     }
 }
 
@@ -82,8 +85,8 @@ void wgpuInstanceProcessEvents(WGPUInstance instance)
 WGPUFuture wgpuInstanceRequestAdapter(WGPUInstance instance, const WGPURequestAdapterOptions* options, WGPURequestAdapterCallbackInfo callbackInfo)
 {
     @autoreleasepool {
-        Ref protectedInstance = WebGPU::CAPI::metalFromAPI(instance);
-        WebGPU::CAPI::Future future { protectedInstance.copyRef() };
+        Ref protectedInstance = WebGPU::CAPI::fromAPI(instance);
+        WebGPU::CAPI::Future future { protectedInstance.ptr() };
         auto callback = [callbackInfo, future](WGPURequestAdapterStatus status, WGPUAdapter adapter, ASCIILiteral message) {
             callbackInfo.callback(status, adapter, WebGPU::CAPI::toAPI(message), callbackInfo.userdata1, callbackInfo.userdata2);
             future.complete();

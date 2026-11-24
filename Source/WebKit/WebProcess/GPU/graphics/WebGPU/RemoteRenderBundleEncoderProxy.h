@@ -34,20 +34,19 @@
 
 namespace WebKit::WebGPU {
 
-class ConvertToBackingContext;
-
 class RemoteRenderBundleEncoderProxy final : public ::WebGPU::RenderBundleEncoder {
     WTF_MAKE_TZONE_ALLOCATED(RemoteRenderBundleEncoderProxy);
 public:
-    static Ref<RemoteRenderBundleEncoderProxy> create(RemoteDeviceProxy& parent, ConvertToBackingContext& convertToBackingContext, WebGPURenderBundleEncoderIdentifier identifier)
+    static Ref<RemoteRenderBundleEncoderProxy> create(RemoteDeviceProxy& parent, WebGPURenderBundleEncoderIdentifier identifier)
     {
-        return adoptRef(*new RemoteRenderBundleEncoderProxy(parent, convertToBackingContext, identifier));
+        return adoptRef(*new RemoteRenderBundleEncoderProxy(parent, identifier));
     }
 
     virtual ~RemoteRenderBundleEncoderProxy();
 
     RemoteDeviceProxy& parent() const { return m_parent; }
     RemoteGPUProxy& root() { return m_parent->root(); }
+    WebGPURenderBundleEncoderIdentifier backing() const { return m_backing; }
 
     void setPipeline(const ::WebGPU::RenderPipeline&) final;
     void setIndexBuffer(::WebGPU::Buffer&, ::WebGPU::IndexFormat, uint64_t offset, std::optional<uint64_t>) final;
@@ -66,20 +65,17 @@ public:
     void insertDebugMarker(String&& markerLabel) final;
     RefPtr<::WebGPU::RenderBundle> finish(const ::WebGPU::RenderBundleDescriptor&) final;
 
+    void makeInvalid(String&& error) final;
     void setLabel(String&&) final;
     bool isValid() const final;
 
 private:
-    friend class DowncastConvertToBackingContext;
-
-    RemoteRenderBundleEncoderProxy(RemoteDeviceProxy&, ConvertToBackingContext&, WebGPURenderBundleEncoderIdentifier);
+    RemoteRenderBundleEncoderProxy(RemoteDeviceProxy&, WebGPURenderBundleEncoderIdentifier);
 
     RemoteRenderBundleEncoderProxy(const RemoteRenderBundleEncoderProxy&) = delete;
     RemoteRenderBundleEncoderProxy(RemoteRenderBundleEncoderProxy&&) = delete;
     RemoteRenderBundleEncoderProxy& operator=(const RemoteRenderBundleEncoderProxy&) = delete;
     RemoteRenderBundleEncoderProxy& operator=(RemoteRenderBundleEncoderProxy&&) = delete;
-
-    WebGPURenderBundleEncoderIdentifier backing() const { return m_backing; }
 
     template<typename T>
     [[nodiscard]] IPC::Error send(T&& message)
@@ -88,7 +84,6 @@ private:
     }
 
     WebGPURenderBundleEncoderIdentifier m_backing;
-    const Ref<ConvertToBackingContext> m_convertToBackingContext;
     const Ref<RemoteDeviceProxy> m_parent;
 };
 

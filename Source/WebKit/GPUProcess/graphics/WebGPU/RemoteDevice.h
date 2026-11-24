@@ -145,12 +145,27 @@ private:
     void pushErrorScope(::WebGPU::ErrorFilter);
     void popErrorScope(CompletionHandler<void(bool, std::optional<::WebGPU::Error>&&)>&&);
     void resolveUncapturedErrorEvent(CompletionHandler<void(bool, std::optional<::WebGPU::Error>&&)>&&);
-    void resolveDeviceLostPromise(CompletionHandler<void(::WebGPU::DeviceLostReason)>&&);
+    void resolveDeviceLostPromise(CompletionHandler<void(::WebGPU::DeviceLostReason, bool isLost)>&&);
 
     void setLabel(String&&);
     void setSharedVideoFrameSemaphore(IPC::Semaphore&&);
     void setSharedVideoFrameMemory(WebCore::SharedMemoryHandle&&);
     void pauseAllErrorReporting(bool pauseErrorReporting);
+
+    void createInvalidBindGroup(WebGPUBindGroupIdentifier);
+    void createInvalidBindGroupLayout(WebGPUBindGroupLayoutIdentifier);
+    void createInvalidBuffer(WebGPUBufferIdentifier);
+    void createInvalidCommandBuffer(WebGPUCommandBufferIdentifier);
+    void createInvalidCommandEncoder(WebGPUCommandEncoderIdentifier);
+    void createInvalidComputePipeline(WebGPUComputePipelineIdentifier);
+    void createInvalidPipelineLayout(WebGPUPipelineLayoutIdentifier);
+    void createInvalidQuerySet(WebGPUQuerySetIdentifier);
+    void createInvalidRenderBundleEncoder(String&& error, WebGPURenderBundleEncoderIdentifier);
+    void createInvalidRenderPipeline(WebGPURenderPipelineIdentifier);
+    void createInvalidSampler(WebGPUSamplerIdentifier);
+    void createInvalidShaderModule(WebGPUShaderModuleIdentifier);
+    void createInvalidTexture(WebGPUTextureIdentifier);
+    void generateAValidationError(String&& message);
 
     const Ref<::WebGPU::Device> m_backing;
     WeakRef<WebGPU::ObjectHeap> m_objectHeap;

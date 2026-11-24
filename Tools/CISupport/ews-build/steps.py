@@ -380,7 +380,7 @@ class GitHubMixin(object):
         if not pr_sha:
             yield self._addToLog('stdio', 'Cannot determine if hash is outdated or not.\n')
             return defer.returnValue(-1)
-        return defer.returnValue(0 if pr_sha == self.getProperty('github.head.sha', '?') else 1)
+        return defer.returnValue(0 if pr_sha in (self.getProperty('github.head.sha', '?'), self.getProperty('pushed_head_sha')) else 1)
 
     def _is_pr_blocked(self, pr_json):
         for label in (pr_json or {}).get('labels', {}):
@@ -763,6 +763,62 @@ class ResultsDBReportMixin(abc.ABC):
         if flakes:
             counts.append(f'{len(flakes)} flaky')
         return f"Ignored {' and '.join(counts)} failure(s)"
+
+    def modified_test_names(self):
+        """Tests this change modifies, named as run-webkit-tests reports failures."""
+        # modified_tests carries a 'LayoutTests/' prefix, failing tests are named relative to it.
+        prefix = 'LayoutTests/'
+        changed = set()
+        for test in self.getProperty('modified_tests', None) or []:
+            changed.add(test[len(prefix):] if test.startswith(prefix) else test)
+        return changed
+
+    @defer.inlineCallbacks
+    def filter_failures_using_results_db(self, failing_tests):
+        """
+        Sets failing_tests_filtered to `failing_tests` without the ones the results database knows to fail
+        or flake without this change, and records those in pre_existing_failures_in_results_db and
+        pre_existing_flakes_in_results_db.
+        """
+        self.failing_tests_filtered = list(failing_tests)
+        self.pre_existing_failures_in_results_db = []
+        configuration = self.results_db_query_configuration()
+
+        # The database only knows the test without this change, so it cannot vouch for one it modifies.
+        modified = self.modified_test_names()
+        self.tests_modified_by_change = [test for test in failing_tests if test in modified]
+        candidates = [test for test in failing_tests if test not in modified]
+        if self.tests_modified_by_change:
+            yield self._addToLog(
+                self.results_db_log_name,
+                f"Not consulting the results database for {len(self.tests_modified_by_change)} failing test(s) modified by this change: {', '.join(self.tests_modified_by_change)}\n",
+            )
+
+        identifier, has_commit = yield self.resolve_identifier_for_results_db(configuration, bool(candidates))
+
+        tests = candidates[:self.MAX_FAILURES_TO_CHECK_RESULTS_DB]
+        unexplained = set()
+        for test in tests:
+            data = yield ResultsDatabase.is_test_pre_existing_failure(
+                test, configuration=configuration,
+                commit=identifier if has_commit else None,
+            )
+            if data['is_existing_failure']:
+                self.pre_existing_failures_in_results_db.append(test)
+                self.failing_tests_filtered.remove(test)
+            else:
+                unexplained.add(test)
+
+            yield self._addToLog(
+                self.results_db_log_name,
+                f"\n{test}: pass_rate: {data['pass_rate']}, pre-existing-failure={data['is_existing_failure']}\n"
+                f"Response from results-db: {data['raw_data']}\n"
+                f"{data['logs']}"
+            )
+
+        excused = yield self.pre_existing_flakes_using_results_db(unexplained)
+        for test in excused:
+            self.failing_tests_filtered.remove(test)
 
     @defer.inlineCallbacks
     def pre_existing_flakes_using_results_db(self, new_failures: set[str]) -> Generator[Any, Any, set[str]]:
@@ -4169,58 +4225,6 @@ class RunWebKitTests(shell.Test, ResultsDBReportMixin, AddToLogMixin, ShellMixin
 
         self._parseRunWebKitTestsOutput(logText)
 
-    def modified_test_names(self):
-        """Tests this change modifies, named as run-webkit-tests reports failures."""
-        # modified_tests carries a 'LayoutTests/' prefix, failing tests are named relative to it.
-        prefix = 'LayoutTests/'
-        changed = set()
-        for test in self.getProperty('modified_tests', None) or []:
-            changed.add(test[len(prefix):] if test.startswith(prefix) else test)
-        return changed
-
-    @defer.inlineCallbacks
-    def filter_failures_using_results_db(self, failing_tests):
-        self.failing_tests_filtered = failing_tests.copy()
-        configuration = self.results_db_query_configuration()
-
-        # The database only knows the test without this change, so it cannot vouch for one it modifies.
-        modified = self.modified_test_names()
-        self.tests_modified_by_change = [test for test in failing_tests if test in modified]
-        candidates = [test for test in failing_tests if test not in modified]
-        if self.tests_modified_by_change:
-            yield self._addToLog(
-                self.results_db_log_name,
-                'Not consulting the results database for {} failing test(s) modified by this change: {}\n'.format(
-                    len(self.tests_modified_by_change), ', '.join(self.tests_modified_by_change),
-                ),
-            )
-
-        identifier, has_commit = yield self.resolve_identifier_for_results_db(configuration, bool(candidates))
-
-        tests = candidates[:self.MAX_FAILURES_TO_CHECK_RESULTS_DB]
-        unexplained = set()
-        for test in tests:
-            data = yield ResultsDatabase.is_test_pre_existing_failure(
-                test, configuration=configuration,
-                commit=identifier if has_commit else None,
-            )
-            if data['is_existing_failure']:
-                self.pre_existing_failures_in_results_db.append(test)
-                self.failing_tests_filtered.remove(test)
-            else:
-                unexplained.add(test)
-
-            yield self._addToLog(
-                self.results_db_log_name,
-                f"\n{test}: pass_rate: {data['pass_rate']}, pre-existing-failure={data['is_existing_failure']}\n"
-                f"Response from results-db: {data['raw_data']}\n"
-                f"{data['logs']}"
-            )
-
-        excused = yield self.pre_existing_flakes_using_results_db(unexplained)
-        for test in excused:
-            self.failing_tests_filtered.remove(test)
-
     def evaluateResult(self, cmd):
         result = SUCCESS
 
@@ -4713,6 +4717,7 @@ class ReRunWebKitTestsEWSSiteIsolation(SiteIsolationResultsDBMixin, ReRunWebKitT
 class AnalyzeLayoutTestsResults(ResultsDBReportMixin, buildstep.BuildStep, AddToLogMixin, GitHubMixin):
     name = 'analyze-layout-tests-results'
     suite = 'layout-tests'
+    MAX_FAILURES_TO_CHECK_RESULTS_DB = RunWebKitTests.MAX_FAILURES_TO_CHECK_RESULTS_DB
     description = ['analyze-layout-test-results']
     descriptionDone = ['analyze-layout-tests-results']
 
@@ -4752,7 +4757,7 @@ class AnalyzeLayoutTestsResults(ResultsDBReportMixin, buildstep.BuildStep, AddTo
 
             pluralSuffix = 's' if len(new_failures) > 1 else ''
             if exceed_failure_limit:
-                message = 'Failure limit exceed. At least found'
+                message = 'Failure limit exceeded. Found at least'
             else:
                 message = 'Found'
             new_failures_string = ' '.join(sorted(new_failures)[:self.NUM_FAILURES_TO_DISPLAY])
@@ -4939,30 +4944,20 @@ class AnalyzeLayoutTestsResults(ResultsDBReportMixin, buildstep.BuildStep, AddTo
         num_flaky_failures = len(flaky_failures)
         flaky_failures_string = ', '.join(sorted(flaky_failures)[:self.NUM_FAILURES_TO_DISPLAY])
 
-        if first_results_did_exceed_test_failure_limit and second_results_did_exceed_test_failure_limit:
-            if (len(first_results_failing_tests) - len(clean_tree_results_failing_tests)) <= 5:
-                # If we've made it here, then many tests are failing with the change applied, but
-                # if the clean tree is also failing many tests, even if it's not quite as many,
-                # then we can't be certain that the discrepancy isn't due to flakiness, and hence we must defer judgement.
-                return defer.returnValue(self.retry_build())
-            rc = yield self.report_failure(first_results_failing_tests)
-            return defer.returnValue(rc)
-
-        if second_results_did_exceed_test_failure_limit:
+        # An early-exit run doesn't retry its failures, so blame only what failed in both runs and was clean without the change.
+        if first_results_did_exceed_test_failure_limit or second_results_did_exceed_test_failure_limit:
             if clean_tree_results_did_exceed_test_failure_limit:
                 return defer.returnValue(self.retry_build())
-            failures_introduced_by_change = first_results_failing_tests - clean_tree_results_failing_tests
+            clean_tree_results_flaky_tests = set(self.getProperty('clean_tree_run_flakies', []))
+            failures_introduced_by_change = first_results_failing_tests.intersection(second_results_failing_tests) - clean_tree_results_failing_tests - clean_tree_results_flaky_tests
+            # Completed runs already consulted the results database.
+            both_runs_exceeded_failure_limit = first_results_did_exceed_test_failure_limit and second_results_did_exceed_test_failure_limit
+            is_main = self.getProperty('github.base.ref', DEFAULT_BRANCH) == DEFAULT_BRANCH
+            if failures_introduced_by_change and both_runs_exceeded_failure_limit and is_main:
+                yield self.filter_failures_using_results_db(sorted(failures_introduced_by_change))
+                failures_introduced_by_change = set(self.failing_tests_filtered)
             if failures_introduced_by_change:
-                rc = yield self.report_failure(failures_introduced_by_change)
-                return defer.returnValue(rc)
-            return defer.returnValue(self.retry_build())
-
-        if first_results_did_exceed_test_failure_limit:
-            if clean_tree_results_did_exceed_test_failure_limit:
-                return defer.returnValue(self.retry_build())
-            failures_introduced_by_change = second_results_failing_tests - clean_tree_results_failing_tests
-            if failures_introduced_by_change:
-                rc = yield self.report_failure(failures_introduced_by_change)
+                rc = yield self.report_failure(failures_introduced_by_change, exceed_failure_limit=both_runs_exceeded_failure_limit)
                 return defer.returnValue(rc)
             return defer.returnValue(self.retry_build())
 
@@ -7426,12 +7421,89 @@ class CleanWebKitBuildIfBaseChanged(steps.ShellSequence):
         return {'step': self.descriptionDone[0]}
 
 
-class PushCommitToWebKitRepo(shell.ShellCommand):
+class AcquireLandingLock(buildstep.BuildStep, AddToLogMixin):
+    # Builds must take turns from the rebase in Canonicalize to the push in PushCommitToWebKitRepo, and buildbot locks can
+    # only be held by a single step or by a whole build. PushCommitToWebKitRepo releases the lock; a build that stops
+    # earlier releases it by finishing.
+    name = 'acquire-landing-lock'
+    description = ['Waiting for other pull requests to land']
+    descriptionDone = ['Acquired landing lock']
+    POLL_INTERVAL = 2
+
+    holder = None
+    waiting = []
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.deferred = None
+
+    @classmethod
+    def release(cls, build):
+        if cls.holder is build:
+            cls.holder = None
+
+    @classmethod
+    def blocker(cls, build):
+        for other in [cls.holder] + cls.waiting:
+            if other is build:
+                return None
+            if other and not other.finished:
+                return other
+        return None
+
+    @defer.inlineCallbacks
+    def run(self):
+        start_time = time.time()
+        last_blocker = None
+        AcquireLandingLock.waiting.append(self.build)
+        try:
+            while blocker := self.blocker(self.build):
+                if self.stopped:
+                    return CANCELLED
+                if blocker is not last_blocker:
+                    last_blocker = blocker
+                    yield self._addToLog('stdio', f"Waiting for {blocker.getProperty('buildername', '')} build {blocker.getProperty('buildnumber', '')} (PR #{blocker.getProperty('github.number', '')}) to land.\n")
+                self.deferred = task.deferLater(reactor, self.POLL_INTERVAL, lambda: None)
+                try:
+                    yield self.deferred
+                except defer.CancelledError:
+                    return CANCELLED
+            AcquireLandingLock.holder = self.build
+        finally:
+            AcquireLandingLock.waiting.remove(self.build)
+
+        if last_blocker:
+            yield self._addToLog('stdio', f'Acquired the landing lock after {int(time.time() - start_time)} seconds.\n')
+        return SUCCESS
+
+    def getResultSummary(self):
+        if self.results == SUCCESS:
+            return {'step': 'Acquired landing lock'}
+        return {'step': 'Stopped waiting for landing lock'}
+
+    def interrupt(self, reason):
+        if self.deferred and not self.deferred.called:
+            self.deferred.cancel()
+        return super().interrupt(reason)
+
+
+class PushedCommitMixin(object):
+    # The push output doesn't name the commit when the remote already has it, as on a retry after GitHub applied a push
+    # but reported it as failed, so ask git.
+    @defer.inlineCallbacks
+    def pushed_commit(self):
+        command = yield self.makeRemoteShellCommand(command=['git', 'rev-parse', 'HEAD'], collectStdout=True)
+        yield self.runCommand(command)
+        sha = command.stdout.strip()
+        return sha if command.results() == SUCCESS and re.fullmatch(r'[0-9a-f]{40}', sha) else None
+
+
+class PushCommitToWebKitRepo(shell.ShellCommand, PushedCommitMixin):
     name = 'push-commit-to-webkit-repo'
     descriptionDone = ['Pushed commit to WebKit repository']
     haltOnFailure = False
     MAX_RETRY = 2
-    HASH_RE = re.compile(r'\s+[0-9a-f]+\.\.+(?P<hash>[0-9a-f]+)\s+')
+    RETRY_DELAY = 10
 
     def __init__(self, **kwargs):
         super().__init__(logEnviron=False, timeout=300, **kwargs)
@@ -7446,14 +7518,11 @@ class PushCommitToWebKitRepo(shell.ShellCommand):
         self.env['GIT_USER'] = username
         self.env['GIT_PASSWORD'] = access_token
 
-        self.log_observer = logobserver.BufferLogObserver(wantStderr=True)
-        self.addLogObserver('stdio', self.log_observer)
-
         rc = yield super().run()
 
         if rc == SUCCESS:
-            log_text = self.log_observer.getStdout() + self.log_observer.getStderr()
-            landed_hash = self.hash_from_commit_text(log_text)
+            AcquireLandingLock.release(self.build)
+            landed_hash = yield self.pushed_commit()
             if landed_hash:
                 self.setProperty('landed_hash', landed_hash)
 
@@ -7471,23 +7540,15 @@ class PushCommitToWebKitRepo(shell.ShellCommand):
             if retry_count < self.MAX_RETRY:
                 self.setProperty('retry_count', retry_count + 1)
                 if self.getProperty('github.number', ''):
+                    # This is for GitHub errors. Only merge queue builds push, and this build still holds the landing
+                    # lock, so the same commit can be pushed again.
                     self.build.addStepsAfterCurrentStep([
-                        CleanGitRepo(),
-                        CheckOutSource(),
-                        FetchBranches(),
-                        UpdateWorkingDirectory(),
-                        ShowIdentifier(),
-                        CheckOutPullRequest(),
-                        AddReviewerToCommitMessage(),
-                        Canonicalize(),
-                        # Only queues which land on feature branches reach this point with a feature branch
-                        ValidateChange(verifyMergeQueue=True, verifyNoDraftForMergeQueue=True, verifyObsolete=False, enableSkipEWSLabel=False, excludeFeatureBranches=False),
-                        PushPullRequestBranch(),
-                        UpdatePullRequest(),
+                        WaitForDuration(duration=self.RETRY_DELAY),
                         PushCommitToWebKitRepo(),
                     ])
                 return defer.returnValue(rc)
 
+            AcquireLandingLock.release(self.build)
             self.setProperty('comment_text', 'merge-queue failed to commit PR to repository. To retry, remove any blocking labels and re-apply merge-queue label')
             self.setProperty('build_finish_summary', 'Failed to commit to WebKit repository')
             self.build.addStepsAfterCurrentStep([LeaveComment(), BlockPullRequest()])
@@ -7501,12 +7562,6 @@ class PushCommitToWebKitRepo(shell.ShellCommand):
 
     def doStepIf(self, step):
         return CURRENT_HOSTNAME in EWS_BUILD_HOSTNAMES
-
-    def hash_from_commit_text(self, commit_text):
-        match = self.HASH_RE.search(commit_text)
-        if match:
-            return match.group('hash')
-        return None
 
 
 class DetermineLandedIdentifier(shell.ShellCommand):
@@ -7553,8 +7608,11 @@ class DetermineLandedIdentifier(shell.ShellCommand):
             else:
                 rc = FAILURE
 
-        self.setProperty('comment_text', self.comment_text_for_bug(landed_hash, self.identifier))
-        commit_summary = f'Committed {self.identifier or landed_hash}'
+        # landed_hash is a full hash, and comments and summaries have always shown the 12 characters that git push prints.
+        # identifier_for_hash() returns the hash it was given when it can't find an identifier.
+        short_hash = landed_hash[:12] if landed_hash else landed_hash
+        self.setProperty('comment_text', self.comment_text_for_bug(short_hash, self.identifier))
+        commit_summary = f"Committed {self.identifier if self.identifier and '@' in self.identifier else short_hash}"
         self.descriptionDone = commit_summary
         self.setProperty('build_summary', commit_summary)
         self.addURL(self.identifier, self.url_for_identifier(self.identifier))
@@ -7585,10 +7643,8 @@ class DetermineLandedIdentifier(shell.ShellCommand):
 
     def comment_text_for_bug(self, hash=None, identifier=None):
         identifier_str = identifier if identifier and '@' in identifier else '?'
-        comment = '{} {} ({}): <{}>'.format(
-            'Test gardening commit' if self.getProperty('is_test_gardening') else 'Committed',
-            identifier_str, hash, self.url_for_identifier(identifier),
-        )
+        commit_type = 'Test gardening commit' if self.getProperty('is_test_gardening') else 'Committed'
+        comment = f'{commit_type} {identifier_str} ({hash}): <{self.url_for_identifier(identifier)}>'
 
         pr_number = self.getProperty('github.number', '')
         if pr_number:
@@ -8253,13 +8309,16 @@ class Canonicalize(steps.ShellSequence, ShellMixin, AddToLogMixin):
         return super().getResultSummary()
 
 
-class PushPullRequestBranch(shell.ShellCommand):
+class PushPullRequestBranch(shell.ShellCommand, PushedCommitMixin):
     name = 'push-pull-request-branch'
     haltOnFailure = True
+    MAX_RETRY = 2
+    RETRY_DELAY = 10
 
     def __init__(self, **kwargs):
         super().__init__(logEnviron=False, timeout=300, **kwargs)
 
+    @defer.inlineCallbacks
     def run(self, BufferLogObserverClass=logobserver.BufferLogObserver):
         remote, repo_name = self.getProperty('github.head.repo.full_name', DEFAULT_REMOTE).split('/', 1)
         if '-' in repo_name:
@@ -8271,7 +8330,26 @@ class PushPullRequestBranch(shell.ShellCommand):
         self.env['GIT_USER'] = username
         self.env['GIT_PASSWORD'] = access_token
 
-        return super().run()
+        rc = yield super().run()
+
+        if rc == SUCCESS:
+            # The pull request now points to this commit, which is the same change. Record it, so that BlockPullRequest
+            # doesn't take it for a newer version of the pull request.
+            pushed_sha = yield self.pushed_commit()
+            if pushed_sha:
+                self.setProperty('pushed_head_sha', pushed_sha)
+            return rc
+
+        # This is for GitHub errors. Other failures, such as a fork that doesn't let the merge queue push, fail again.
+        retry_count = int(self.getProperty('push_pull_request_branch_retry_count', 0))
+        if retry_count < self.MAX_RETRY:
+            self.setProperty('push_pull_request_branch_retry_count', retry_count + 1)
+            self.haltOnFailure = False
+            self.build.addStepsAfterCurrentStep([
+                WaitForDuration(duration=self.RETRY_DELAY),
+                PushPullRequestBranch(),
+            ])
+        return rc
 
     def getResultSummary(self):
         if self.results == SUCCESS:

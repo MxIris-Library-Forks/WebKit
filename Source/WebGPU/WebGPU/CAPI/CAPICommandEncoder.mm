@@ -43,12 +43,12 @@ void wgpuCommandEncoderRelease(WGPUCommandEncoder commandEncoder)
 WGPUComputePassEncoder wgpuCommandEncoderBeginComputePass(WGPUCommandEncoder commandEncoder, const WGPUComputePassDescriptor* descriptor)
 {
     @autoreleasepool {
-        Ref protectedCommandEncoder = WebGPU::CAPI::metalFromAPI(commandEncoder);
+        Ref protectedCommandEncoder = WebGPU::CAPI::fromAPI(commandEncoder);
         // A null descriptor is the default one.
         WGPUComputePassDescriptor defaultDescriptor = WGPU_COMPUTE_PASS_DESCRIPTOR_INIT;
         auto apiDescriptor = WebGPU::CAPI::fromAPI(descriptor ? *descriptor : defaultDescriptor);
         if (!apiDescriptor)
-            return WebGPU::CAPI::releaseToAPI(WebGPU::Metal::ComputePassEncoder::createInvalid(protectedCommandEncoder, protectedCommandEncoder->device(), @"GPUComputePassDescriptor has timestamp writes without a query set"));
+            return WebGPU::CAPI::releaseToAPI(protectedCommandEncoder->beginInvalidComputePass("GPUComputePassDescriptor has timestamp writes without a query set"_s));
         return WebGPU::CAPI::releaseToAPI(protectedCommandEncoder->beginComputePass(*apiDescriptor));
     }
 }
@@ -56,11 +56,11 @@ WGPUComputePassEncoder wgpuCommandEncoderBeginComputePass(WGPUCommandEncoder com
 WGPURenderPassEncoder wgpuCommandEncoderBeginRenderPass(WGPUCommandEncoder commandEncoder, const WGPURenderPassDescriptor* descriptor)
 {
     @autoreleasepool {
-        Ref protectedCommandEncoder = WebGPU::CAPI::metalFromAPI(commandEncoder);
+        Ref protectedCommandEncoder = WebGPU::CAPI::fromAPI(commandEncoder);
         WebGPU::CAPI::RenderPassDescriptorStorage storage;
         auto apiDescriptor = WebGPU::CAPI::fromAPI(*descriptor, storage);
         if (!apiDescriptor)
-            return WebGPU::CAPI::releaseToAPI(WebGPU::Metal::RenderPassEncoder::createInvalid(protectedCommandEncoder, protectedCommandEncoder->device(), @"GPURenderPassDescriptor has an invalid enum value, a depth stencil attachment without a view or timestamp writes without a query set"));
+            return WebGPU::CAPI::releaseToAPI(protectedCommandEncoder->beginInvalidRenderPass("GPURenderPassDescriptor has an invalid enum value, a depth stencil attachment without a view or timestamp writes without a query set"_s));
         return WebGPU::CAPI::releaseToAPI(protectedCommandEncoder->beginRenderPass(*apiDescriptor));
     }
 }
@@ -74,12 +74,12 @@ void wgpuCommandEncoderCopyBufferToBuffer(WGPUCommandEncoder commandEncoder, WGP
 
 // A copy whose source or destination does not convert invalidates the encoder, as a failed copy
 // validation does.
-static constexpr auto invalidTexelCopyMessage = @"GPUCommandEncoder copy has a null buffer or texture or an invalid aspect";
+static constexpr auto invalidTexelCopyMessage = "GPUCommandEncoder copy has a null buffer or texture or an invalid aspect"_s;
 
 void wgpuCommandEncoderCopyBufferToTexture(WGPUCommandEncoder commandEncoder, const WGPUTexelCopyBufferInfo* source, const WGPUTexelCopyTextureInfo* destination, const WGPUExtent3D* copySize)
 {
     @autoreleasepool {
-        Ref protectedCommandEncoder = WebGPU::CAPI::metalFromAPI(commandEncoder);
+        Ref protectedCommandEncoder = WebGPU::CAPI::fromAPI(commandEncoder);
         auto apiSource = WebGPU::CAPI::fromAPI(*source);
         auto apiDestination = WebGPU::CAPI::fromAPI(*destination);
         if (!apiSource || !apiDestination)
@@ -91,7 +91,7 @@ void wgpuCommandEncoderCopyBufferToTexture(WGPUCommandEncoder commandEncoder, co
 void wgpuCommandEncoderCopyTextureToBuffer(WGPUCommandEncoder commandEncoder, const WGPUTexelCopyTextureInfo* source, const WGPUTexelCopyBufferInfo* destination, const WGPUExtent3D* copySize)
 {
     @autoreleasepool {
-        Ref protectedCommandEncoder = WebGPU::CAPI::metalFromAPI(commandEncoder);
+        Ref protectedCommandEncoder = WebGPU::CAPI::fromAPI(commandEncoder);
         auto apiSource = WebGPU::CAPI::fromAPI(*source);
         auto apiDestination = WebGPU::CAPI::fromAPI(*destination);
         if (!apiSource || !apiDestination)
@@ -103,7 +103,7 @@ void wgpuCommandEncoderCopyTextureToBuffer(WGPUCommandEncoder commandEncoder, co
 void wgpuCommandEncoderCopyTextureToTexture(WGPUCommandEncoder commandEncoder, const WGPUTexelCopyTextureInfo* source, const WGPUTexelCopyTextureInfo* destination, const WGPUExtent3D* copySize)
 {
     @autoreleasepool {
-        Ref protectedCommandEncoder = WebGPU::CAPI::metalFromAPI(commandEncoder);
+        Ref protectedCommandEncoder = WebGPU::CAPI::fromAPI(commandEncoder);
         auto apiSource = WebGPU::CAPI::fromAPI(*source);
         auto apiDestination = WebGPU::CAPI::fromAPI(*destination);
         if (!apiSource || !apiDestination)

@@ -31,6 +31,7 @@
 #import "BindGroup.h"
 #import "BindGroupLayout.h"
 #import "Buffer.h"
+#import "CommandBuffer.h"
 #import "CommandEncoder.h"
 #import "ComputePipeline.h"
 #import "MetalSPI.h"
@@ -303,7 +304,7 @@ Device::Device(id<MTLDevice> device, id<MTLCommandQueue> defaultQueue, HardwareC
         RefPtr<Device> protectedThis = weakThis.get();
         if (!protectedThis)
             return;
-        if (auto instance = protectedThis->instance(); instance.get()) {
+        if (RefPtr instance = protectedThis->weakInstance()) {
             instance->scheduleWork([protectedThis = WTF::move(protectedThis), device = device]() {
                 if (![protectedThis->m_device isEqual:device])
                     return;
@@ -384,6 +385,11 @@ Device::~Device()
         m_uncapturedErrorCallback(false, std::nullopt);
 }
 
+RefPtr<WebGPU::Instance> Device::instance() const
+{
+    return m_instance.get();
+}
+
 RefPtr<XRSubImage> Device::getXRViewSubImage(XRProjectionLayer& projectionLayer)
 {
     protect(m_xrSubImage)->update(projectionLayer);
@@ -417,11 +423,12 @@ void Device::loseTheDevice(WebGPU::DeviceLostReason reason)
 
     m_adapter->makeInvalid();
 
+    // The callback sees that the device is lost.
+    m_isLost = true;
     if (m_deviceLostCallback)
         m_deviceLostCallback(reason, "Device lost."_s);
 
     protect(m_defaultQueue)->makeInvalid();
-    m_isLost = true;
 }
 
 static void setOwnerWithIdentity(id<MTLResourceSPI> resource, auto webProcessID)
@@ -489,6 +496,71 @@ auto Device::currentErrorScope(WebGPU::ErrorFilter type) -> ErrorScope*
             return &*iterator;
     }
     return nullptr;
+}
+
+RefPtr<WebGPU::BindGroup> Device::createInvalidBindGroup()
+{
+    return BindGroup::createInvalid(*this);
+}
+
+RefPtr<WebGPU::BindGroupLayout> Device::createInvalidBindGroupLayout()
+{
+    return BindGroupLayout::createInvalid(*this);
+}
+
+RefPtr<WebGPU::Buffer> Device::createInvalidBuffer()
+{
+    return Buffer::createInvalid(*this);
+}
+
+RefPtr<WebGPU::CommandBuffer> Device::createInvalidCommandBuffer()
+{
+    return CommandBuffer::createInvalid(*this);
+}
+
+RefPtr<WebGPU::CommandEncoder> Device::createInvalidCommandEncoder()
+{
+    return CommandEncoder::createInvalid(*this);
+}
+
+RefPtr<WebGPU::ComputePipeline> Device::createInvalidComputePipeline()
+{
+    return ComputePipeline::createInvalid(*this);
+}
+
+RefPtr<WebGPU::PipelineLayout> Device::createInvalidPipelineLayout()
+{
+    return PipelineLayout::createInvalid(*this);
+}
+
+RefPtr<WebGPU::QuerySet> Device::createInvalidQuerySet()
+{
+    return QuerySet::createInvalid(*this);
+}
+
+RefPtr<WebGPU::RenderBundleEncoder> Device::createInvalidRenderBundleEncoder(String&& error)
+{
+    return RenderBundleEncoder::createInvalid(*this, error.createNSString().get());
+}
+
+RefPtr<WebGPU::RenderPipeline> Device::createInvalidRenderPipeline()
+{
+    return RenderPipeline::createInvalid(*this);
+}
+
+RefPtr<WebGPU::Sampler> Device::createInvalidSampler()
+{
+    return Sampler::createInvalid(*this);
+}
+
+RefPtr<WebGPU::ShaderModule> Device::createInvalidShaderModule()
+{
+    return ShaderModule::createInvalid(*this);
+}
+
+RefPtr<WebGPU::Texture> Device::createInvalidTexture()
+{
+    return Texture::createInvalid(*this);
 }
 
 void Device::generateAValidationError(NSString * message)
@@ -612,7 +684,7 @@ void Device::popErrorScope(CompletionHandler<void(bool, std::optional<WebGPU::Er
 
     auto scope = m_errorScopeStack.takeLast();
 
-    if (auto inst = instance(); inst.get()) {
+    if (RefPtr inst = weakInstance()) {
         inst->scheduleWork([scope = WTF::move(scope), callback = WTF::move(callback)]() mutable {
             bool caughtNoError = !scope.error;
             callback(caughtNoError, WTF::move(scope.error));
@@ -656,7 +728,7 @@ void Device::setLabel(String&&)
 
 const std::optional<const MachSendRight> Device::webProcessID() const
 {
-    auto scheduler = instance();
+    RefPtr scheduler = weakInstance();
     return scheduler ? scheduler->webProcessID() : std::nullopt;
 }
 

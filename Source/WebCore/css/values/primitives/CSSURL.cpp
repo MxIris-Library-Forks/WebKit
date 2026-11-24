@@ -32,8 +32,7 @@
 #include "DeprecatedCSSOMPrimitiveValue.h"
 #include "Document.h"
 
-namespace WebCore {
-namespace CSS {
+namespace WebCore::CSS {
 
 // MARK: - Serialization
 
@@ -105,10 +104,7 @@ std::optional<URL> completeURL(const WTF::String& string, const CSSParserContext
     if (context.mode == WebVTTMode && !result.resolved.protocolIsData())
         return { };
 
-    result.provenance = {
-        .styleSheetURL = context.isExternalStyleSheet ? context.baseURL : WTF::URL { },
-        .loadedFromOpaqueSource = context.loadedFromOpaqueSource,
-    };
+    result.provenance = context.provenance();
 
     return result;
 }
@@ -134,5 +130,4 @@ bool mayDependOnBaseURL(const URL& url)
         && !url.resolved.protocolIsData();
 }
 
-} // namespace CSS
-} // namespace WebCore
+} // namespace WebCore::CSS

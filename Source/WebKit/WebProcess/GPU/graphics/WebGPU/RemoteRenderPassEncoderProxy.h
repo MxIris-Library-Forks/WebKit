@@ -34,19 +34,18 @@
 
 namespace WebKit::WebGPU {
 
-class ConvertToBackingContext;
-
 class RemoteRenderPassEncoderProxy final : public ::WebGPU::RenderPassEncoder {
     WTF_MAKE_TZONE_ALLOCATED(RemoteRenderPassEncoderProxy);
 public:
-    static Ref<RemoteRenderPassEncoderProxy> create(RemoteCommandEncoderProxy& parent, ConvertToBackingContext& convertToBackingContext, WebGPURenderPassEncoderIdentifier identifier)
+    static Ref<RemoteRenderPassEncoderProxy> create(RemoteCommandEncoderProxy& parent, WebGPURenderPassEncoderIdentifier identifier)
     {
-        return adoptRef(*new RemoteRenderPassEncoderProxy(parent, convertToBackingContext, identifier));
+        return adoptRef(*new RemoteRenderPassEncoderProxy(parent, identifier));
     }
 
     virtual ~RemoteRenderPassEncoderProxy();
 
     RemoteGPUProxy& root() const { return m_root; }
+    WebGPURenderPassEncoderIdentifier backing() const { return m_backing; }
 
     void setPipeline(const ::WebGPU::RenderPipeline&) final;
     void setIndexBuffer(::WebGPU::Buffer&, ::WebGPU::IndexFormat, uint64_t offset, std::optional<uint64_t>) final;
@@ -75,21 +74,18 @@ public:
     void executeBundles(std::span<const Ref<::WebGPU::RenderBundle>>) final;
     void end() final;
 
+    void makeInvalid(String&& error) final;
     void setLabel(String&&) final;
     bool isValid() const final;
 
 private:
-    friend class DowncastConvertToBackingContext;
-
-    RemoteRenderPassEncoderProxy(RemoteCommandEncoderProxy&, ConvertToBackingContext&, WebGPURenderPassEncoderIdentifier);
+    RemoteRenderPassEncoderProxy(RemoteCommandEncoderProxy&, WebGPURenderPassEncoderIdentifier);
 
     RemoteRenderPassEncoderProxy(const RemoteRenderPassEncoderProxy&) = delete;
     RemoteRenderPassEncoderProxy(RemoteRenderPassEncoderProxy&&) = delete;
     RemoteRenderPassEncoderProxy& operator=(const RemoteRenderPassEncoderProxy&) = delete;
     RemoteRenderPassEncoderProxy& operator=(RemoteRenderPassEncoderProxy&&) = delete;
 
-    WebGPURenderPassEncoderIdentifier backing() const { return m_backing; }
-    
     template<typename T>
     [[nodiscard]] IPC::Error send(T&& message)
     {
@@ -98,7 +94,6 @@ private:
 
 
     WebGPURenderPassEncoderIdentifier m_backing;
-    const Ref<ConvertToBackingContext> m_convertToBackingContext;
     const Ref<RemoteGPUProxy> m_root;
 };
 

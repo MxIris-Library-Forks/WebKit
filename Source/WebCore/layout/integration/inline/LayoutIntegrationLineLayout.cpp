@@ -76,8 +76,7 @@
 #include <wtf/Assertions.h>
 #include <wtf/Range.h>
 
-namespace WebCore {
-namespace LayoutIntegration {
+namespace WebCore::LayoutIntegration {
 
 DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(LayoutIntegration_LineLayout);
 
@@ -573,10 +572,11 @@ void LineLayout::setOutsideMarkerPositions(const OutsideMarkerList& outsideMarke
         for (auto& floatItem : ensureBlockFormattingState().placedFloats().list()) {
             if (!floatItem.isInFormattingContextOf(protect(rootLayoutBox())))
                 continue;
-            auto floatRect = floatItem.absoluteRectWithMargin();
-            if (floatRect.bottom() <= lineBoxLogicalRect.y() || floatRect.top() >= lineBoxLogicalRect.maxY())
+            // These placed floats are relative to rootLayoutBox() (see ensureBlockFormattingState()).
+            if (floatItem.marginBoxBottom().value() <= lineBoxLogicalRect.y() || floatItem.marginBoxTop().value() >= lineBoxLogicalRect.maxY())
                 continue;
-            edge += isLeftToRight ? -floatRect.width() : floatRect.width();
+            auto floatWidth = floatItem.marginBoxSize().width();
+            edge += isLeftToRight ? -floatWidth : floatWidth;
         }
         return edge;
     }();
@@ -867,17 +867,12 @@ void LineLayout::updateRenderTreePositions(const Vector<LineAdjustment>& lineAdj
             ASSERT(renderer->layer());
             CheckedRef layer = *renderer->layer();
             auto borderBoxLogicalTopLeft = Layout::BoxGeometry::borderBoxTopLeft(logicalGeometry);
-
-            if (layoutBox->style().originalDisplay().isInlineType()) {
-                auto previousStaticPosition = LayoutPoint { layer->staticInlinePosition(), layer->staticBlockPosition() };
-                auto delta = borderBoxLogicalTopLeft - previousStaticPosition;
-                auto isHorizontalWritingMode = blockFlow->writingMode().isHorizontal();
-                auto inlineDelta = layoutBox->style().hasStaticInlinePosition(isHorizontalWritingMode) ? delta.width() : 0_lu;
-                auto blockDelta = layoutBox->style().hasStaticBlockPosition(isHorizontalWritingMode) ? delta.height() : 0_lu;
-
-                blockFlow->setStaticInlinePositionForChild(renderer, borderBoxLogicalTopLeft.x());
-                renderer->move(isHorizontalWritingMode ? inlineDelta : blockDelta, isHorizontalWritingMode ? blockDelta : inlineDelta);
-            }
+            auto previousStaticPosition = LayoutPoint { layer->staticInlinePosition(), layer->staticBlockPosition() };
+            auto delta = borderBoxLogicalTopLeft - previousStaticPosition;
+            auto isHorizontalWritingMode = blockFlow->writingMode().isHorizontal();
+            auto inlineDelta = layoutBox->style().hasStaticInlinePosition(isHorizontalWritingMode) ? delta.width() : 0_lu;
+            auto blockDelta = layoutBox->style().hasStaticBlockPosition(isHorizontalWritingMode) ? delta.height() : 0_lu;
+            renderer->move(isHorizontalWritingMode ? inlineDelta : blockDelta, isHorizontalWritingMode ? blockDelta : inlineDelta);
 
             layer->setStaticBlockPosition(borderBoxLogicalTopLeft.y());
             layer->setStaticInlinePosition(borderBoxLogicalTopLeft.x());
@@ -1328,7 +1323,7 @@ Vector<LineAdjustment> LineLayout::adjustContentForPagination(const Layout::Bloc
             m_lineDamage = { };
     }
 
-    return adjustments;
+    return WTF::move(adjustments);
 }
 
 void LineLayout::collectOverflow()
@@ -1977,5 +1972,4 @@ void LineLayout::outputLineTree(WTF::TextStream& stream, size_t depth) const
 }
 #endif
 
-}
 }

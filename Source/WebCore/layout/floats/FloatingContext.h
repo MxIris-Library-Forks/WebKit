@@ -31,8 +31,7 @@
 #include <WebCore/PlacedFloats.h>
 #include <wtf/TZoneMalloc.h>
 
-namespace WebCore {
-namespace Layout {
+namespace WebCore::Layout {
 
 class FloatAvoider;
 class Box;
@@ -60,11 +59,11 @@ public:
     bool isEmpty() const { return m_placedFloats.list().isEmpty(); }
 
     struct Constraints {
-        std::optional<PointInContextRoot> start;
-        std::optional<PointInContextRoot> end;
+        std::optional<Point<FormattingContextRoot>> start;
+        std::optional<Point<FormattingContextRoot>> end;
     };
     enum class MayBeAboveLastFloat : bool { No, Yes };
-    Constraints constraints(LayoutUnit candidateTop, LayoutUnit candidateBottom, MayBeAboveLastFloat) const;
+    Constraints constraints(AxisPosition<FormattingContextRoot> candidateTop, AxisPosition<FormattingContextRoot> candidateBottom, MayBeAboveLastFloat) const;
 
     PlacedFloats::Item makeFloatItem(const Box& floatBox, const BoxGeometry&, std::optional<size_t> line = { }) const;
 
@@ -78,17 +77,16 @@ private:
     // FIXME: Turn this into an actual geometry cache.
     NODELETE const LayoutState& containingBlockGeometries() const LIFETIME_BOUND;
 
-    void findPositionForFormattingContextRoot(FloatAvoider&, BoxGeometry::HorizontalEdges containingBlockContentBoxEdges) const;
+    void findPositionForFormattingContextRoot(FloatAvoider&, AxisRange<ParentFormattingContextRoot> containingBlockContentBoxEdges) const;
 
     struct AbsoluteCoordinateValuesForFloatAvoider;
     AbsoluteCoordinateValuesForFloatAvoider absoluteCoordinates(const Box&, LayoutPoint borderBoxTopLeft) const;
-    LayoutPoint mapTopLeftToBlockFormattingContextRoot(const Box&, LayoutPoint borderBoxTopLeft) const;
-    Point mapPointFromFloatingContextRootToBlockFormattingContextRoot(Point) const;
+    Point<ParentFormattingContextRoot> mapTopLeftToBlockFormattingContextRoot(const Box&, LayoutPoint borderBoxTopLeft) const;
+    Point<ParentFormattingContextRoot> mapPointFromFloatingContextRootToBlockFormattingContextRoot(Point<FormattingContextRoot>) const;
 
     CheckedRef<const ElementBox> m_formattingContextRoot;
     const CheckedRef<const LayoutState> m_layoutState;
     const PlacedFloats& m_placedFloats;
 };
 
-}
 }

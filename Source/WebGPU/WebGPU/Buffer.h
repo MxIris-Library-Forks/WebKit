@@ -95,8 +95,6 @@ public:
     std::span<uint8_t> persistentMappedRange(uint64_t offset, std::optional<uint64_t> size) final;
     void unmap() final;
     void setLabel(String&&) final;
-    void generateAValidationError() final;
-    void generateAValidationError(String&&);
 
     NODELETE bool isValid() const final;
 
@@ -119,7 +117,7 @@ public:
     uint64_t size() const final { return initialSize(); }
     WebGPU::BufferMapState mapState() const final;
 
-    Device& device() const { return m_device; }
+    NODELETE Device& device() const final { return m_device; }
     bool isDestroyed() const { return state() == State::Destroyed; }
 
     void setCommandEncoder(CommandEncoder&, bool mayModifyBuffer = false) const;

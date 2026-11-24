@@ -3726,12 +3726,29 @@ class TestAnalyzeLayoutTestsResults(BuildStepMixinAdditions, unittest.TestCase):
     def tearDown(self):
         return self.tear_down_test_build_step()
 
-    def configureStep(self):
+    def configureStep(self, results_db_failures=(), results_db_flakes=()):
         self.setup_step(AnalyzeLayoutTestsResults())
         self.setProperty('first_results_exceed_failure_limit', False)
         self.setProperty('second_results_exceed_failure_limit', False)
         self.setProperty('clean_tree_results_exceed_failure_limit', False)
         self.setProperty('clean_tree_run_failures', [])
+
+        self.results_db_queries = []
+
+        def fake_is_pre_existing(cls, test, **kwargs):
+            self.results_db_queries.append(test)
+            return defer.succeed({
+                'is_existing_failure': test in results_db_failures,
+                'pass_rate': 0 if test in results_db_failures else 100,
+                'raw_data': {},
+                'logs': '',
+                'request_failed': False,
+            })
+
+        self.patch(ResultsDatabase, 'is_test_pre_existing_failure', classmethod(fake_is_pre_existing))
+        self.patch(ResultsDatabase, 'has_commit', classmethod(lambda cls, commit=None: defer.succeed(False)))
+        self.patch(ResultsDatabase, 'flaky_verdicts_for', classmethod(lambda cls, tests, **kwargs: defer.succeed((
+            {test: FlakyVerdict(flaky_type='CleanTree', intra_build_evidence=True) if test in results_db_flakes else FlakyVerdict() for test in tests}, ''))))
 
     def test_failure_introduced_by_change(self):
         self.configureStep()
@@ -3869,7 +3886,7 @@ class TestAnalyzeLayoutTestsResults(BuildStepMixinAdditions, unittest.TestCase):
         self.setProperty('second_results_exceed_failure_limit', True)
         self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
         self.setProperty('clean_tree_run_failures', [f'test{i}' for i in range(0, 27)])
-        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 3 new test failures: test27 test28 test29 (failure)')
         return self.run_step()
 
     def test_clean_tree_has_some_failures(self):
@@ -3879,7 +3896,168 @@ class TestAnalyzeLayoutTestsResults(BuildStepMixinAdditions, unittest.TestCase):
         self.setProperty('second_results_exceed_failure_limit', True)
         self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
         self.setProperty('clean_tree_run_failures', [f'test{i}' for i in range(0, 10)])
-        self.expect_outcome(result=FAILURE, state_string='Found 30 new test failures: test0 test1 test10 test11 test12 test13 test14 test15 test16 test17 ... (failure)')
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 20 new test failures: test10 test11 test12 test13 test14 test15 test16 test17 test18 test19 ... (failure)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_with_failures_that_are_flaky_on_clean_tree(self):
+        # A test that leaves WebKitTestRunner in a bad state fails the tests after it in every run.
+        # Without the change, those pass on retry.
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('clean_tree_run_failures', [f'test{i}' for i in range(0, 5)])
+        self.setProperty('clean_tree_run_flakies', [f'test{i}' for i in range(5, 30)])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_blames_only_tests_failing_in_both(self):
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(25, 55)])
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 5 new test failures: test25 test26 test27 test28 test29 (failure)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_without_common_failures(self):
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(30, 60)])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_with_failures_known_to_results_db(self):
+        self.configureStep(results_db_failures={'test0', 'test1'}, results_db_flakes={'test2'})
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', ['test0', 'test1', 'test2'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', ['test0', 'test1', 'test2'])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_with_new_failure_and_failures_known_to_results_db(self):
+        self.configureStep(results_db_failures={'test0'}, results_db_flakes={'test1'})
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', ['test0', 'test1', 'test2'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', ['test0', 'test1', 'test2'])
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 1 new test failure: test2 (failure)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_does_not_excuse_modified_tests(self):
+        # The results database only knows the test without the change.
+        self.configureStep(results_db_failures={'test0'})
+        self.setProperty('modified_tests', ['LayoutTests/test0'])
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', ['test0'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', ['test0'])
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 1 new test failure: test0 (failure)')
+        return self.run_step()
+
+    def test_both_runs_exceed_failure_limit_on_other_branch_does_not_consult_results_db(self):
+        self.configureStep(results_db_failures={'test0'})
+        self.setProperty('github.base.ref', 'safari-7620-branch')
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', ['test0'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', ['test0'])
+        self.expect_outcome(result=FAILURE, state_string='Failure limit exceeded. Found at least 1 new test failure: test0 (failure)')
+        rc = self.run_step()
+        self.assertEqual(self.results_db_queries, [])
+        return rc
+
+    def test_one_run_exceeds_failure_limit_does_not_consult_results_db_again(self):
+        # The run that completed already filtered its failures through the results database.
+        self.configureStep(results_db_failures={'test2'})
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_run_failures', ['test2'])
+        self.setProperty('second_run_failures_filtered', [])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        rc = self.run_step()
+        self.assertEqual(self.results_db_queries, [])
+        return rc
+
+    def test_both_runs_exceed_failure_limit_checks_every_common_failure_with_results_db(self):
+        failures = [f'test{i}' for i in range(0, 60)]
+        self.configureStep(results_db_failures=set(failures))
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', failures)
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', failures)
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        rc = self.run_step()
+        self.assertEqual(sorted(self.results_db_queries), sorted(failures))
+        return rc
+
+    def test_all_runs_exceed_failure_limit(self):
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('clean_tree_results_exceed_failure_limit', True)
+        self.setProperty('clean_tree_run_failures', [f'test{i}' for i in range(30, 60)])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_first_run_exceed_failure_limit_with_failure_that_is_flaky_on_clean_tree(self):
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_run_failures', ['test1'])
+        self.setProperty('clean_tree_run_flakies', ['test1'])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_first_run_exceed_failure_limit_with_new_failure_in_second_run(self):
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_run_failures', ['test1', 'test2'])
+        self.setProperty('clean_tree_run_flakies', ['test1'])
+        self.expect_outcome(result=FAILURE, state_string='Found 1 new test failure: test2 (failure)')
+        return self.run_step()
+
+    def test_first_run_exceed_failure_limit_with_failure_only_in_second_run(self):
+        # The first run may have exited before reaching the test, and run-webkit-tests reports a crash
+        # even if the test passes on retry, so one failing run doesn't identify a regression.
+        self.configureStep()
+        self.setProperty('first_results_exceed_failure_limit', True)
+        self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('second_run_failures', ['test40'])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_second_run_exceed_failure_limit_with_failure_only_in_first_run(self):
+        self.configureStep()
+        self.setProperty('first_run_failures', ['test40'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_second_run_exceed_failure_limit_with_failure_that_is_flaky_on_clean_tree(self):
+        self.configureStep()
+        self.setProperty('first_run_failures', ['test1'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('clean_tree_run_flakies', ['test1'])
+        self.expect_outcome(result=RETRY, state_string='Unable to confirm if test failures are introduced by change, retrying build (retry)')
+        return self.run_step()
+
+    def test_second_run_exceed_failure_limit_with_new_failure_in_first_run(self):
+        self.configureStep()
+        self.setProperty('first_run_failures', ['test1', 'test2'])
+        self.setProperty('second_results_exceed_failure_limit', True)
+        self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 30)])
+        self.setProperty('clean_tree_run_failures', ['test1'])
+        self.expect_outcome(result=FAILURE, state_string='Found 1 new test failure: test2 (failure)')
         return self.run_step()
 
     def test_clean_tree_has_lot_of_failures_and_no_new_failure(self):
@@ -3899,7 +4077,7 @@ class TestAnalyzeLayoutTestsResults(BuildStepMixinAdditions, unittest.TestCase):
         self.setProperty('first_run_failures', [f'test{i}' for i in range(0, 300)])
         self.setProperty('second_results_exceed_failure_limit', True)
         self.setProperty('second_run_failures', [f'test{i}' for i in range(0, 300)])
-        failure_message = 'Found 300 new test failures: test0 test1 test10 test100 test101 test102 test103 test104 test105 test106 ...'
+        failure_message = 'Failure limit exceeded. Found at least 300 new test failures: test0 test1 test10 test100 test101 test102 test103 test104 test105 test106 ...'
         self.expect_outcome(result=FAILURE, state_string=failure_message + ' (failure)')
         rc = self.run_step()
         self.expect_property('comment_text', failure_message)
@@ -10831,18 +11009,118 @@ class TestCheckStatusOnEWSQueues(BuildStepMixinAdditions, unittest.TestCase):
         return rc
 
 
-class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
+class TestAcquireLandingLock(BuildStepMixinAdditions, unittest.TestCase):
+    class OtherBuild:
+        def __init__(self, buildnumber, pr_number, finished=False):
+            self.properties = {'buildername': 'Unsafe-Merge-Queue', 'buildnumber': buildnumber, 'github.number': pr_number}
+            self.finished = finished
+
+        def getProperty(self, name, default=None):
+            return self.properties.get(name, default)
+
     def setUp(self):
         self.longMessage = True
-        GitHub.credentials = lambda user=None: ('webkit-commit-queue', 'password')
+        self.patch(AcquireLandingLock, 'holder', None)
+        self.patch(AcquireLandingLock, 'waiting', [])
         return self.setup_test_build_step()
 
     def tearDown(self):
         return self.tear_down_test_build_step()
 
+    def setup_step(self, step, *args, **kwargs):
+        super().setup_step(step, *args, **kwargs)
+        self.build.finished = False
+
+    def test_free(self):
+        self.setup_step(AcquireLandingLock())
+        self.expect_outcome(result=SUCCESS, state_string='Acquired landing lock')
+        rc = self.run_step()
+        self.assertIs(AcquireLandingLock.holder, self.build)
+        self.assertEqual(AcquireLandingLock.waiting, [])
+        return rc
+
+    def test_holder_finished(self):
+        AcquireLandingLock.holder = self.OtherBuild(31229, 81947, finished=True)
+        self.setup_step(AcquireLandingLock())
+        self.expect_outcome(result=SUCCESS, state_string='Acquired landing lock')
+        rc = self.run_step()
+        self.assertIs(AcquireLandingLock.holder, self.build)
+        return rc
+
+    @defer.inlineCallbacks
+    def test_waits_for_holder(self):
+        other = self.OtherBuild(31229, 81947)
+        AcquireLandingLock.holder = other
+        self.setup_step(AcquireLandingLock())
+        self.expect_outcome(result=SUCCESS, state_string='Acquired landing lock')
+        self.expect_log_file('stdio', 'Waiting for Unsafe-Merge-Queue build 31229 (PR #81947) to land.\nAcquired the landing lock after 0 seconds.\n')
+
+        def other_build_lands(*args, **kwargs):
+            AcquireLandingLock.release(other)
+            return defer.succeed(None)
+
+        with patch('twisted.internet.task.deferLater', other_build_lands):
+            yield self.run_step()
+        self.assertIs(AcquireLandingLock.holder, self.build)
+        self.assertEqual(AcquireLandingLock.waiting, [])
+
+    @defer.inlineCallbacks
+    def test_waits_for_earlier_waiter(self):
+        earlier = self.OtherBuild(31229, 81947)
+        later = self.OtherBuild(31231, 81949)
+        AcquireLandingLock.waiting = [earlier]
+        self.setup_step(AcquireLandingLock())
+        self.expect_outcome(result=SUCCESS, state_string='Acquired landing lock')
+        self.expect_log_file('stdio', 'Waiting for Unsafe-Merge-Queue build 31229 (PR #81947) to land.\nAcquired the landing lock after 0 seconds.\n')
+
+        def earlier_build_finishes(*args, **kwargs):
+            AcquireLandingLock.waiting.append(later)
+            earlier.finished = True
+            return defer.succeed(None)
+
+        with patch('twisted.internet.task.deferLater', earlier_build_finishes):
+            yield self.run_step()
+        self.assertIs(AcquireLandingLock.holder, self.build)
+        self.assertEqual(AcquireLandingLock.waiting, [earlier, later])
+        self.assertIs(AcquireLandingLock.blocker(later), self.build)
+
+    @defer.inlineCallbacks
+    def test_interrupted_while_waiting(self):
+        other = self.OtherBuild(31229, 81947)
+        AcquireLandingLock.holder = other
+        self.setup_step(AcquireLandingLock())
+        self.expect_outcome(result=CANCELLED, state_string='Stopped waiting for landing lock')
+        with patch('twisted.internet.task.deferLater', lambda *_, **__: defer.Deferred()):
+            d = self.run_step()
+            yield self.get_nth_step(0).interrupt('stopped')
+            yield d
+        self.assertIs(AcquireLandingLock.holder, other)
+        self.assertEqual(AcquireLandingLock.waiting, [])
+
+    def test_release_by_other_build(self):
+        other = self.OtherBuild(31229, 81947)
+        AcquireLandingLock.holder = other
+        AcquireLandingLock.release(self.OtherBuild(31231, 81949))
+        self.assertIs(AcquireLandingLock.holder, other)
+        AcquireLandingLock.release(other)
+        self.assertIsNone(AcquireLandingLock.holder)
+
+
+class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
+    def setUp(self):
+        self.longMessage = True
+        GitHub.credentials = lambda user=None: ('webkit-commit-queue', 'password')
+        self.patch(AcquireLandingLock, 'holder', None)
+        return self.setup_test_build_step()
+
+    def tearDown(self):
+        return self.tear_down_test_build_step()
+
+    @defer.inlineCallbacks
     def test_success(self):
         self.setup_step(PushCommitToWebKitRepo())
         self.setProperty('remote', 'origin')
+        AcquireLandingLock.holder = self.build
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         timeout=300,
@@ -10851,12 +11129,51 @@ class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
                         command=['git', 'push', 'origin', 'HEAD:main'])
             .log('stdio', stdout=' 4c3bac1de151...b94dc426b331 \n')
             .exit(0),
+            ExpectShell(workdir='wkdir',
+                        timeout=300,
+                        log_environ=False,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('b94dc426b3318b6b5c0b2f2f0f6c3d9c7e8a1b2c\n')
+            .exit(0),
         )
         self.expect_outcome(result=SUCCESS, state_string='')
+        self.expect_property('landed_hash', 'b94dc426b3318b6b5c0b2f2f0f6c3d9c7e8a1b2c')
         with current_hostname(EWS_BUILD_HOSTNAMES[0]):
-            rc = self.run_step()
-        self.expect_property('landed_hash', 'b94dc426b331')
-        return rc
+            yield self.run_step()
+        self.assertIsNone(AcquireLandingLock.holder)
+
+    @defer.inlineCallbacks
+    def test_success_already_pushed(self):
+        self.setup_step(PushCommitToWebKitRepo())
+        self.setProperty('github.number', '1234')
+        self.setProperty('remote', 'origin')
+        self.setProperty('retry_count', 1)
+        AcquireLandingLock.holder = self.build
+        next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda steps: next_steps.extend(steps))
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=300,
+                        log_environ=False,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'push', 'origin', 'HEAD:main'])
+            .log('stdio', stderr='Everything up-to-date\n')
+            .exit(0),
+            ExpectShell(workdir='wkdir',
+                        timeout=300,
+                        log_environ=False,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('b94dc426b3318b6b5c0b2f2f0f6c3d9c7e8a1b2c\n')
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='')
+        self.expect_property('landed_hash', 'b94dc426b3318b6b5c0b2f2f0f6c3d9c7e8a1b2c')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertIsNone(AcquireLandingLock.holder)
+        self.assertEqual([step.name for step in next_steps], ['determine-landed-identifier', 'leave-comment', 'remove-labels-from-pull-request', 'close-bugzilla-bug'])
 
     @expectedFailure
     def test_failure_retry(self):
@@ -10879,12 +11196,13 @@ class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
         self.expect_property('landed_hash', None)
         return rc
 
-
+    @defer.inlineCallbacks
     def test_failure_pr(self):
         self.setup_step(PushCommitToWebKitRepo())
         self.setProperty('github.number', '1234')
         self.setProperty('remote', 'origin')
         self.setProperty('retry_count', PushCommitToWebKitRepo.MAX_RETRY)
+        AcquireLandingLock.holder = self.build
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         timeout=300,
@@ -10895,11 +11213,36 @@ class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
             .exit(2),
         )
         self.expect_outcome(result=FAILURE, state_string='Failed to push commit to Webkit repository')
-        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
-            rc = self.run_step()
         self.expect_property('build_finish_summary', 'Failed to commit to WebKit repository')
         self.expect_property('comment_text', 'merge-queue failed to commit PR to repository. To retry, remove any blocking labels and re-apply merge-queue label')
-        return rc
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertIsNone(AcquireLandingLock.holder)
+
+    @defer.inlineCallbacks
+    def test_failure_pr_retry(self):
+        self.setup_step(PushCommitToWebKitRepo())
+        self.setProperty('github.number', '1234')
+        self.setProperty('remote', 'origin')
+        AcquireLandingLock.holder = self.build
+        next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda steps: next_steps.extend(steps))
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        timeout=300,
+                        log_environ=False,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'push', 'origin', 'HEAD:main'])
+            .log('stdio', stdout='remote: Internal Server Error\n')
+            .exit(1),
+        )
+        self.expect_outcome(result=FAILURE, state_string='Failed to push commit to Webkit repository')
+        self.expect_property('retry_count', 1)
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertEqual([step.name for step in next_steps], ['wait', 'push-commit-to-webkit-repo'])
+        self.assertEqual(next_steps[0].duration, PushCommitToWebKitRepo.RETRY_DELAY)
+        self.assertIs(AcquireLandingLock.holder, self.build)
 
     def test_failure_pr_retry_clears_build_summary(self):
         self.setup_step(PushCommitToWebKitRepo())
@@ -10920,6 +11263,61 @@ class TestPushCommitToWebKitRepo(BuildStepMixinAdditions, unittest.TestCase):
         self.expect_property('build_summary', '')
         with current_hostname(EWS_BUILD_HOSTNAMES[0]):
             return self.run_step()
+
+
+class TestBlockPullRequest(BuildStepMixinAdditions, unittest.TestCase):
+    ORIGINAL_SHA = '7e3d2544765cd24e1e00607501a81e89fe5ed152'
+    PUSHED_SHA = '5115b9c4eb5a501dac86f86ec13fc45b8b71515b'
+    UPDATED_SHA = 'f9d8a141822ec3edd8980175a8acd10093f5afea'
+
+    def setUp(self):
+        self.longMessage = True
+        self.label_changes = []
+        self.patch(BlockPullRequest, 'remove_labels', lambda step, pr_number, labels=None, repository_url=None: self.label_changes.append(('remove', pr_number, labels)) or True)
+        self.patch(BlockPullRequest, 'add_label', lambda step, pr_number, label, repository_url=None: self.label_changes.append(('add', pr_number, label)) or True)
+        return self.setup_test_build_step()
+
+    def tearDown(self):
+        return self.tear_down_test_build_step()
+
+    def configure_step(self, pr_head_sha, pushed_head_sha=None):
+        self.patch(BlockPullRequest, 'get_pr_json', lambda step, pr_number, repository_url=None, retry=0: {'number': int(pr_number), 'head': {'sha': pr_head_sha}})
+        self.setup_step(BlockPullRequest())
+        self.setProperty('github.number', '1234')
+        self.setProperty('github.head.sha', self.ORIGINAL_SHA)
+        if pushed_head_sha:
+            self.setProperty('pushed_head_sha', pushed_head_sha)
+
+    def expect_blocked(self):
+        self.assertEqual(self.label_changes, [
+            ('remove', '1234', [GitHub.MERGE_QUEUE_LABEL, GitHub.UNSAFE_MERGE_QUEUE_LABEL, GitHub.REQUEST_MERGE_QUEUE_LABEL]),
+            ('add', '1234', GitHub.BLOCKED_LABEL),
+        ])
+
+    @defer.inlineCallbacks
+    def test_success(self):
+        self.configure_step(self.ORIGINAL_SHA)
+        self.expect_outcome(result=SUCCESS, state_string="Added 'merging-blocked' label to pull request")
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.expect_blocked()
+
+    @defer.inlineCallbacks
+    def test_success_after_pushing_to_pull_request_branch(self):
+        self.configure_step(self.PUSHED_SHA, pushed_head_sha=self.PUSHED_SHA)
+        self.expect_outcome(result=SUCCESS, state_string="Added 'merging-blocked' label to pull request")
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.expect_blocked()
+
+    @defer.inlineCallbacks
+    def test_skipped_pull_request_updated(self):
+        self.configure_step(self.UPDATED_SHA, pushed_head_sha=self.PUSHED_SHA)
+        self.expect_outcome(result=SKIPPED, state_string='finished (skipped)')
+        self.expect_log_file('stdio', f'Skipping this step as hash {self.UPDATED_SHA} is outdated.\n')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertEqual(self.label_changes, [])
 
 
 class TestDetermineLabelOwner(BuildStepMixinAdditions, unittest.TestCase):
@@ -11079,7 +11477,7 @@ class TestDetermineLandedIdentifier(BuildStepMixinAdditions, unittest.TestCase):
     def test_success_pr(self):
         with self.mock_commits_webkit_org(), self.mock_sleep():
             self.setup_step(DetermineLandedIdentifier())
-            self.setProperty('landed_hash', '14dbf1155cf5')
+            self.setProperty('landed_hash', '14dbf1155cf5d6a7b8c9d0e1f2a3b4c5d6e7f809')
             self.setProperty('github.number', '1234')
             self.expectRemoteCommands(
                 ExpectShell(workdir='wkdir',
@@ -11090,11 +11488,10 @@ class TestDetermineLandedIdentifier(BuildStepMixinAdditions, unittest.TestCase):
                 .exit(0),
             )
             self.expect_outcome(result=SUCCESS, state_string='Identifier: 220797@main')
+            self.expect_property('comment_text', 'Committed 220797@main (14dbf1155cf5): <https://commits.webkit.org/220797@main>\n\nReviewed commits have been landed. Closing PR #1234 and removing active labels.')
+            self.expect_property('build_summary', 'Committed 220797@main')
             with current_hostname(EWS_BUILD_HOSTNAMES[0]):
                 yield self.run_step()
-
-        self.expect_property('comment_text', 'Committed 220797@main (14dbf1155cf5): <https://commits.webkit.org/220797@main>\n\nReviewed commits have been landed. Closing PR #1234 and removing active labels.')
-        self.expect_property('build_summary', 'Committed 220797@main')
 
     @defer.inlineCallbacks
     def test_success_gardening_pr(self):
@@ -11143,7 +11540,7 @@ class TestDetermineLandedIdentifier(BuildStepMixinAdditions, unittest.TestCase):
     def test_pr_no_identifier(self):
         with self.mock_commits_webkit_org(), self.mock_sleep():
             self.setup_step(DetermineLandedIdentifier())
-            self.setProperty('landed_hash', '5dc27962b4c5')
+            self.setProperty('landed_hash', '5dc27962b4c5a1b2c3d4e5f60718293a4b5c6d7e')
             self.setProperty('github.number', '1234')
             self.expectRemoteCommands(
                 ExpectShell(workdir='wkdir',
@@ -11154,11 +11551,10 @@ class TestDetermineLandedIdentifier(BuildStepMixinAdditions, unittest.TestCase):
                 .exit(1),
             )
             self.expect_outcome(result=FAILURE, state_string='Failed to determine identifier')
+            self.expect_property('comment_text', 'Committed ? (5dc27962b4c5): <https://commits.webkit.org/5dc27962b4c5a1b2c3d4e5f60718293a4b5c6d7e>\n\nReviewed commits have been landed. Closing PR #1234 and removing active labels.')
+            self.expect_property('build_summary', 'Committed 5dc27962b4c5')
             with current_hostname(EWS_BUILD_HOSTNAMES[0]):
                 yield self.run_step()
-
-        self.expect_property('comment_text', 'Committed ? (5dc27962b4c5): <https://commits.webkit.org/5dc27962b4c5>\n\nReviewed commits have been landed. Closing PR #1234 and removing active labels.')
-        self.expect_property('build_summary', 'Committed 5dc27962b4c5')
 
 
 class TestConfigureBuild(BuildStepMixinAdditions, unittest.TestCase):
@@ -13376,10 +13772,46 @@ class TestPushPullRequestBranch(BuildStepMixinAdditions, unittest.TestCase):
                         timeout=300,
                         env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
                         command=['git', 'push', '-f', 'Contributor', 'HEAD:eng/pull-request-branch'])
-            .exit(0)
-            .log('stdio', stdout='To https://github.com/Contributor/WebKit.git\n37b7da95723b...9e2cb83b07b6 eng/pull-request-branch -> eng/pull-request-branch (forced update)\n'),
+            .log('stdio', stdout='To https://github.com/Contributor/WebKit.git\n + 37b7da95723b...9e2cb83b07b6 HEAD -> eng/pull-request-branch (forced update)\n')
+            .exit(0),
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        timeout=300,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6\n')
+            .exit(0),
         )
         self.expect_outcome(result=SUCCESS, state_string='Pushed to pull request branch')
+        self.expect_property('pushed_head_sha', '9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6')
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            return self.run_step()
+
+    def test_success_already_pushed(self):
+        GitHub.credentials = lambda user=None: ('webkit-commit-queue', 'password')
+        self.setup_step(PushPullRequestBranch())
+        self.setProperty('github.number', '1234')
+        self.setProperty('github.head.repo.full_name', 'Contributor/WebKit')
+        self.setProperty('github.head.ref', 'eng/pull-request-branch')
+        self.setProperty('push_pull_request_branch_retry_count', 1)
+        self.expectRemoteCommands(
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        timeout=300,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'push', '-f', 'Contributor', 'HEAD:eng/pull-request-branch'])
+            .log('stdio', stderr='Everything up-to-date\n')
+            .exit(0),
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        timeout=300,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6\n')
+            .exit(0),
+        )
+        self.expect_outcome(result=SUCCESS, state_string='Pushed to pull request branch')
+        self.expect_property('pushed_head_sha', '9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6')
         with current_hostname(EWS_BUILD_HOSTNAMES[0]):
             return self.run_step()
 
@@ -13396,10 +13828,18 @@ class TestPushPullRequestBranch(BuildStepMixinAdditions, unittest.TestCase):
                         timeout=300,
                         env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
                         command=['git', 'push', '-f', 'Contributor-apple', 'HEAD:eng/pull-request-branch'])
-            .exit(0)
-            .log('stdio', stdout='To https://github.com/Contributor/WebKit.git\n37b7da95723b...9e2cb83b07b6 eng/pull-request-branch -> eng/pull-request-branch (forced update)\n'),
+            .log('stdio', stdout='To https://github.com/Contributor/WebKit.git\n + 37b7da95723b...9e2cb83b07b6 HEAD -> eng/pull-request-branch (forced update)\n')
+            .exit(0),
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        timeout=300,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6\n')
+            .exit(0),
         )
         self.expect_outcome(result=SUCCESS, state_string='Pushed to pull request branch')
+        self.expect_property('pushed_head_sha', '9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6')
         with current_hostname(EWS_BUILD_HOSTNAMES[0]):
             return self.run_step()
 
@@ -13416,33 +13856,62 @@ class TestPushPullRequestBranch(BuildStepMixinAdditions, unittest.TestCase):
                         timeout=300,
                         env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
                         command=['git', 'push', '-f', 'WebKit-integration', 'HEAD:integration/ci/1234'])
-            .exit(0)
-            .log('stdio', stdout='To https://github.com/Contributor/WebKit.git\n37b7da95723b...9e2cb83b07b6 eng/pull-request-branch -> eng/pull-request-branch (forced update)\n'),
+            .log('stdio', stdout='To https://github.com/WebKit/WebKit-integration.git\n + 37b7da95723b...9e2cb83b07b6 HEAD -> integration/ci/1234 (forced update)\n')
+            .exit(0),
+            ExpectShell(workdir='wkdir',
+                        log_environ=False,
+                        timeout=300,
+                        env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
+                        command=['git', 'rev-parse', 'HEAD'])
+            .stdout('9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6\n')
+            .exit(0),
         )
         self.expect_outcome(result=SUCCESS, state_string='Pushed to pull request branch')
+        self.expect_property('pushed_head_sha', '9e2cb83b07b6a1f5d1e1d8c8e2f9b1c1a0d4e5f6')
         with current_hostname(EWS_BUILD_HOSTNAMES[0]):
             return self.run_step()
 
-    def test_failure(self):
+    def configure_failure(self, retry_count):
         GitHub.credentials = lambda user=None: ('webkit-commit-queue', 'password')
         self.setup_step(PushPullRequestBranch())
         self.setProperty('github.number', '1234')
         self.setProperty('github.head.repo.full_name', 'Contributor/WebKit')
         self.setProperty('github.head.ref', 'eng/pull-request-branch')
         self.setProperty('build_summary', 'Test summary.')
+        self.setProperty('push_pull_request_branch_retry_count', retry_count)
+        self.next_steps = []
+        self.patch(self.build, 'addStepsAfterCurrentStep', lambda steps: self.next_steps.extend(steps))
         self.expectRemoteCommands(
             ExpectShell(workdir='wkdir',
                         log_environ=False,
                         timeout=300,
                         env=dict(GIT_USER='webkit-commit-queue', GIT_PASSWORD='password'),
                         command=['git', 'push', '-f', 'Contributor', 'HEAD:eng/pull-request-branch'])
-            .exit(1)
-            .log('stdio', stdout="fatal: could not read Username for 'https://github.com': Device not configured\n"),
+            .log('stdio', stdout='remote: fatal error in commit_refs\n')
+            .exit(1),
         )
         self.expect_outcome(result=FAILURE, state_string='Failed to push to pull request branch')
-        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
-            return self.run_step()
+        self.expect_no_property('pushed_head_sha')
         self.expect_property('build_summary', '')
+
+    @defer.inlineCallbacks
+    def test_failure_retry(self):
+        self.configure_failure(retry_count=0)
+        self.expect_property('push_pull_request_branch_retry_count', 1)
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertFalse(self.get_nth_step(0).haltOnFailure)
+        self.assertEqual([step.name for step in self.next_steps], ['wait', 'push-pull-request-branch'])
+        self.assertEqual(self.next_steps[0].duration, PushPullRequestBranch.RETRY_DELAY)
+
+    @defer.inlineCallbacks
+    def test_failure(self):
+        self.configure_failure(retry_count=PushPullRequestBranch.MAX_RETRY)
+        self.expect_property('push_pull_request_branch_retry_count', PushPullRequestBranch.MAX_RETRY)
+        with current_hostname(EWS_BUILD_HOSTNAMES[0]):
+            yield self.run_step()
+        self.assertTrue(self.get_nth_step(0).haltOnFailure)
+        self.assertEqual(self.next_steps, [])
 
 
 class TestUpdatePullRequest(BuildStepMixinAdditions, unittest.TestCase):

@@ -56,6 +56,14 @@ constexpr bool skipMemoryAttribution = true;
 
 WTF_MAKE_TZONE_ALLOCATED_IMPL(Queue);
 
+// Nothing is valid to use with a queue whose device is gone.
+template<typename T>
+static bool isValidToUseWith(const T& object, const Queue& queue)
+{
+    RefPtr device = queue.device();
+    return device && isValidToUseWithDevice(object, *device);
+}
+
 Queue::Queue(id<MTLCommandQueue> commandQueue, Adapter& adapter, Device& device)
     : m_commandQueue(commandQueue)
     , m_device(device)
@@ -946,17 +954,9 @@ NSString* Queue::errorValidatingWriteTexture(const WebGPU::TexelCopyTextureInfo&
     return nil;
 }
 
-const Device& Queue::device() const
+RefPtr<WebGPU::Device> Queue::device() const
 {
-    auto device = m_device.get();
-    RELEASE_ASSERT(device);
-    return *device.unsafeGet();
-}
-
-void Queue::generateAValidationError(String&& message)
-{
-    if (RefPtr device = m_device.get())
-        device->generateAValidationError(WTF::move(message));
+    return m_device.get();
 }
 
 void Queue::clearTextureIfNeeded(const WebGPU::TexelCopyTextureInfo& destination, NSUInteger slice)
@@ -2241,13 +2241,6 @@ void Queue::submit(Vector<Ref<WebGPU::CommandBuffer>>&& commands)
     }));
 }
 
-void Queue::onSubmittedWorkDone(CompletionHandler<void()>&& callback)
-{
-    onSubmittedWorkDone(CompletionHandler<void(bool)> { [callback = WTF::move(callback)](bool) mutable {
-        callback();
-    } });
-}
-
 // The WebGPU::Metal writes only read `data`. They take a mutable span because a large write wraps
 // it with newBufferWithBytesNoCopy.
 void Queue::writeBuffer(WebGPU::Buffer& buffer, uint64_t bufferOffset, std::span<const uint8_t> data)
@@ -2365,7 +2358,8 @@ void Queue::resolveProvisionalTextureClears(std::optional<uint64_t> committingCo
 
 id<MTLDevice> Queue::metalDevice() const
 {
-    return device().device();
+    RefPtr device = m_device;
+    return device ? device->device() : nil;
 }
 
 } // namespace WebGPU::Metal

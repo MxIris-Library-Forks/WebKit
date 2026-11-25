@@ -40,7 +40,6 @@
 
 struct OpaqueJSClass;
 struct OpaqueJSClassContextData;
-struct OpaqueJSWeakObjectMap;
 
 OBJC_CLASS JSWrapperMap;
 
@@ -1226,6 +1225,7 @@ public:
     void queueMicrotask(VM&, QueuedTask&&);
     void queueMicrotask(VM&, InternalMicrotask, uint8_t, JSValue, JSValue, JSValue);
     void queueMicrotaskSlow(VM&, QueuedTask&&);
+    void queueMicrotaskSlow(VM&, InternalMicrotask, uint8_t, JSValue, JSValue, JSValue);
 
 #if ASSERT_ENABLED
     const JSGlobalObject* globalObjectAtDebuggerEntry() const { return m_globalObjectAtDebuggerEntry; }
@@ -1243,9 +1243,6 @@ public:
     void cachedFunctionExecutableForFunctionConstructor(FunctionExecutable*);
 
     static inline Structure* createStructure(VM&, JSValue prototype);
-
-    inline void registerWeakMap(OpaqueJSWeakObjectMap*);
-    inline void unregisterWeakMap(OpaqueJSWeakObjectMap*);
 
     inline std::unique_ptr<OpaqueJSClassContextData>& contextData(OpaqueJSClass*);
 

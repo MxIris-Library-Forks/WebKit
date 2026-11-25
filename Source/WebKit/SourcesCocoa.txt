@@ -482,6 +482,7 @@ UIProcess/Cocoa/SecurityFlagsControllerCocoa.mm @nonARC
 UIProcess/Cocoa/SessionStateCoding.mm @nonARC
 UIProcess/Cocoa/SystemPreviewControllerCocoa.mm @nonARC
 UIProcess/Cocoa/TabCapturePicker.mm
+UIProcess/Cocoa/TabCaptureWindow.mm @nonARC
 UIProcess/Cocoa/TextCheckingController.mm @nonARC
 UIProcess/Cocoa/TextExtraction/WKTextExtractionUtilities.mm @nonARC
 UIProcess/Cocoa/UIDelegate.mm @nonARC @cost:3
@@ -671,7 +672,6 @@ UIProcess/mac/WKImmediateActionController.mm @nonARC
 UIProcess/mac/PositionInformationManager.cpp
 UIProcess/mac/WKPrintingView.mm @nonARC
 UIProcess/mac/WKQuickLookPreviewController.mm @nonARC
-UIProcess/mac/WKRevealItemPresenter.mm @nonARC
 UIProcess/mac/WKSharingServicePickerDelegate.mm @nonARC
 UIProcess/mac/WKTextFinderClient.mm @nonARC
 UIProcess/mac/WKTextAnimationManagerMac.mm @nonARC

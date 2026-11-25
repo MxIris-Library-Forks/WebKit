@@ -1,10 +1,8 @@
 StyleChangedAnimatablePropertiesGenerated.cpp
-rendering/MarkedText.cpp
 rendering/RenderBlock.cpp
 rendering/RenderBox.cpp
 rendering/RenderElement.cpp
 rendering/RenderGeometryMap.cpp
-rendering/RenderImage.cpp
 rendering/RenderLayer.cpp
 rendering/RenderLayerBacking.cpp
 rendering/RenderLayerBacking.h
@@ -15,11 +13,9 @@ rendering/RenderLayerScrollableArea.cpp
 rendering/RenderObject.cpp
 rendering/RenderView.cpp
 rendering/paint/BackgroundPainter.cpp
-rendering/style/BorderData.cpp
 style/ElementRuleCollector.cpp
 style/RuleData.h
 style/StyleResolver.cpp
-style/StyleTreeResolver.cpp
 style/computed/StyleComputedStyle.cpp
 style/computed/StyleComputedStyleBase.cpp
 style/values/transforms/StyleTransformList.cpp

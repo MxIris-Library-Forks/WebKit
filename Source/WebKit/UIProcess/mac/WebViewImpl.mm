@@ -1952,6 +1952,10 @@ void WebViewImpl::setFrameSize(CGSize)
 #if ENABLE(HORIZONTAL_BANNER_VIEW_OVERLAYS)
     updateWebContentDistancesFromEdges();
 #endif
+
+#if HAVE(WINDOW_CAPTURE)
+    m_page->updateTabCaptureWindowSize();
+#endif
 }
 
 void WebViewImpl::disableFrameSizeUpdates()
@@ -7919,7 +7923,7 @@ void WebViewImpl::endPreviewPanelControl(QLPreviewPanel *panel)
 void WebViewImpl::handleClickForDataDetectionResult(const WebCore::DataDetectorElementInfo& info, const WebCore::IntPoint& clickLocation)
 {
 #if ENABLE(REVEAL)
-    m_revealItemPresenter = adoptNS([[WKRevealItemPresenter alloc] initWithWebViewImpl:*this item:adoptNS([PAL::allocRVItemInstance() initWithDDResult:info.result.get()]).get() frame:info.elementBounds menuLocation:clickLocation]);
+    m_revealItemPresenter = adoptNS([[WKRevealItemPresenter alloc] initWithWebView:protect(view()) item:adoptNS([PAL::allocRVItemInstance() initWithDDResult:info.result.get()]).get() frame:info.elementBounds menuLocation:clickLocation]);
     [m_revealItemPresenter setShouldUseDefaultHighlight:NO];
     [protect(m_revealItemPresenter) showContextMenu];
 #else

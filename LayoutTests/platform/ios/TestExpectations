@@ -36,6 +36,7 @@ system-preview [ Pass ]
 remote-layer-tree [ Pass ]
 swipe [ Pass ]
 webanimations/threaded-animations [ Pass ]
+webanimations/threaded-animations/mac [ Skip ]
 
 fast/events/ios [ Pass ]
 fast/events/ios/single-tap-verify-user-gesture.html [ Skip ]
@@ -1166,6 +1167,7 @@ svg/custom/viewBox-hit.svg [ Skip ]
 svg/text/foreignObject-repaint.xml [ Skip ]
 svg/text/select-text-svgfont.html [ Skip ]
 svg/text/selection-doubleclick.svg [ Skip ]
+svg/text/selection-repaint-rect.html [ Skip ]
 svg/text/selection-tripleclick.svg [ Skip ]
 imported/w3c/web-platform-tests/css/css-shadow/part/invalidation-part-pseudo.html [ Skip ]
 imported/w3c/web-platform-tests/html/semantics/forms/the-select-element/customizable-select/selectedcontent-list-box-pick.html [ Skip ]
@@ -10398,3 +10400,6 @@ imported/w3c/web-platform-tests/css/css-borders/corner-shape/render-corner-shape
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-input-003.tentative.html [ ImageOnlyFailure ]
 # line-clamp on form controls.
 imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-select-001.tentative.html [ Pass ]
+
+# Legacy SVG engine: textPath resolves transform-box: fill-box before the referenced path, which follows the text, is laid out.
+webkit.org/b/332613 imported/w3c/web-platform-tests/svg/text/reftests/text-path-transformed-fill-box-path-after-text.html [ ImageOnlyFailure ]

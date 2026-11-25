@@ -105,9 +105,9 @@
 #include "WebPrivacyHelpers.h"
 #endif
 
-#if ENABLE(WEB_AUTHN)
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 #include "VirtualAuthenticatorManager.h"
-#endif // ENABLE(WEB_AUTHN)
+#endif
 
 namespace WebKit {
 
@@ -821,8 +821,8 @@ private:
 
 void WebsiteDataStore::fetchDataForRegistrableDomains(OptionSet<WebsiteDataType> dataTypes, OptionSet<WebsiteDataFetchOption> fetchOptions, Vector<WebCore::RegistrableDomain>&& domains, CompletionHandler<void(Vector<WebsiteDataRecord>&&, HashSet<WebCore::RegistrableDomain>&&)>&& completionHandler)
 {
-    fetchDataAndApply(dataTypes, fetchOptions, protect(m_queue), [domains = crossThreadCopy(domains), completionHandler = WTF::move(completionHandler)] (auto&& existingDataRecords) mutable {
-        ASSERT(!RunLoop::isMain());
+    fetchDataAndApply(dataTypes, fetchOptions, protect(m_queue), [queue = m_queue, domains = crossThreadCopy(domains), completionHandler = WTF::move(completionHandler)](auto&& existingDataRecords) mutable {
+        assertIsCurrent(queue);
         
         Vector<WebsiteDataRecord> matchingDataRecords;
         HashSet<WebCore::RegistrableDomain> domainsWithMatchingDataRecords;
@@ -2539,12 +2539,14 @@ void WebsiteDataStore::setMockWebAuthenticationConfiguration(WebCore::MockWebAut
         m_authenticatorManager = MockAuthenticatorManager::create(WTF::move(configuration));
 }
 
+#if PLATFORM(COCOA)
 VirtualAuthenticatorManager& WebsiteDataStore::virtualAuthenticatorManager()
 {
     if (!is<VirtualAuthenticatorManager>(m_authenticatorManager.get()))
         m_authenticatorManager = VirtualAuthenticatorManager::create();
     return downcast<VirtualAuthenticatorManager>(m_authenticatorManager.get());
 }
+#endif
 #endif
 
 API::HTTPCookieStore& WebsiteDataStore::cookieStore()

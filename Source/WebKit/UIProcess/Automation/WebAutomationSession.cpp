@@ -82,7 +82,7 @@
 #include <wtf/text/TextBreakIterator.h>
 #endif
 
-#if ENABLE(WEB_AUTHN)
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 #include "VirtualAuthenticatorManager.h"
 #include <WebCore/AuthenticatorTransport.h>
 #endif
@@ -2904,7 +2904,7 @@ CommandResult<void> WebAutomationSession::setSessionPermissions(Ref<JSON::Array>
     return { };
 }
 
-#if ENABLE(WEB_AUTHN)
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 NODELETE static WebCore::AuthenticatorTransport toAuthenticatorTransport(Inspector::Protocol::Automation::AuthenticatorTransport transport)
 {
     switch (transport) {
@@ -2921,11 +2921,11 @@ NODELETE static WebCore::AuthenticatorTransport toAuthenticatorTransport(Inspect
         return WebCore::AuthenticatorTransport::Internal;
     }
 }
-#endif // ENABLE(WEB_AUTHN)
+#endif // ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 
 CommandResult<String /* authenticatorId */> WebAutomationSession::addVirtualAuthenticator(const String& browsingContextHandle, Ref<JSON::Object>&& authenticator)
 {
-#if ENABLE(WEB_AUTHN)
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
     auto protocol = authenticator->getString("protocol"_s);
     SYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS_IF(!protocol, InvalidParameter, "The parameter 'protocol' is missing or invalid."_s);
 
@@ -2959,12 +2959,12 @@ CommandResult<String /* authenticatorId */> WebAutomationSession::addVirtualAuth
     });
 #else
     SYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS(NotImplemented, "This method is not yet implemented."_s);
-#endif // ENABLE(WEB_AUTHN)
+#endif // ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 }
 
 CommandResult<void> WebAutomationSession::removeVirtualAuthenticator(const String& browsingContextHandle, const String& authenticatorId)
 {
-#if ENABLE(WEB_AUTHN)
+#if ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
     auto page = webPageProxyForHandle(browsingContextHandle);
     SYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
 
@@ -2974,7 +2974,7 @@ CommandResult<void> WebAutomationSession::removeVirtualAuthenticator(const Strin
     return { };
 #else
     SYNC_FAIL_WITH_PREDEFINED_ERROR_AND_DETAILS(NotImplemented, "This method is not yet implemented."_s);
-#endif // ENABLE(WEB_AUTHN)
+#endif // ENABLE(WEB_AUTHN) && PLATFORM(COCOA)
 }
 
 CommandResult<void> WebAutomationSession::addVirtualAuthenticatorCredential(const String& browsingContextHandle, const String& authenticatorId, Ref<JSON::Object>&& credential)
@@ -3244,7 +3244,7 @@ void WebAutomationSession::runBidiInteractionSequence(WebPageProxy& page, std::o
         }
 
         // FIXME: Refresh the viewport when an earlier action in the sequence scrolls or re-lays out the page. <https://webkit.org/b/329451>
-        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { .viewport = SimulatedInputViewport { viewport->location(), viewport->size() }, .interpolatePointerMoves = true, .elementOriginHandleKind = NodeHandleKind::SharedReference }, WTF::move(completionHandler));
+        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { .viewport = SimulatedInputViewport { viewport->location(), viewport->size() }, .interpolatePointerMoves = true, .elementOriginHandleKind = NodeHandleKind::SharedReference, .scrollDeltasArePerAction = true }, WTF::move(completionHandler));
     };
 
     auto send = [page = protect(page), frameID, didGetFrameViewportHandler = WTF::move(didGetFrameViewportHandler)] mutable {
@@ -3468,7 +3468,7 @@ void WebAutomationSession::dispatchWheelInteraction(WebPageProxy& page, const We
             callbackInMap(makeUnexpected(STRING_FOR_PREDEFINED_ERROR_NAME(Timeout)));
         callbackInMap = WTF::move(wheelEventsFlushedCallback);
 
-        platformSimulateWheelInteraction(page, locationInViewport, delta);
+        platformSimulateWheelInteraction(page, locationInViewport, { std::max(delta.width(), -std::numeric_limits<int>::max()), std::max(delta.height(), -std::numeric_limits<int>::max()) });
 
         // If the event does not hit test anything in the window, then it may not have been delivered.
         if (callbackInMap && !page->isProcessingWheelEvents()) {

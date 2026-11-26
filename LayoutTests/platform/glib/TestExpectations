@@ -1924,6 +1924,7 @@ imported/w3c/web-platform-tests/webcodecs/videoFrame-rgbx-imageBitmap.any.html [
 imported/w3c/web-platform-tests/webcodecs/videoFrame-rgbx-imageBitmap.any.worker.html [ Failure ]
 imported/w3c/web-platform-tests/webcodecs/videoFrame-rgbx-webgl.window.html [ Failure ]
 webkit.org/b/331780 http/wpt/webcodecs/videoFrame-alpha-planar-yuv-copyTo.html [ Failure ]
+webkit.org/b/332139 http/wpt/webcodecs/videoFrame-alpha-planar-yuv-rgb.html [ Failure ]
 webkit.org/b/331780 imported/w3c/web-platform-tests/webcodecs/videoFrame-construction.any.worker.html [ Failure ]
 
 # Missing RGBX/BGRX support in our implementation of VideoFrame::copyTo().
@@ -3002,6 +3003,7 @@ webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrFrame_getViewerPose_
 webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xrSession_input_events_end.https.html [ Pass ]
 webkit.org/b/227086 imported/w3c/web-platform-tests/webxr/xrWebGLLayer_constructor.https.html [ Pass ]
 webkit.org/b/208988 imported/w3c/web-platform-tests/webxr/xr_viewport_scale.https.html [ Pass ]
+webkit.org/b/332811 imported/w3c/web-platform-tests/webxr/webGLCanvasContext_create_xrcompatible.https.html [ Pass ]
 
 imported/w3c/web-platform-tests/webxr/exclusive_requestFrame_nolayer.https.html [ Pass ]
 
@@ -3015,11 +3017,7 @@ imported/w3c/web-platform-tests/webxr/layers [ Pass ]
 webkit.org/b/332806 imported/w3c/web-platform-tests/webxr/layers/xrMediaBinding_createCylinderLayer.https.html [ Skip ]
 webkit.org/b/332806 imported/w3c/web-platform-tests/webxr/layers/xrMediaBinding_createEquirectLayer.https.html [ Skip ]
 webkit.org/b/332806 imported/w3c/web-platform-tests/webxr/layers/xrMediaBinding_createQuadLayer.https.html [ Skip ]
-webkit.org/b/332810 imported/w3c/web-platform-tests/webxr/layers/xrSession_updateRenderState.https.html [ Failure ]
 webkit.org/b/332808 imported/w3c/web-platform-tests/webxr/layers/xrLayerInit.https.html [ Skip ]
-webkit.org/b/332808 imported/w3c/web-platform-tests/webxr/layers/xrWebGLBinding_createCubeLayer.https.html [ Skip ]
-webkit.org/b/332808 imported/w3c/web-platform-tests/webxr/layers/xrWebGLBinding_createCylinderLayer.https.html [ Skip ]
-webkit.org/b/332808 imported/w3c/web-platform-tests/webxr/layers/xrWebGLBinding_createQuadLayer.https.html [ Skip ]
 
 imported/w3c/web-platform-tests/webxr/plane-detection [ Pass ]
 
@@ -5242,6 +5240,8 @@ webkit.org/b/332135 [ Debug ] inspector/layers/layerTreeDidChange.html [ Failure
 webkit.org/b/332823 ipc/serialized-type-info.html [ Failure ]
 webkit.org/b/332824 http/wpt/webcodecs/videoEncoder-high-bit-depth.html [ Failure ]
 webkit.org/b/332825 imported/w3c/web-platform-tests/scroll-animations/crashtests/viewport-100vh.html [ Crash Pass ]
+
+webkit.org/b/329970 [ Debug ] media/video-orientation.html [ Failure Pass ]
 
 # End: Common failures between GTK and WPE.
 

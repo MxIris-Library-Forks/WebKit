@@ -2507,7 +2507,6 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/Gradient.h
     platform/graphics/GradientColorStop.h
     platform/graphics/GradientColorStops.h
-    platform/graphics/GradientIdentifier.h
     platform/graphics/GraphicsContext.h
     platform/graphics/GraphicsContextGL.h
     platform/graphics/GraphicsContextGLActiveInfo.h
@@ -2641,6 +2640,7 @@ set(WebCore_PRIVATE_FRAMEWORK_HEADERS
     platform/graphics/ScreenDataOverrides.h
     platform/graphics/ShareableBitmap.h
     platform/graphics/ShareableBitmapHandle.h
+    platform/graphics/SharedPDFDocument.h
 
     platform/graphics/ShouldLocalizeAxisNames.h
     platform/graphics/SourceBrush.h

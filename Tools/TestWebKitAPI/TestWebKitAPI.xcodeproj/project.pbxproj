@@ -661,6 +661,7 @@
 				WebKit/WKWebView/ViewportFitEdges.swift,
 				WebKit/WKWebView/WebAutomationWebExtensionPages.swift,
 				WebKit/WKWebView/WKBackForwardListTests.swift,
+				WebKit/WKWebView/WKContentViewSelectorContractTests.swift,
 				WebKit/WKWebView/WKWebExtension.swift,
 				WebKit/WKWebView/WKWebExtensionAPIAction.swift,
 				WebKit/WKWebView/WKWebExtensionAPIAlarms.swift,
@@ -739,7 +740,7 @@
 				"cocoa/SwiftUI+Extras.swift",
 				cocoa/TestCocoaImageAndCocoaColor.mm,
 				cocoa/TestCocoaImageUtilities.swift,
-				cocoa/TestContextMenuDriver.mm,
+				cocoa/TestContextMenuDriver.swift,
 				cocoa/TestElementFullscreenDelegate.mm,
 				cocoa/TestNSBundleExtras.m,
 				cocoa/TestPDFDocument.swift,
@@ -781,7 +782,6 @@
 				mac/TestInspectorBar.mm,
 				mac/VirtualGamepad.mm,
 				mac/WebKitAgnosticTest.mm,
-				"WTFCompletionHandler+Extras.swift",
 				"WTFExpected+Extras.swift",
 			);
 			target = 7CCE7E8B1A41144E00447C4C /* TestWebKitAPILibrary */;
@@ -791,7 +791,6 @@
 			membershipExceptions = (
 				cocoa/UtilitiesCocoa.mm,
 				Counters.cpp,
-				"WTFCompletionHandler+Extras.swift",
 				"WTFExpected+Extras.swift",
 			);
 			target = 7C83DE951D0A590C00FEBCF3 /* TestWTFLibrary */;
@@ -888,6 +887,7 @@
 				WebCore/cocoa/TestGraphicsContextGLCocoa.mm,
 				WebCore/cocoa/TestUTIRegistry.cpp,
 				WebCore/cocoa/TestUTIUtilities.cpp,
+				WebCore/cocoa/VideoFrameLibWebRTCTests.mm,
 				WebCore/cocoa/VideoMediaSampleRendererTests.mm,
 				WebCore/cocoa/WebCoreDecompressionSessionTests.mm,
 				WebCore/cocoa/WebCoreNSURLSession.mm,

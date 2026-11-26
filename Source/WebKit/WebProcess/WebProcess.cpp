@@ -256,6 +256,10 @@
 #include <WebCore/VP9UtilitiesCocoa.h>
 #endif
 
+#if HAVE(LOCKDOWN_MODE_PDF_ADDITIONS)
+#include <pal/spi/cg/CoreGraphicsSPI.h>
+#endif
+
 #if OS(LINUX)
 #include <wtf/linux/HighPriorityThreads.h>
 #endif
@@ -1621,7 +1625,9 @@ RefPtr<GPUProcessConnection> WebProcess::existingGPUProcessConnectionOffMainThre
 Seconds WebProcess::gpuProcessTimeoutDuration() const
 {
     constexpr Seconds defaultTimeoutDuration = 15_s;
-    return m_childProcessDebuggabilityEnabled ? Seconds::infinity() : defaultTimeoutDuration;
+    if (m_childProcessDebuggabilityEnabled)
+        return Seconds::infinity();
+    return m_gpuProcessTimeoutForTesting > 0_s ? m_gpuProcessTimeoutForTesting : defaultTimeoutDuration;
 }
 
 void WebProcess::gpuProcessConnectionClosed()
@@ -1878,6 +1884,10 @@ void WebProcess::bindAccessibilityFrameWithData(WebCore::FrameIdentifier, std::s
 void WebProcess::prepareForPrinting(CompletionHandler<void(bool)>&& completionHandler)
 {
     ASSERT(m_isPrintProcess);
+#if HAVE(LOCKDOWN_MODE_PDF_ADDITIONS)
+    if (isLockdownModeEnabled())
+        CGEnterLockdownModeForPDF();
+#endif
     completionHandler(protect(ensureGPUProcessConnection())->waitForDidInitialize());
 }
 #endif
@@ -2605,6 +2615,7 @@ void WebProcess::updateProcessPreferences(const WebPreferencesStore& store)
     DatabaseManager::singleton().setIsAvailable(store.getBoolValueForKey(WebPreferencesKey::databasesEnabledKey()));
 
     setChildProcessDebuggabilityEnabled(store.getBoolValueForKey(WebPreferencesKey::childProcessDebuggabilityEnabledKey()));
+    m_gpuProcessTimeoutForTesting = Seconds { store.getDoubleValueForKey(WebPreferencesKey::webProcessGPUProcessTimeoutForTestingKey()) };
 
 #if ENABLE(CONTENT_EXTENSIONS)
     if (auto threshold = store.getUInt32ValueForKey(WebPreferencesKey::iFrameResourceMonitorNetworkUsageThresholdForTestingKey()))

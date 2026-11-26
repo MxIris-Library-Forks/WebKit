@@ -26,6 +26,7 @@
 #include "RenderBlock.h"
 
 #include "AXObjectCache.h"
+#include "BlockHitTester.h"
 #include "BlockPainter.h"
 #include "BorderShape.h"
 #include "BoxDecorationPainter.h"
@@ -53,10 +54,12 @@
 #include "Logging.h"
 #include "LogicalSelectionOffsetCachesInlines.h"
 #include "MaskPainter.h"
+#include "MotionPath.h"
 #include "OutlinePainter.h"
 #include "Page.h"
 #include "PaintInfo.h"
 #include "PaintInfoInlines.h"
+#include "PaintOrderIterator.h"
 #include "PositionedLayoutConstraints.h"
 #include "RelayoutScopeForScrollbarChange.h"
 #include "RenderBlockFlow.h"
@@ -911,6 +914,9 @@ static void layoutOutOfFlowBox(RenderBox& outOfFlowBox, RenderBoxModelObject& co
     if (outOfFlowBox.needsOutOfFlowMovementLayoutOnly() && outOfFlowBox.tryLayoutDoingOutOfFlowMovementOnly()) {
         if (Style::AnchorPositionEvaluator::isAnchorPositioned(outOfFlowBoxStyle))
             Style::AnchorPositionEvaluator::captureScrollSnapshots(outOfFlowBox);
+        // The motion path transform depends on the box's position within its containing block.
+        if (MotionPath::needsUpdateAfterContainingBlockLayout(outOfFlowBoxStyle.offsetPath()))
+            outOfFlowBox.updateLayerTransform();
         outOfFlowBox.clearNeedsLayout();
     }
 
@@ -1656,6 +1662,9 @@ bool RenderBlock::hitTestChildren(const HitTestRequest& request, HitTestResult& 
 
 bool RenderBlock::nodeAtPoint(const HitTestRequest& request, HitTestResult& result, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction hitTestAction)
 {
+    if (Paint::PaintOrderIterator::canIterate(*this))
+        return Paint::BlockHitTester { *this, request, result, locationInContainer, accumulatedOffset, hitTestAction }.hitTest();
+
     const LayoutPoint adjustedLocation(accumulatedOffset + location());
     const LayoutSize localOffset = toLayoutSize(adjustedLocation);
 
@@ -3186,15 +3195,6 @@ void RenderBlock::updateInFlowDescendantTransformsAfterLayout()
     auto boxes = view().frameView().layoutContext().takeBoxesNeedingTransformUpdateAfterContainerLayout(*this);
     for (auto& box : boxes) {
         if (box && box->hasLayer() && !box->isOutOfFlowPositioned())
-            box->layer()->updateTransform();
-    }
-}
-
-void RenderBlock::updateOutOfFlowDescendantTransformsAfterLayout()
-{
-    auto boxes = view().frameView().layoutContext().takeBoxesNeedingTransformUpdateAfterContainerLayout(*this);
-    for (auto& box : boxes) {
-        if (box && box->hasLayer() && box->isOutOfFlowPositioned())
             box->layer()->updateTransform();
     }
 }

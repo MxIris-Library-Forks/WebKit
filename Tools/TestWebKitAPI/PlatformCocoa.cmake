@@ -69,6 +69,9 @@ list(APPEND _testwebkitapi_swift_options
     "-Xcc -I${ICU_INCLUDE_DIRS}"
 
     "-I${_testwebkitapi_swiftmodule_dir}"
+
+    # WTF's Swift module, which shadows the wtf Clang module.
+    "-I$<TARGET_PROPERTY:WTF,BINARY_DIR>"
 )
 # @Test and @Suite expand through libTestingMacros, in a `testing` subdirectory
 # swiftc does not search on its own. WebKitXcodeSDK.cmake finds the plugin from
@@ -227,6 +230,7 @@ list(APPEND TestWebCore_SOURCES
     Tests/WebCore/cocoa/TestGraphicsContextGLCocoa.mm
     Tests/WebCore/cocoa/TestUTIRegistry.cpp
     Tests/WebCore/cocoa/TestUTIUtilities.cpp
+    Tests/WebCore/cocoa/VideoFrameLibWebRTCTests.mm
     Tests/WebCore/cocoa/VideoMediaSampleRendererTests.mm
     Tests/WebCore/cocoa/WebCoreDecompressionSessionTests.mm
     Tests/WebCore/cocoa/WebCoreNSURLSession.mm
@@ -449,8 +453,6 @@ if (WEBKIT_PLATFORM_MAC)
     )
 else ()
     list(APPEND TestWebKit_SOURCES
-        Helpers/cocoa/TestContextMenuDriver.mm
-
         Helpers/ios/DragAndDropSimulatorIOS.mm
         Helpers/ios/PreferredContentMode.mm
         Helpers/ios/TestUIMenuBuilder.mm
@@ -730,7 +732,6 @@ endmacro()
 add_library(TestWTFLibrary OBJECT
     ${TESTWEBKITAPI_DIR}/TestWTFLibrary/SwiftCxxInteropTestbed.cpp
     ${TESTWEBKITAPI_DIR}/TestWTFLibrary/TestWTFLibrary.swift
-    ${TESTWEBKITAPI_DIR}/Helpers/WTFCompletionHandler+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/WTFExpected+Extras.swift
 )
 WEBKIT_TEST_SWIFT_HELPER_LIBRARY(TestWTFLibrary TestWTF)
@@ -742,7 +743,6 @@ list(APPEND TestWTF_SOURCES
 add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/TestWebKitAPILibrary/TestWebKitAPILibrary.swift
 
-    ${TESTWEBKITAPI_DIR}/Helpers/WTFCompletionHandler+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/WTFExpected+Extras.swift
 
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/AppKit+Extras.swift
@@ -769,6 +769,7 @@ add_library(TestWebKitAPILibrary OBJECT
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/StdLibExtras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/SwiftUI+Extras.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/TestCocoaImageUtilities.swift
+    ${TESTWEBKITAPI_DIR}/Helpers/cocoa/TestContextMenuDriver.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/TestPDFDocument.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/WebExtensionUtilities.swift
     ${TESTWEBKITAPI_DIR}/Helpers/cocoa/WebPage+Extras.swift
@@ -865,6 +866,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/TimeZoneOverride.swift
     Tests/WebKit/WKWebView/ViewportFitEdges.swift
     Tests/WebKit/WKWebView/WKBackForwardListTests.swift
+    Tests/WebKit/WKWebView/WKContentViewSelectorContractTests.swift
     Tests/WebKit/WKWebView/WKWebExtension.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIAction.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIAlarms.swift

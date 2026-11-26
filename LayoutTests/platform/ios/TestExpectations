@@ -4451,6 +4451,8 @@ webkit.org/b/331641 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.
 webkit.org/b/331641 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.https.any.html?vp9_p2 [ Pass Failure ]
 webkit.org/b/331641 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.https.any.worker.html?vp9 [ Pass Failure ]
 webkit.org/b/331641 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.https.any.worker.html?vp9_p2 [ Pass Failure ]
+webkit.org/b/332142 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.https.any.html?h264 [ Failure ]
+webkit.org/b/332142 imported/w3c/web-platform-tests/webcodecs/video-encoder-hbd.https.any.worker.html?h264 [ Failure ]
 
 imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.https.any.html [ Failure ]
 imported/w3c/web-platform-tests/webcodecs/videoFrame-createImageBitmap.https.any.worker.html [ Failure ]
@@ -5105,6 +5107,9 @@ imported/w3c/web-platform-tests/css/filter-effects/filter-function/filter-functi
 imported/w3c/web-platform-tests/css/filter-effects/filter-function/filter-function-repeating-radial-gradient.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-plus-mask-large.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/filters-drop-shadow-003.html [ Pass ImageOnlyFailure ]
+
+# Canvas content is upscaled from a 1x backing store at device scale 2, blurring the edge of the square.
+imported/w3c/web-platform-tests/css/filter-effects/fecolormatrix-display-p3.html [ ImageOnlyFailure ]
 
 http/tests/site-isolation/mouse-events/ [ Skip ]
 webkit.org/b/257904 http/tests/site-isolation/draw-after-navigation.html [ Skip ]
@@ -10403,3 +10408,12 @@ imported/w3c/web-platform-tests/css/css-overflow/line-clamp/line-clamp-form-sele
 
 # Legacy SVG engine: textPath resolves transform-box: fill-box before the referenced path, which follows the text, is laid out.
 webkit.org/b/332613 imported/w3c/web-platform-tests/svg/text/reftests/text-path-transformed-fill-box-path-after-text.html [ ImageOnlyFailure ]
+
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/clear-clearance-calculation-001.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/clear-clearance-calculation-002.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/clear-clearance-calculation-003.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/floats-005.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/margin-collapse-018.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/margin-collapse-023.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/margin-collapse-024.xht [ ImageOnlyFailure ]
+webkit.org/b/332874 imported/w3c/web-platform-tests/css/CSS2/floats-clear/margin-collapse-027.xht [ ImageOnlyFailure ]

@@ -30,6 +30,7 @@
 #include "DocumentView.h"
 #include "Editor.h"
 #include "ElementInlines.h"
+#include "FloatingContext.h"
 #include "FloatingObjects.h"
 #include "FrameSelection.h"
 #include "HTMLInputElement.h"
@@ -707,7 +708,6 @@ void RenderBlockFlow::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit 
             layoutOutOfFlowBoxes(RelayoutChildren::Yes);
         else
             layoutOutOfFlowBoxes(relayoutChildren);
-        updateOutOfFlowDescendantTransformsAfterLayout();
         addOverflowFromOutOfFlowBoxes();
     }
 
@@ -1073,6 +1073,10 @@ void RenderBlockFlow::layoutBlockChildren(RelayoutChildren relayoutChildren, Lay
     layoutState->setMarginTrimBlockStart(newMarginTrimBlockStartForSubtree);
     auto resetBlockStartMarginTrimming = WTF::makeScopeExit([&] {
         layoutState->setMarginTrimBlockStart(marginTrimBlockStartFromContainingBlock);
+    });
+    auto clearPlacedFloats = WTF::makeScopeExit([&] {
+        if (m_floatingObjects)
+            m_floatingObjects->clearPlacedFloats();
     });
 
 
@@ -2966,14 +2970,6 @@ void RenderBlockFlow::computeLogicalLocationForFloat(FloatingObject& floatingObj
         return;
 
     auto& childBox = *floatingObject.renderer();
-    LayoutUnit logicalLeftOffset = logicalLeftOffsetForContent(); // Constant part of left offset.
-    LayoutUnit logicalRightOffset = logicalRightOffsetForContent(); // Constant part of right offset.
-
-    LayoutUnit floatLogicalWidth = std::min(logicalWidthForFloat(floatingObject), logicalRightOffset - logicalLeftOffset); // The width we look for.
-
-    LayoutUnit floatLogicalLeft;
-
-    bool insideFragmentedFlow = enclosingFragmentedFlow();
     bool isInitialLetter = childBox.style().pseudoElementType() == PseudoElementType::FirstLetter && childBox.style().initialLetter().drop() > 0;
 
     if (isInitialLetter) {
@@ -2986,22 +2982,62 @@ void RenderBlockFlow::computeLogicalLocationForFloat(FloatingObject& floatingObj
         }
     }
 
-    if (childBox.usedStyle().floating() == UsedFloat::Left) {
-        LayoutUnit heightRemainingLeft = 1_lu;
-        LayoutUnit heightRemainingRight = 1_lu;
-        floatLogicalLeft = logicalLeftOffsetForPositioningFloat(logicalTopOffset, logicalLeftOffset, &heightRemainingLeft);
-        while (logicalRightOffsetForPositioningFloat(logicalTopOffset, logicalRightOffset, &heightRemainingRight) - floatLogicalLeft < floatLogicalWidth) {
-            logicalTopOffset += std::min(heightRemainingLeft, heightRemainingRight);
+    auto floatLogicalLeftFromFloatingContext = [&] {
+        auto isLeftToRight = writingMode().isLogicalLeftInlineStart();
+        auto borderBoxInlineSize = logicalWidth();
+
+        auto contentBoxLogicalLeft = logicalLeftOffsetForContent();
+        auto contentBoxLogicalWidth = logicalRightOffsetForContent() - contentBoxLogicalLeft;
+        auto contentBoxInlineStart = isLeftToRight ? contentBoxLogicalLeft : borderBoxInlineSize - (contentBoxLogicalLeft + contentBoxLogicalWidth);
+
+        auto marginStart = marginStartForChild(childBox);
+        auto marginEnd = marginEndForChild(childBox);
+        auto marginBefore = marginBeforeForChild(childBox);
+        auto borderBoxLogicalWidth = logicalWidthForFloat(floatingObject) - marginStart - marginEnd;
+
+        auto boxGeometry = Layout::BoxGeometry { };
+        boxGeometry.setTopLeft({ contentBoxInlineStart + marginStart, logicalTopOffset + marginBefore });
+        boxGeometry.setContentBoxWidth(borderBoxLogicalWidth);
+        boxGeometry.setContentBoxHeight(logicalHeightForChild(childBox));
+        boxGeometry.setBorder({ });
+        boxGeometry.setPadding({ });
+        boxGeometry.setHorizontalMargin({ marginStart, marginEnd });
+        boxGeometry.setVerticalMargin({ marginBefore, marginAfterForChild(childBox) });
+
+        auto floatingContext = Layout::FloatingContext { layoutBox(), m_floatingObjects->placedFloats(), { }, borderBoxInlineSize };
+        auto borderBoxTopLeft = floatingContext.positionForFloat(childBox.layoutBox(), boxGeometry, { { }, { contentBoxInlineStart, contentBoxLogicalWidth } });
+
+        logicalTopOffset = borderBoxTopLeft.y() - marginBefore;
+        auto borderBoxLogicalLeft = isLeftToRight ? borderBoxTopLeft.x() : borderBoxInlineSize - (borderBoxTopLeft.x() + borderBoxLogicalWidth);
+        return borderBoxLogicalLeft - (isLeftToRight ? marginStart : marginEnd);
+    };
+
+    auto floatLogicalLeftAlignedWithLineGrid = [&] {
+        LayoutUnit logicalLeftOffset = logicalLeftOffsetForContent(); // Constant part of left offset.
+        LayoutUnit logicalRightOffset = logicalRightOffsetForContent(); // Constant part of right offset.
+
+        LayoutUnit floatLogicalWidth = std::min(logicalWidthForFloat(floatingObject), logicalRightOffset - logicalLeftOffset); // The width we look for.
+
+        LayoutUnit floatLogicalLeft;
+
+        bool insideFragmentedFlow = enclosingFragmentedFlow();
+
+        if (childBox.usedStyle().floating() == UsedFloat::Left) {
+            LayoutUnit heightRemainingLeft = 1_lu;
+            LayoutUnit heightRemainingRight = 1_lu;
             floatLogicalLeft = logicalLeftOffsetForPositioningFloat(logicalTopOffset, logicalLeftOffset, &heightRemainingLeft);
-            if (insideFragmentedFlow) {
-                // Have to re-evaluate all of our offsets, since they may have changed.
-                logicalRightOffset = logicalRightOffsetForContent(); // Constant part of right offset.
-                logicalLeftOffset = logicalLeftOffsetForContent(); // Constant part of left offset.
-                floatLogicalWidth = std::min(logicalWidthForFloat(floatingObject), logicalRightOffset - logicalLeftOffset);
+            while (logicalRightOffsetForPositioningFloat(logicalTopOffset, logicalRightOffset, &heightRemainingRight) - floatLogicalLeft < floatLogicalWidth) {
+                logicalTopOffset += std::min(heightRemainingLeft, heightRemainingRight);
+                floatLogicalLeft = logicalLeftOffsetForPositioningFloat(logicalTopOffset, logicalLeftOffset, &heightRemainingLeft);
+                if (insideFragmentedFlow) {
+                    // Have to re-evaluate all of our offsets, since they may have changed.
+                    logicalRightOffset = logicalRightOffsetForContent(); // Constant part of right offset.
+                    logicalLeftOffset = logicalLeftOffsetForContent(); // Constant part of left offset.
+                    floatLogicalWidth = std::min(logicalWidthForFloat(floatingObject), logicalRightOffset - logicalLeftOffset);
+                }
             }
+            return std::max(logicalLeftOffset - borderAndPaddingLogicalLeft(), floatLogicalLeft);
         }
-        floatLogicalLeft = std::max(logicalLeftOffset - borderAndPaddingLogicalLeft(), floatLogicalLeft);
-    } else {
         LayoutUnit heightRemainingLeft = 1_lu;
         LayoutUnit heightRemainingRight = 1_lu;
         floatLogicalLeft = logicalRightOffsetForPositioningFloat(logicalTopOffset, logicalRightOffset, &heightRemainingRight);
@@ -3018,8 +3054,9 @@ void RenderBlockFlow::computeLogicalLocationForFloat(FloatingObject& floatingObj
         // Use the original width of the float here, since the local variable
         // |floatLogicalWidth| was capped to the available line width. See
         // fast/block/float/clamped-right-float.html.
-        floatLogicalLeft -= logicalWidthForFloat(floatingObject);
-    }
+        return floatLogicalLeft - logicalWidthForFloat(floatingObject);
+    };
+    auto floatLogicalLeft = style().lineAlign() == LineAlign::None ? floatLogicalLeftFromFloatingContext() : floatLogicalLeftAlignedWithLineGrid();
 
     LayoutUnit childLogicalLeftMargin = writingMode().isLogicalLeftInlineStart() ? marginStartForChild(childBox) : marginEndForChild(childBox);
     LayoutUnit childBeforeMargin = marginBeforeForChild(childBox);
@@ -3170,30 +3207,6 @@ bool RenderBlockFlow::positionNewFloats()
     return true;
 }
 
-void RenderBlockFlow::clearFloats(UsedClear usedClear)
-{
-    positionNewFloats();
-    // set y position
-    LayoutUnit newY;
-    switch (usedClear) {
-    case UsedClear::Left:
-        newY = lowestFloatLogicalBottom(FloatingObject::FloatLeft);
-        break;
-    case UsedClear::Right:
-        newY = lowestFloatLogicalBottom(FloatingObject::FloatRight);
-        break;
-    case UsedClear::Both:
-        newY = lowestFloatLogicalBottom();
-        break;
-    case UsedClear::None:
-        break;
-    }
-    // FIXME: The float search tree has floored float box position (see FloatingObjects::intervalForFloatingObject).
-    newY = newY.floor();
-    if (borderBoxHeight() < newY)
-        setLogicalHeight(newY);
-}
-
 LayoutUnit RenderBlockFlow::logicalLeftFloatOffsetForLine(LayoutUnit logicalTop, LayoutUnit fixedOffset, LayoutUnit logicalHeight) const
 {
     if (m_floatingObjects && m_floatingObjects->hasLeftObjects())
@@ -3208,14 +3221,6 @@ LayoutUnit RenderBlockFlow::logicalRightFloatOffsetForLine(LayoutUnit logicalTop
         return m_floatingObjects->logicalRightOffset(fixedOffset, logicalTop, logicalHeight);
 
     return fixedOffset;
-}
-
-LayoutUnit RenderBlockFlow::nextFloatLogicalBottomBelow(LayoutUnit logicalHeight) const
-{
-    if (!m_floatingObjects)
-        return logicalHeight;
-
-    return m_floatingObjects->findNextFloatLogicalBottomBelow(logicalHeight);
 }
 
 LayoutUnit RenderBlockFlow::nextFloatLogicalBottomBelowForBlock(LayoutUnit logicalHeight) const

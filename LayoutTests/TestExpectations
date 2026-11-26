@@ -505,33 +505,6 @@ imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/script-
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/worker-messaging.html [ Skip ]
 imported/w3c/web-platform-tests/referrer-policy/generic/subresource-test/xhr-messaging.html [ Skip ]
 
-# These leave upgrade-insecure-requests behind, so later tests on the same worker that load from the same origin fail.
-webkit.org/b/332751 imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-cross-origin.sub.html [ Skip ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/referrer-policy/generic/iframe-upgrade-request-to-same-origin.sub.https.html [ Skip ]
-
-# These expect requests to http://localhost:9443 to be blocked, but the requests are upgraded when an earlier
-# test on the same worker used upgrade-insecure-requests.
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/fetch.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/sharedworker-classic.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/sharedworker-module.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worker-import-data.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worker-import.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worklet-audio.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/worklet-audio-import-data.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/srcdoc-inherit.meta/unset/xhr.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/fetch.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/sharedworker-classic.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/sharedworker-module.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worker-import-data.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worker-import.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worklet-audio.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/worklet-audio-import-data.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/top.meta/unset/xhr.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-classic-data.meta/unset/fetch.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-classic-data.meta/unset/xhr.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/fetch.https.html [ Failure Pass ]
-webkit.org/b/332751 imported/w3c/web-platform-tests/upgrade-insecure-requests/gen/worker-module-data.meta/unset/xhr.https.html [ Failure Pass ]
-
 # These tests times out. We should fix that.
 imported/w3c/web-platform-tests/selection/collapse-30.html [ Skip ]
 imported/w3c/web-platform-tests/editing/crashtests/inserthorizontalrule-in-textarea-in-editor-and-undo-on-error-events.html [ Skip ]
@@ -1825,9 +1798,6 @@ webkit.org/b/112521 [ Release ] webaudio/audioprocessingevent.html [ Pass Failur
 webkit.org/b/112521 [ Debug ] webaudio/audioprocessingevent.html [ Skip ]
 
 webkit.org/b/308024 webaudio/automatic-pull-node.html [ Pass Failure ]
-
-# Fails when a worklet global scope from an earlier test is still alive in the same web process.
-webkit.org/b/330318 webaudio/audioworklet-stops-on-document-stop.html [ Pass Failure ]
 
 # The test frequently times out, and is just unsuccessful at detecting incorrect behavior when it passes.
 webkit.org/b/72698 media/audio-garbage-collect.html [ Skip ]
@@ -6009,7 +5979,6 @@ imported/w3c/web-platform-tests/css/filter-effects/svg-visibility-hidden-element
 imported/w3c/web-platform-tests/css/filter-effects/visibility-hidden-element-with-filter-001.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-animation-in-effect.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/filter-effects/backdrop-filter-backdrop-root-mask.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/filter-effects/fecolormatrix-display-p3.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-overscroll-behavior/overscroll-behavior-single-axis.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-masking/mask-image/mask-image-multi-layer-while-loading.tentative.html [ Skip ]
 imported/w3c/web-platform-tests/css/css-masking/mask-image/backdrop-filter-mask-image-multi-layer-while-loading.tentative.html [ Skip ]
@@ -6098,6 +6067,7 @@ webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBef
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-subframe-count-crash.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/focus-preserve-render.html [ Skip ]
 webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-option-recalc-style.html [ Skip ]
+webkit.org/b/281223 imported/w3c/web-platform-tests/dom/nodes/moveBefore/moveBefore-shadow-root.html [ Skip ]
 
 # Flaky.
 imported/w3c/web-platform-tests/dom/nodes/insertion-removing-steps/Node-appendChild-script-and-default-style-meta-from-fragment.html [ Skip ]
@@ -8609,3 +8579,8 @@ webkit.org/b/329235 webgl/video-formats/upload-path-vp9-p2-420-10bit-pq-videoran
 # Debug assertion in RenderLayer::recursiveUpdateLayerPositions (repaintRects mismatch on the RenderSVGRoot).
 webkit.org/b/328364 imported/w3c/web-platform-tests/svg/as-image/external-resource-data-url-import.sub.html [ Pass Crash ]
 webkit.org/b/328364 imported/w3c/web-platform-tests/svg/as-image/external-resource-data-url-sheet.sub.html [ Pass Crash ]
+
+imported/w3c/web-platform-tests/css/CSS2/floats-clear/floats-143.xht [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/CSS2/floats-clear/margin-collapse-134.xht [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/CSS2/floats-clear/no-clearance-adjoining-opposite-float.html [ ImageOnlyFailure ]
+imported/w3c/web-platform-tests/css/CSS2/floats-clear/no-clearance-due-to-large-margin-after-left-right.html [ ImageOnlyFailure ]

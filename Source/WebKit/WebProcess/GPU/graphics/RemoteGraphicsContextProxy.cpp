@@ -885,7 +885,7 @@ bool RemoteGraphicsContextProxy::recordResourceUse(FontBase& font)
     return true;
 }
 
-std::optional<GradientIdentifier> RemoteGraphicsContextProxy::recordResourceUse(const Gradient& gradient)
+std::optional<RemoteGradientIdentifier> RemoteGraphicsContextProxy::recordResourceUse(const Gradient& gradient)
 {
     if (gradient.isTransient())
         return std::nullopt;
@@ -1107,6 +1107,7 @@ void RemoteGraphicsContextProxy::abandon()
 
 // Instantiate the send() helper for the few subclass messages here to avoid listing it in the header.
 template void RemoteGraphicsContextProxy::send<Messages::RemoteSnapshotRecorder::DrawSnapshotFrame>(Messages::RemoteSnapshotRecorder::DrawSnapshotFrame&&);
+template void RemoteGraphicsContextProxy::send<Messages::RemoteSnapshotRecorder::DrawPDFPage>(Messages::RemoteSnapshotRecorder::DrawPDFPage&&);
 
 }
 

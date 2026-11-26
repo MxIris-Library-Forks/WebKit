@@ -29,11 +29,11 @@
 
 #include "RemoteDisplayListIdentifier.h"
 #include "RemoteFreeformGradientIdentifier.h"
+#include "RemoteGradientIdentifier.h"
 #include "RemoteGraphicsContextIdentifier.h"
 #include "RemoteMeshGradientIdentifier.h"
 #include "RemotePathImplIdentifier.h"
 #include <WebCore/DisplayListRecorder.h>
-#include <WebCore/GradientIdentifier.h>
 #include <wtf/TZoneMalloc.h>
 #include <wtf/ThreadSafeWeakPtr.h>
 
@@ -168,12 +168,11 @@ private:
     void endPage() final;
     void setURLForRect(const URL&, const WebCore::FloatRect&) final;
 
-    [[nodiscard]] bool recordResourceUse(const WebCore::NativeImage&);
     [[nodiscard]] bool recordResourceUse(WebCore::ImageBuffer&);
     std::optional<RemotePathImplIdentifier> recordResourceUse(const WebCore::PathImpl&);
     bool recordResourceUse(const WebCore::SourceImage&);
     bool recordResourceUse(WebCore::FontBase&);
-    std::optional<WebCore::GradientIdentifier> recordResourceUse(const WebCore::Gradient&);
+    std::optional<RemoteGradientIdentifier> recordResourceUse(const WebCore::Gradient&);
     std::optional<RemoteFreeformGradientIdentifier> recordResourceUse(WebCore::FreeformGradient&);
     std::optional<RemoteMeshGradientIdentifier> recordResourceUse(WebCore::MeshGradient&);
     bool recordResourceUse(WebCore::Filter&);
@@ -182,6 +181,8 @@ private:
     // Synchronizes draw state.
 protected:
     void appendStateChangeItemIfNecessary() final;
+
+    [[nodiscard]] bool recordResourceUse(const WebCore::NativeImage&);
 
 private:
     struct InlineStrokeData {

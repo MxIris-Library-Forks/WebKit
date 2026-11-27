@@ -227,7 +227,7 @@ static Ref<FormData> createReportFormData(const String& type, const URL& url, co
     auto reportList = JSON::Array::create();
     reportList->pushObject(reportObject);
 
-    return FormData::create(reportList->toJSONString().utf8().span());
+    return FormData::create(utf8Bytes(reportList->toJSONString()));
 }
 
 static String addHashPrefix(ResourceCryptographicDigest::Algorithm algorithm, StringView hash)

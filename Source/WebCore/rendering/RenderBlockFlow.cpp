@@ -1018,7 +1018,9 @@ void RenderBlockFlow::layoutInFlowChildren(RelayoutChildren relayoutChildren, La
             relayoutContent();
             clampAtAutoClampPointIfNeeded();
         } else if (!didClamp && lineClampUpdater.isLineClampRoot() && contentFitsWithinMaximumLines(*this)) {
-            lineClampUpdater.resetLineClamp();
+            // Nothing gets clamped, but this is still a line-clamp container (e.g. its floats are clipped to its block-end content
+            // edge), so the content is laid out again with no limit on the number of lines instead of without line-clamp.
+            lineClampUpdater.setMaximumLines(std::numeric_limits<size_t>::max());
             relayoutContent();
         }
         auto lineClamp = layoutState ? layoutState->lineClamp() : std::nullopt;
@@ -2882,16 +2884,6 @@ void RenderBlockFlow::createFloatingObjects()
     m_floatingObjects = makeUnique<FloatingObjects>(*this);
 }
 
-void RenderBlockFlow::removeFloatingObjects()
-{
-    if (!m_floatingObjects)
-        return;
-
-    markSiblingsWithFloatsForLayout();
-
-    m_floatingObjects->clear();
-}
-
 void RenderBlockFlow::insertFloatingBoxAndMarkForLayout(RenderBox& floatBox)
 {
     // Our location is irrelevant if we're unsplittable or no pagination is in effect. Just lay out the float.
@@ -3180,7 +3172,6 @@ bool RenderBlockFlow::positionNewFloats()
             }
             
             if (newLogicalTop != logicalTop) {
-                floatingObject.setPaginationStrut(newLogicalTop - logicalTop);
                 computeLogicalLocationForFloat(floatingObject, newLogicalTop);
                 if (childBlock)
                     childBlock->setChildNeedsLayout(MarkingBehavior::OnlyThis);
@@ -3196,10 +3187,14 @@ bool RenderBlockFlow::positionNewFloats()
 
         setLogicalHeightForFloat(floatingObject, logicalHeightForChildForFragmentation(childBox) + (logicalTopForChild(childBox) - logicalTop) + marginAfterForChild(childBox));
 
+        // The placed float takes its shape from the float's layout box.
+        if (ShapeOutsideInfo* shapeOutside = childBox.shapeOutsideInfo()) {
+            shapeOutside->invalidateForSizeChangeIfNeeded();
+            childBox.layoutBox().setShape(&shapeOutside->computedShape());
+        } else if (childBox.layoutBox().shape())
+            childBox.layoutBox().setShape({ });
         m_floatingObjects->addPlacedObject(&floatingObject);
 
-        if (ShapeOutsideInfo* shapeOutside = childBox.shapeOutsideInfo())
-            shapeOutside->invalidateForSizeChangeIfNeeded();
         // If the child moved, we have to repaint it.
         if (childBox.checkForRepaintDuringLayout())
             childBox.repaintDuringLayoutIfMoved(oldRect);
@@ -3513,26 +3508,6 @@ LayoutUnit RenderBlockFlow::computedClearDeltaForChild(RenderBox& child, LayoutU
         ASSERT_NOT_REACHED();
     }
     return result;
-}
-
-bool RenderBlockFlow::hitTestInlineChildren(const HitTestRequest& request, HitTestResult& result, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction hitTestAction)
-{
-    ASSERT(childrenInline());
-
-    CheckedPtr inlineLayout = this->inlineLayout();
-    if (hitTestAction == HitTestAction::Float && inlineLayout && inlineLayout->hasFloats()) {
-        // Like BlockPainter::paintFloatsAndBlockLevelContentInInline, in reverse.
-        for (auto& child : inlineLayout->floatsAndBlockLevelBoxesInTreeOrder() | std::views::reverse) {
-            if (child->hasSelfPaintingLayer())
-                continue;
-            auto childPoint = blockStartRelativeToPhysicalForChild(child, accumulatedOffset);
-            if (child->isFloating() ? hitTestFloat(child, request, result, locationInContainer, childPoint) : child->nodeAtPoint(request, result, locationInContainer, childPoint, hitTestAction))
-                return true;
-        }
-        return false;
-    }
-
-    return inlineLayout && inlineLayout->hitTest(request, result, locationInContainer, accumulatedOffset, hitTestAction);
 }
 
 void RenderBlockFlow::addOverflowFromInlineChildren()

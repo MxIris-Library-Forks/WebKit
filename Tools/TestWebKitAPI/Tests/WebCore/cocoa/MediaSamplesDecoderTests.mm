@@ -43,6 +43,7 @@
 #import <WebCore/SharedBuffer.h>
 #import <WebCore/SourceBufferParser.h>
 #import <WebCore/TrackInfo.h>
+#import <WebCore/VideoFrame.h>
 #import <WebCore/VideoPixelFormat.h>
 #if ENABLE(VP9)
 #import <WebCore/VP9UtilitiesCocoa.h>
@@ -863,13 +864,19 @@ static DecodedVideo decodeVideoBlocks(MediaSamplesDecoder& decoder, Vector<Uniqu
 
 static constexpr auto vp8ContentType = "video/webm; codecs=vp8"_s;
 
-// The I420A alpha plane follows the Y, U and V planes.
-static uint8_t alphaAt(const Vector<uint8_t>& frame, const FloatSize& size, size_t x, size_t y)
+// The alpha plane follows the Y, U and V planes. Alpha above 8 bits is scaled to 8 bits.
+static uint8_t alphaAt(const Vector<uint8_t>& frame, const FloatSize& size, size_t x, size_t y, VideoPixelFormat format = VideoPixelFormat::I420A)
 {
-    size_t width = size.width();
-    size_t height = size.height();
-    size_t alphaOffset = width * height + 2 * ((width + 1) / 2) * ((height + 1) / 2);
-    return frame[alphaOffset + y * width + x];
+    auto layout = planarYUVFormatLayout(pixelFormatWithoutAlpha(format));
+    auto layouts = VideoFrame::planarBufferLayout({ static_cast<int>(size.width()), static_cast<int>(size.height()) }, format);
+    if (!layout || layouts.size() != 4) {
+        ADD_FAILURE() << "no alpha plane";
+        return 0;
+    }
+    size_t index = layouts[3].destinationOffset + y * layouts[3].destinationStride + x * layout->format.sampleSize();
+    if (layout->format.sampleSize() == 1)
+        return frame[index];
+    return (frame[index] | (frame[index + 1] << 8)) >> (layout->format.bitDepth - 8);
 }
 
 static size_t i420AFrameSize(const FloatSize& size)
@@ -971,9 +978,19 @@ TEST(MediaSamplesDecoder, CanDecodeVP9WithoutHardwareDecoder)
     {
         ScopedVP9HardwareDecoder noHardwareDecoder { false };
         EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.00.10.08"_s), allowedFilters));
-        EXPECT_FALSE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.10"_s, 10), allowedFilters));
-        EXPECT_FALSE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.01.10.08"_s), allowedFilters));
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.10"_s, 10), allowedFilters));
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.01.10.08"_s), allowedFilters));
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.03.10.10"_s, 10), allowedFilters));
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.12"_s, 12), allowedFilters));
         EXPECT_FALSE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, { }), allowedFilters));
+
+        auto withAlpha = [](Ref<VideoInfo>&& info) {
+            auto data = info->toVideoInfoData();
+            data.second.hasSeparateAlphaStream = true;
+            return VideoInfo::create(WTF::move(data));
+        };
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(withAlpha(makeVideoInfo(FourCC { "vp09" }, "vp09.00.10.08"_s)), allowedFilters));
+        EXPECT_TRUE(MediaSamplesDecoder::canDecode(withAlpha(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.10"_s, 10)), allowedFilters));
     }
     {
         ScopedVP9HardwareDecoder hardwareDecoder { true };
@@ -989,7 +1006,7 @@ TEST(MediaSamplesDecoder, CanDecodeVP9WhenHardwareDecoderIsUnavailable)
     ScopedVP9HardwareDecoder hardwareDecoder { true };
     auto filters = allowedFilters | MediaSamplesDecoder::Filter::ForceSoftware;
     EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.00.10.08"_s), filters));
-    EXPECT_FALSE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.10"_s, 10), filters));
+    EXPECT_TRUE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "vp09" }, "vp09.02.10.10"_s, 10), filters));
     EXPECT_FALSE(MediaSamplesDecoder::canDecode(makeVideoInfo(FourCC { "avc1" }, "avc1.640028"_s), filters));
 }
 #endif
@@ -1808,13 +1825,118 @@ TEST(PacedMediaSamplesDecoder, DecodeRejectsChangedFormat)
     EXPECT_EQ(result.error(), PlatformMediaError::InvalidState);
 }
 
+class DecoderOwner : public ThreadSafeRefCounted<DecoderOwner> {
+public:
+    static Ref<DecoderOwner> create(PacedMediaSamplesDecoder& decoder) { return adoptRef(*new DecoderOwner(decoder)); }
+
+    ~DecoderOwner()
+    {
+        if (RefPtr decoder = m_decoder)
+            decoder->flush();
+    }
+
+private:
+    explicit DecoderOwner(PacedMediaSamplesDecoder& decoder)
+        : m_decoder(decoder)
+    {
+    }
+
+    ThreadSafeWeakPtr<PacedMediaSamplesDecoder> m_decoder;
+};
+
+struct OwnerReleasingTimeProvider {
+    Ref<TestClock> clock { TestClock::create() };
+    // Dropped by the next time query.
+    RefPtr<DecoderOwner> owner;
+};
+
+static Ref<PacedMediaSamplesDecoder> createPacedReleasingOwner(const TrackInfo& info, const std::shared_ptr<OwnerReleasingTimeProvider>& provider)
+{
+    auto promise = PacedMediaSamplesDecoder::create(info, allowedFilters, RunLoop::mainSingleton(), [provider] {
+        RefPtr owner = std::exchange(provider->owner, nullptr);
+        return provider->clock->position();
+    });
+    auto result = settle(promise.get());
+    RELEASE_ASSERT(result);
+    return WTF::move(*result);
+}
+
+static void testOwnerDestroyedDuringTimeQueryAfterDecode(Vector<UniqueRef<MediaSamplesBlock>>&& blocks)
+{
+    ASSERT_GE(blocks.size(), 2u);
+    ASSERT_TRUE(blocks[0]->info());
+
+    auto provider = std::make_shared<OwnerReleasingTimeProvider>();
+    provider->clock->set(blocks[0]->presentationTime());
+    Ref decoder = createPacedReleasingOwner(*blocks[0]->info(), provider);
+
+    // The second block waits for the first to be decoded; the time query that follows flushes both.
+    auto collected = std::make_shared<Collected>();
+    collect(decoder->decode(WTF::move(blocks[0].get())), collected);
+    collect(decoder->decode(WTF::move(blocks[1].get())), collected);
+    provider->owner = DecoderOwner::create(decoder);
+
+    ASSERT_TRUE(waitUntil([&] {
+        return collected->settled == 2;
+    }));
+    EXPECT_FALSE(provider->owner);
+    EXPECT_EQ(collected->rejected, 2u);
+    for (auto error : collected->errors)
+        EXPECT_EQ(error, PlatformMediaError::Cancelled);
+    EXPECT_TRUE(decoder->isReadyForMoreMediaData());
+}
+
+TEST(PacedMediaSamplesDecoder, AudioOwnerDestroyedDuringTimeQueryAfterDecode)
+{
+    testOwnerDestroyedDuringTimeQueryAfterDecode(splitIntoSingleItemBlocks(parseWebMAudioFile(@"test-mse-audio")));
+}
+
+TEST(PacedMediaSamplesDecoder, VideoOwnerDestroyedDuringTimeQueryAfterDecode)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    testOwnerDestroyedDuringTimeQueryAfterDecode(parseWebMVideoFile(@"test-vp8", vp8ContentType));
+}
+
+TEST(PacedMediaSamplesDecoder, OwnerDestroyedDuringTimeQueryOnCurrentTimeChange)
+{
+    auto blocks = splitIntoSingleItemBlocks(parseWebMAudioFile(@"test-mse-audio"));
+    ASSERT_FALSE(blocks.isEmpty());
+    ASSERT_TRUE(blocks[0]->info());
+
+    auto provider = std::make_shared<OwnerReleasingTimeProvider>();
+    Ref decoder = createPacedReleasingOwner(*blocks[0]->info(), provider);
+
+    auto collected = std::make_shared<Collected>();
+    size_t blockCount = blocks.size();
+    for (auto& block : blocks)
+        collect(decoder->decode(WTF::move(block.get())), collected);
+    ASSERT_TRUE(waitUntil([&] {
+        return collected->settled > 0;
+    }));
+    sleepWhilePumping(settleTime);
+    ASSERT_LT(collected->settled, blockCount);
+
+    provider->owner = DecoderOwner::create(decoder);
+    decoder->currentTimeDidChange();
+    ASSERT_TRUE(waitUntil([&] {
+        return collected->settled == blockCount;
+    }));
+    EXPECT_FALSE(provider->owner);
+    EXPECT_GT(collected->rejected, 0u);
+    for (auto error : collected->errors)
+        EXPECT_EQ(error, PlatformMediaError::Cancelled);
+    EXPECT_TRUE(decoder->isReadyForMoreMediaData());
+}
+
 struct ExpectedAlpha {
     size_t x;
     size_t y;
     uint8_t alpha;
 };
 
-static void testDecodeAlpha(Vector<UniqueRef<MediaSamplesBlock>>&& blocks, FloatSize expectedSize, std::initializer_list<ExpectedAlpha> expectedAlphas)
+static void testDecodeAlpha(Vector<UniqueRef<MediaSamplesBlock>>&& blocks, FloatSize expectedSize, std::initializer_list<ExpectedAlpha> expectedAlphas, VideoPixelFormat expectedFormat = VideoPixelFormat::I420A)
 {
     ASSERT_FALSE(blocks.isEmpty());
     RefPtr inputInfo = dynamicDowncast<VideoInfo>(blocks[0]->info());
@@ -1826,22 +1948,24 @@ static void testDecodeAlpha(Vector<UniqueRef<MediaSamplesBlock>>&& blocks, Float
     auto decoded = decodeVideoBlocks(decoder, blocks);
     RefPtr info = dynamicDowncast<VideoInfo>(decoded.outputInfo);
     ASSERT_TRUE(info);
-    EXPECT_EQ(info->pixelFormat(), VideoPixelFormat::I420A);
+    EXPECT_EQ(info->pixelFormat(), expectedFormat);
     EXPECT_EQ(info->size(), expectedSize);
 
+    auto frameSize = VideoFrame::planarBufferSize({ static_cast<int>(expectedSize.width()), static_cast<int>(expectedSize.height()) }, expectedFormat);
+    ASSERT_TRUE(frameSize);
     ASSERT_EQ(decoded.frames.size(), decoded.inputPresentationTimes.size());
     for (auto& frame : decoded.frames)
-        EXPECT_EQ(frame.size(), i420AFrameSize(info->size()));
+        EXPECT_EQ(frame.size(), *frameSize);
 
     auto& frame = decoded.frames.last();
     for (auto [x, y, alpha] : expectedAlphas)
-        EXPECT_NEAR(alphaAt(frame, info->size(), x, y), alpha, 3) << "at " << x << "," << y;
+        EXPECT_NEAR(alphaAt(frame, info->size(), x, y, expectedFormat), alpha, 3) << "at " << x << "," << y;
 }
 
 // The video is one colour in four vertical stripes at 0, 10%, 50% and 100% opacity.
-static void testDecodeAlphaStripes(Vector<UniqueRef<MediaSamplesBlock>>&& blocks)
+static void testDecodeAlphaStripes(Vector<UniqueRef<MediaSamplesBlock>>&& blocks, VideoPixelFormat expectedFormat = VideoPixelFormat::I420A)
 {
-    testDecodeAlpha(WTF::move(blocks), FloatSize(200, 200), { { 25, 100, 0 }, { 75, 100, 26 }, { 125, 100, 128 }, { 175, 100, 255 } });
+    testDecodeAlpha(WTF::move(blocks), FloatSize(200, 200), { { 25, 100, 0 }, { 75, 100, 26 }, { 125, 100, 128 }, { 175, 100, 255 } }, expectedFormat);
 }
 
 TEST(MediaSamplesDecoder, DecodeVP8WithAlpha)
@@ -1901,6 +2025,46 @@ TEST(MediaSamplesDecoder, DecodeVP9WithAlphaFullRange)
     testDecodeAlphaStripes(WTF::move(blocks));
 }
 
+TEST(MediaSamplesDecoder, DecodeVP9Profile2WithAlpha)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto blocks = parseWebMVP9File(@"video-with-alpha-10bit");
+    ScopedVP9HardwareDecoder noHardwareDecoder { false };
+    testDecodeAlphaStripes(WTF::move(blocks), VideoPixelFormat::I420AP10);
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile2WithAlphaFullRange)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto blocks = parseWebMVP9File(@"video-with-alpha-10bit-full-range");
+    ScopedVP9HardwareDecoder noHardwareDecoder { false };
+    testDecodeAlphaStripes(WTF::move(blocks), VideoPixelFormat::I420AP10);
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile1WithAlpha)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto blocks = parseWebMVP9File(@"video-with-alpha-422");
+    ScopedVP9HardwareDecoder noHardwareDecoder { false };
+    testDecodeAlphaStripes(WTF::move(blocks), VideoPixelFormat::I422A);
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile3WithAlpha)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto blocks = parseWebMVP9File(@"video-with-alpha-422-10bit");
+    ScopedVP9HardwareDecoder noHardwareDecoder { false };
+    testDecodeAlphaStripes(WTF::move(blocks), VideoPixelFormat::I422AP10);
+}
+
 // Colour keyframes are at 0s, 1s and 2s, alpha keyframes only at 0s and 1.5s. The video is transparent on the left
 // half and opaque on the right.
 TEST(MediaSamplesDecoder, DecodeAlphaMisalignedKeyframes)
@@ -1948,6 +2112,72 @@ TEST(MediaSamplesDecoder, DecodeAlphaMisalignedKeyframes)
     }
     EXPECT_GT(opaqueFrames, 0u);
     EXPECT_GT(transparentFrames, 0u);
+}
+
+static DecodedVideo testDecodeVP9(NSString *resourceName, VideoPixelFormat expectedFormat, uint8_t expectedBitDepth, FloatSize expectedSize, size_t expectedFrameSize)
+{
+    auto blocks = parseWebMVP9File(resourceName);
+    ScopedVP9HardwareDecoder noHardwareDecoder { false };
+    EXPECT_FALSE(blocks.isEmpty());
+    if (blocks.isEmpty() || !blocks[0]->info())
+        return { };
+    EXPECT_TRUE(MediaSamplesDecoder::canDecode(*blocks[0]->info(), allowedFilters));
+
+    Ref decoder = createDecoder(*blocks[0]->info());
+    auto decoded = decodeVideoBlocks(decoder, blocks);
+    RefPtr info = dynamicDowncast<VideoInfo>(decoded.outputInfo);
+    EXPECT_TRUE(info);
+    if (!info)
+        return { };
+    EXPECT_EQ(info->pixelFormat(), expectedFormat);
+    EXPECT_EQ(info->bitDepth(), expectedBitDepth);
+    EXPECT_EQ(info->size(), expectedSize);
+
+    EXPECT_FALSE(decoded.frames.isEmpty());
+    EXPECT_EQ(decoded.frames.size(), decoded.inputPresentationTimes.size());
+    for (auto& frame : decoded.frames)
+        EXPECT_EQ(frame.size(), expectedFrameSize);
+    return decoded;
+}
+
+// The samples are stored in the low bits; neutral chroma is 512.
+static void expectTenBitLSBSamples(const Vector<uint8_t>& frame)
+{
+    auto samples = spanReinterpretCast<const uint16_t>(frame.span());
+    EXPECT_TRUE(std::ranges::all_of(samples, [](uint16_t sample) {
+        return sample <= 1023;
+    }));
+    EXPECT_TRUE(std::ranges::any_of(samples, [](uint16_t sample) {
+        return sample > 255;
+    }));
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile1)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    testDecodeVP9(@"test-vp9-yuv422p-128x97", VideoPixelFormat::I422, 8, FloatSize(128, 97), 128 * 97 + 2 * 64 * 97);
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile2)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto decoded = testDecodeVP9(@"vp9-p2-420-10bit-pq-videorange", VideoPixelFormat::I420P10, 10, FloatSize(320, 192), (320 * 192 + 2 * 160 * 96) * 2);
+    for (auto& frame : decoded.frames)
+        expectTenBitLSBSamples(frame);
+}
+
+TEST(MediaSamplesDecoder, DecodeVP9Profile3)
+{
+    if (!isVPXDecodingAvailable())
+        GTEST_SKIP() << "VPx software decoding is not available";
+
+    auto decoded = testDecodeVP9(@"test-vp9-yuv422p10", VideoPixelFormat::I422P10, 10, FloatSize(1280, 720), (1280 * 720 + 2 * 640 * 720) * 2);
+    for (auto& frame : decoded.frames)
+        expectTenBitLSBSamples(frame);
 }
 #endif
 

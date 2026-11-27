@@ -87,13 +87,12 @@ public:
         virtual void end() { stop(); }
         virtual DisplayFrameType generateFrame() = 0;
         virtual CaptureDevice::DeviceType deviceType() const = 0;
-        virtual DisplaySurfaceType surfaceType() const = 0;
         virtual void commitConfiguration(const RealtimeMediaSourceSettings&) = 0;
         virtual IntSize intrinsicSize() const = 0;
         virtual void whenReady(CompletionHandler<void(CaptureSourceError&&)>&& callback) { callback({ }); }
 
         virtual void setLogger(const Logger&, uint64_t);
-        const Logger* loggerPtr() const { return m_logger.get(); }
+        const Logger* loggerPtr() const LIFETIME_BOUND { return m_logger.get(); }
         const Logger& logger() const final { ASSERT(m_logger); return *m_logger.get(); }
         uint64_t logIdentifier() const final { return m_logIdentifier; }
         WTFLogChannel& logChannel() const final;

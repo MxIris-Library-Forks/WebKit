@@ -60,18 +60,19 @@ VideoFrameLibWebRTC::VideoFrameLibWebRTC(MediaTime presentationTime, bool isMirr
     , m_size(m_buffer->width(),  m_buffer->height())
     , m_conversionCallback(WTF::move(conversionCallback))
 {
+    bool isFullRange = this->colorSpace().fullRange.value_or(false);
     switch (m_buffer->type()) {
     case webrtc::VideoFrameBuffer::Type::kI420:
-        m_videoPixelFormat = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
+        m_videoPixelFormat = isFullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
         break;
     case webrtc::VideoFrameBuffer::Type::kI422:
-        m_videoPixelFormat = kCVPixelFormatType_422YpCbCr8BiPlanarFullRange;
+        m_videoPixelFormat = isFullRange ? kCVPixelFormatType_422YpCbCr8BiPlanarFullRange : kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange;
         break;
     case webrtc::VideoFrameBuffer::Type::kI010:
-        m_videoPixelFormat = kCVPixelFormatType_420YpCbCr10BiPlanarFullRange;
+        m_videoPixelFormat = isFullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange;
         break;
     case webrtc::VideoFrameBuffer::Type::kI210:
-        m_videoPixelFormat = kCVPixelFormatType_422YpCbCr10BiPlanarFullRange;
+        m_videoPixelFormat = isFullRange ? kCVPixelFormatType_422YpCbCr10BiPlanarFullRange : kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange;
         break;
     default:
         ASSERT_NOT_REACHED();
@@ -137,7 +138,7 @@ static bool copyBufferPlanes(const Buffer& buffer, std::span<uint8_t> destinatio
         && copyBufferPlane(bufferPlane(buffer.DataV(), buffer.StrideV(), chromaWidth, chromaHeight, source.format), destination, borrowedLayouts[2], layout->format);
 }
 
-// Each buffer is copied in its own format; I010 can also be narrowed to I420.
+// A buffer already in the requested format is copied directly.
 bool VideoFrameLibWebRTC::copyToPlanarYUV(std::span<uint8_t> destination, VideoPixelFormat format)
 {
     switch (m_buffer->type()) {
@@ -146,7 +147,7 @@ bool VideoFrameLibWebRTC::copyToPlanarYUV(std::span<uint8_t> destination, VideoP
             return copyBufferPlanes(*m_buffer->GetI420(), destination, format);
         break;
     case webrtc::VideoFrameBuffer::Type::kI010:
-        if (format == VideoPixelFormat::I420P10 || format == VideoPixelFormat::I420)
+        if (format == VideoPixelFormat::I420P10)
             return copyBufferPlanes(*m_buffer->GetI010(), destination, format);
         break;
     case webrtc::VideoFrameBuffer::Type::kI422:

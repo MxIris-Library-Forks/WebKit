@@ -168,10 +168,12 @@ private:
     Ref<NodeList> collectIntersectionOrEnclosureList(SVGRect&, SVGElement*, bool (*checkFunction)(SVGElement&, SVGRect&));
 
     FloatSize computeCurrentViewportSizeExcludingZoom() const;
+    FloatRect synthesizedViewBoxForSVGImage(float viewWidth, float viewHeight) const;
 
     RefPtr<SVGViewElement> findViewAnchor(StringView fragmentIdentifier) const;
     NODELETE SVGSVGElement* findRootAnchor(const SVGViewElement*) const;
     SVGSVGElement* findRootAnchor(StringView) const;
+    void copyViewAttributesTo(SVGViewSpec&) const;
 
     const Ref<SMILTimeContainer> m_timeContainer;
     const RefPtr<SVGViewSpec> m_viewSpec;

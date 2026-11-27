@@ -269,7 +269,7 @@ void RemoteLayerTreeDrawingAreaProxy::sendUpdateGeometry()
     });
 }
 
-ProcessState& RemoteLayerTreeDrawingAreaProxy::processStateForConnection(IPC::Connection& connection)
+ProcessState& RemoteLayerTreeDrawingAreaProxy::processStateForConnection(IPC::Connection& connection) LIFETIME_BOUND
 {
     for (auto& [key, value] : m_remotePageProcessState) {
         RefPtr webProcess = WebProcessProxy::processForIdentifier(key);
@@ -291,7 +291,7 @@ void RemoteLayerTreeDrawingAreaProxy::forEachProcessState(NOESCAPE const Functio
     }
 }
 
-const ProcessState& RemoteLayerTreeDrawingAreaProxy::processStateForIdentifier(WebCore::ProcessIdentifier identifier) const
+const ProcessState& RemoteLayerTreeDrawingAreaProxy::processStateForIdentifier(WebCore::ProcessIdentifier identifier) const LIFETIME_BOUND
 {
     if (webProcessProxy().coreProcessIdentifier() == identifier)
         return m_webPageProxyProcessState;
@@ -874,6 +874,11 @@ void RemoteLayerTreeDrawingAreaProxy::disableMirrorLayerTree()
     m_mirrorAttachProducer = std::nullopt;
     if (auto invalidationProducer = std::exchange(m_mirrorInvalidationProducer, std::nullopt))
         invalidationProducer->resolve();
+}
+
+bool RemoteLayerTreeDrawingAreaProxy::isMirrorLayer(CALayer *layer) const
+{
+    return layer && m_mirror && m_mirror->layer() == layer;
 }
 
 void RemoteLayerTreeDrawingAreaProxy::initializeSlowFrameIndicator()

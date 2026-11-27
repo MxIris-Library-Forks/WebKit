@@ -98,8 +98,8 @@ struct ProcessState {
 };
 
 struct MirrorLayerTree {
-    RetainPtr<CALayer> layer;
-    Ref<GenericPromise> invalidationPromise;
+    const RetainPtr<CALayer> layer;
+    const Ref<GenericPromise> invalidationPromise;
 };
 using MirrorLayerTreePromise = NativePromise<MirrorLayerTree, void, PromiseOption::Default | PromiseOption::WithoutCrossThreadCopy>;
 
@@ -149,6 +149,9 @@ public:
 
     NODELETE TransactionID nextMainFrameLayerTreeTransactionID() const;
     NODELETE TransactionID lastCommittedMainFrameLayerTreeTransactionID() const;
+    // The first main frame transaction whose DisplayDidRefresh hasn't been sent yet. The web process can only
+    // start that rendering update after it has received every message sent before now.
+    TransactionID nextUnrequestedMainFrameLayerTreeTransactionID() const { return m_webPageProxyProcessState.nextLayerTreeTransactionID; }
 
     virtual void didRefreshDisplay();
     virtual bool displayLinkWantsHighFrameRateForTesting() const { return false; };
@@ -169,6 +172,7 @@ public:
     Ref<MirrorLayerTreePromise> enableMirrorLayerTree();
     void disableMirrorLayerTree();
     bool hasMirrorLayerTree() const { return !!m_mirror; }
+    bool isMirrorLayer(CALayer *) const;
 
     RetainPtr<CALayer> layerWithIDForTesting(WebCore::PlatformLayerIdentifier) const;
 
@@ -201,8 +205,8 @@ protected:
 
     bool shouldCoalesceVisualEditorStateUpdates() const override { return true; }
 
-    ProcessState& processStateForConnection(IPC::Connection&);
-    NODELETE const ProcessState& processStateForIdentifier(WebCore::ProcessIdentifier) const;
+    ProcessState& processStateForConnection(IPC::Connection&) LIFETIME_BOUND;
+    NODELETE const ProcessState& processStateForIdentifier(WebCore::ProcessIdentifier) const LIFETIME_BOUND;
     IPC::Connection* connectionForIdentifier(WebCore::ProcessIdentifier);
     void forEachProcessState(NOESCAPE const Function<void(ProcessState&, WebProcessProxy&)>&);
 

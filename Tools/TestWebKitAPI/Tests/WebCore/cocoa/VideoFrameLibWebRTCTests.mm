@@ -126,8 +126,8 @@ TEST(VideoFrameLibWebRTC, CopyI010)
     ASSERT_TRUE(frame);
 
     expectPlanes(copyToPlanarBuffer(*frame, VideoPixelFormat::I420P10), VideoPixelFormat::I420P10, *buffer, chromaHeight420, 2, 0);
-    // Narrowed to 8 bits.
-    expectPlanes(copyToPlanarBuffer(*frame, VideoPixelFormat::I420), VideoPixelFormat::I420, *buffer, chromaHeight420, 1, 2);
+    // 10-bit samples are not narrowed to 8 bits.
+    EXPECT_FALSE(copyToPlanarBuffer(*frame, VideoPixelFormat::I420).has_value());
 }
 
 TEST(VideoFrameLibWebRTC, CopyI422)
@@ -138,8 +138,11 @@ TEST(VideoFrameLibWebRTC, CopyI422)
     fillPlane(buffer->MutableDataV(), buffer->StrideV(), chromaWidth, frameHeight, 6, 255);
     RefPtr frame = createFrame(webrtc::scoped_refptr<webrtc::VideoFrameBuffer> { buffer });
     ASSERT_TRUE(frame);
+    EXPECT_EQ(frame->pixelFormat(), static_cast<uint32_t>(kCVPixelFormatType_422YpCbCr8BiPlanarFullRange));
 
     expectPlanes(copyToPlanarBuffer(*frame, VideoPixelFormat::I422), VideoPixelFormat::I422, *buffer, frameHeight, 1, 0);
+    // 4:2:2 is not downsampled to 4:2:0.
+    EXPECT_FALSE(copyToPlanarBuffer(*frame, VideoPixelFormat::I420).has_value());
 }
 
 TEST(VideoFrameLibWebRTC, CopyI210)

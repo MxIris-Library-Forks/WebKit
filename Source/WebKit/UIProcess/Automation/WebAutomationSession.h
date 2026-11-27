@@ -293,7 +293,7 @@ public:
     void locateNodesForBidi(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, const String& locator, std::optional<Vector<String>>&& startNodeIdentifiers, std::optional<uint64_t> maxNodeCount, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, std::optional<WebCore::FrameIdentifier> containerFrameID, Inspector::CommandCallback<String>&&);
 #if ENABLE(WEBDRIVER_BIDI)
     void getBidiRealmInfo(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, CompletionHandler<void(std::optional<RealmIdentifier>&&)>&&);
-    void evaluateBidiCallFunction(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, std::optional<RealmIdentifier>, const String& functionDeclaration, Ref<JSON::Array>&& arguments, bool awaitPromise, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, bool userActivation, std::optional<double>&& callbackTimeout, Inspector::CommandCallbackOf<String, RealmIdentifier>&&);
+    void evaluateBidiCallFunction(const Inspector::Protocol::Automation::BrowsingContextHandle&, const Inspector::Protocol::Automation::FrameHandle&, std::optional<RealmIdentifier>, const String& functionDeclaration, Ref<JSON::Array>&& arguments, RefPtr<JSON::Object>&& thisValue, bool awaitPromise, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, bool userActivation, std::optional<double>&& callbackTimeout, Inspector::CommandCallbackOf<String, RealmIdentifier>&&);
 #endif
     void performMouseInteraction(const Inspector::Protocol::Automation::BrowsingContextHandle&, Ref<JSON::Object>&& requestedPosition, Inspector::Protocol::Automation::MouseButton, Inspector::Protocol::Automation::MouseInteraction, Ref<JSON::Array>&& keyModifiers, Inspector::CommandCallback<Ref<Inspector::Protocol::Automation::Point>>&&) override;
     void performKeyboardInteractions(const Inspector::Protocol::Automation::BrowsingContextHandle&, Ref<JSON::Array>&& interactions, Inspector::CommandCallback<void>&&) override;
@@ -343,7 +343,7 @@ public:
     Inspector::CommandResult<void> processBidiMessage(const String&) override;
     Inspector::CommandResult<void> emitActiveBidiScriptRealmCreatedEvents() override;
     void sendBidiMessage(const String&);
-    WebDriverBidiProcessor& bidiProcessor() const { return m_bidiProcessor; }
+    WebDriverBidiProcessor& bidiProcessor() const LIFETIME_BOUND { return m_bidiProcessor; }
 #endif
 
 #if ENABLE(REMOTE_INSPECTOR)
@@ -359,7 +359,7 @@ public:
     // Event Simulation Support.
     NODELETE bool isSimulatingUserInteraction() const;
 #if ENABLE(WEBDRIVER_ACTIONS_API)
-    SimulatedInputDispatcher& inputDispatcherForPage(WebPageProxy&);
+    SimulatedInputDispatcher& inputDispatcherForPage(WebPageProxy&) LIFETIME_BOUND;
     void runInteractionSequence(WebPageProxy&, std::optional<WebCore::FrameIdentifier>, Vector<SimulatedInputKeyFrame>&&, const HashMap<String, Ref<SimulatedInputSource>>& inputSources, SimulatedInputRunOptions, AutomationCompletionHandler&&);
 #if ENABLE(WEBDRIVER_BIDI)
     void runBidiInteractionSequence(WebPageProxy&, std::optional<WebCore::FrameIdentifier>, Vector<SimulatedInputKeyFrame>&&, const HashMap<String, Ref<SimulatedInputSource>>& inputSources, AutomationCompletionHandler&&);

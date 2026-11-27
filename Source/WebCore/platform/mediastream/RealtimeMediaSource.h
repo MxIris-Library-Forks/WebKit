@@ -270,7 +270,7 @@ public:
 
 #if !RELEASE_LOG_DISABLED
     virtual void setLogger(const Logger&, uint64_t);
-    const Logger* loggerPtr() const { return m_logger.get(); }
+    const Logger* loggerPtr() const LIFETIME_BOUND { return m_logger.get(); }
     const Logger& logger() const final { ASSERT(m_logger); return *m_logger.get(); }
     uint64_t logIdentifier() const final { return m_logIdentifier; }
     ASCIILiteral logClassName() const override { return "RealtimeMediaSource"_s; }
@@ -295,8 +295,6 @@ public:
 
     using OwnerCallback = std::function<void(RealtimeMediaSource&, bool isNewClonedSource)>;
     void registerOwnerCallback(OwnerCallback&&);
-
-    virtual bool isPowerEfficient() const { return false; }
 
 #if USE(GSTREAMER)
     virtual std::pair<GstClockTime, GstClockTime> queryCaptureLatency() const;
@@ -471,6 +469,7 @@ struct CaptureSourceOrError {
 };
 
 String convertEnumerationToString(RealtimeMediaSource::Type);
+DisplaySurfaceType toDisplaySurfaceType(CaptureDevice::DeviceType);
 
 inline void RealtimeMediaSource::setName(const String& name)
 {

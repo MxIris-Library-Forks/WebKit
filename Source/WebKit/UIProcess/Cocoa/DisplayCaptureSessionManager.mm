@@ -36,6 +36,7 @@
 #import "UserMediaPermissionRequestManagerProxy.h"
 #import "WKWebViewInternal.h"
 #import "WebPageProxy.h"
+#import "WebPageProxyTesting.h"
 #import "WebProcess.h"
 #import "WebProcessPool.h"
 #import <WebCore/CaptureDeviceManager.h>
@@ -150,11 +151,26 @@ void DisplayCaptureSessionManager::startTabCapture(UserMediaPermissionRequestPro
     }
 
     auto windowID = window->windowID();
+    Ref readyPromise = window->readyPromise();
     request.setTabCaptureWindow(window.releaseNonNull());
 
-    Ref gpuProcess = protect(requestingPage->configuration().processPool())->ensureGPUProcess();
-    gpuProcess->updateSandboxAccess(CaptureSandboxAccess::Display);
-    gpuProcess->selectWindowForCapture(windowID, WTF::move(completionHandler));
+    readyPromise->whenSettled(RunLoop::mainSingleton(), [request = Ref { request }, windowID, completionHandler = WTF::move(completionHandler)](auto&& result) mutable {
+        if (!result) {
+            RELEASE_LOG_ERROR(WebRTC, "DisplayCaptureSessionManager::startTabCapture - the tab capture window has no content; aborting.");
+            completionHandler(std::nullopt);
+            return;
+        }
+
+        RefPtr requestingPage = request->page();
+        if (!requestingPage) {
+            completionHandler(std::nullopt);
+            return;
+        }
+
+        Ref gpuProcess = protect(requestingPage->configuration().processPool())->ensureGPUProcess();
+        gpuProcess->updateSandboxAccess(CaptureSandboxAccess::Display);
+        gpuProcess->selectWindowForCapture(windowID, WTF::move(completionHandler));
+    });
 }
 #endif // HAVE(WINDOW_CAPTURE)
 
@@ -267,6 +283,14 @@ NODELETE static WebCore::DisplayCapturePromptType toScreenCaptureKitPromptType(U
 void DisplayCaptureSessionManager::promptForGetDisplayMedia(UserMediaPermissionRequestProxy& request, UserMediaPermissionRequestProxy::UserMediaDisplayCapturePromptType promptType, WebPageProxy& page, const WebCore::SecurityOriginData& origin, CompletionHandler<void(std::optional<WebCore::CaptureDevice>)>&& completionHandler)
 {
     if (useMockCaptureDevices()) {
+#if HAVE(WINDOW_CAPTURE)
+        RefPtr pageForTesting = page.pageForTesting();
+        if (RefPtr capturedPage = pageForTesting ? pageForTesting->tabPickedForGetDisplayMediaForTesting() : nullptr) {
+            startTabCapture(request, *capturedPage, WTF::move(completionHandler));
+            return;
+        }
+#endif
+
         if (promptType == UserMediaPermissionRequestProxy::UserMediaDisplayCapturePromptType::Window)
             showWindowPicker(origin, WTF::move(completionHandler));
         else

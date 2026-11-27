@@ -28,6 +28,7 @@
 #if HAVE(WINDOW_CAPTURE)
 
 #include "WebPageProxyIdentifier.h"
+#include <wtf/NativePromise.h>
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
 #include <wtf/RetainPtr.h>
 #include <wtf/TZoneMalloc.h>
@@ -47,6 +48,11 @@ public:
 
     WebPageProxyIdentifier pageIdentifier() const { return m_pageIdentifier; }
     uint32_t windowID() const;
+    Ref<GenericNonExclusivePromise> readyPromise() const { return m_readyPromiseProducer.promise(); }
+
+    void invalidate();
+    bool isInvalidated() const { return m_isInvalidated; }
+    bool shouldKeepPageVisible() const { return !m_isInvalidated; }
 
     void updateSize();
 
@@ -58,6 +64,10 @@ private:
     WebPageProxyIdentifier m_pageIdentifier;
     WeakPtr<WebPageProxy> m_page;
     RetainPtr<NSWindow> m_window;
+    RetainPtr<CALayer> m_layer;
+    const Ref<NativePromiseRequest> m_mirrorRequest;
+    GenericNonExclusivePromise::AutoRejectProducer m_readyPromiseProducer;
+    bool m_isInvalidated { false };
 };
 
 } // namespace WebKit

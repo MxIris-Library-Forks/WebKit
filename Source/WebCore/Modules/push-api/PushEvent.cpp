@@ -45,8 +45,8 @@ static Vector<uint8_t> dataFromPushMessageDataInit(PushMessageDataInit& data)
         [](Ref<JSC::ArrayBufferView>& value) -> Vector<uint8_t> {
             return value->span();
         },
-        [](String& value) -> Vector<uint8_t> {
-            return value.utf8().span();
+        [](String& value) {
+            return utf8Bytes(value);
         }
     );
 }

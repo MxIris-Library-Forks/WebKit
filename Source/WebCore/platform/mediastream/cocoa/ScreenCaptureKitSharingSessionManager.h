@@ -27,6 +27,7 @@
 #if HAVE(SCREEN_CAPTURE_KIT)
 
 #include <WebCore/DisplayCapturePromptType.h>
+#include <WebCore/ScreenCaptureKitSelection.h>
 #include <wtf/AbstractCanMakeCheckedPtr.h>
 #include <wtf/CompletionHandler.h>
 #include <wtf/RefCountedAndCanMakeWeakPtr.h>
@@ -63,8 +64,8 @@ public:
     static Ref<ScreenCaptureSessionSource> create(WeakPtr<ScreenCaptureSessionSourceObserver>, RetainPtr<SCStream>, RetainPtr<SCContentFilter>, CleanupFunction&&);
     virtual ~ScreenCaptureSessionSource();
 
-    SCStream* stream() const { return m_stream.get(); }
-    SCContentFilter* contentFilter() const { return m_contentFilter.get(); }
+    SCStream* stream() const LIFETIME_BOUND { return m_stream.get(); }
+    SCContentFilter* contentFilter() const LIFETIME_BOUND { return m_contentFilter.get(); }
     ScreenCaptureSessionSourceObserver* observer() const { return m_observer.get(); }
 
     void updateContentFilter(SCContentFilter*);
@@ -94,9 +95,9 @@ public:
 
     void cancelPicking();
 
-    RetainPtr<SCContentFilter> contentFilter(const CaptureDevice&);
+    ScreenCaptureKitSelection takeContentSelection(const CaptureDevice&);
     RefPtr<ScreenCaptureSessionSource> createSessionSourceForDevice(WeakPtr<ScreenCaptureSessionSourceObserver>, SCContentFilter*, SCStreamConfiguration*, SCStreamDelegate*);
-    void cancelPendingSessionForDevice(const CaptureDevice&);
+    void captureSourceWasDestroyedWithoutSession();
 
     WEBCORE_EXPORT void promptForGetDisplayMedia(DisplayCapturePromptType, CompletionHandler<void(std::optional<CaptureDevice>)>&&);
     WEBCORE_EXPORT void selectWindowForCapture(uint32_t windowID, CompletionHandler<void(std::optional<CaptureDevice>)>&&);
@@ -106,7 +107,8 @@ private:
     ScreenCaptureKitSharingSessionManager();
 
     void cleanupAllSessions();
-    void completeDeviceSelection(SCContentFilter*);
+    enum class IsTab : bool { No, Yes };
+    void completeDeviceSelection(SCContentFilter*, IsTab = IsTab::No);
 
     bool promptWithSCContentSharingPicker(DisplayCapturePromptType);
 
@@ -116,7 +118,7 @@ private:
 
     Vector<WeakPtr<ScreenCaptureSessionSource>> m_activeSources;
 
-    RetainPtr<SCContentFilter> m_pendingContentFilter;
+    ScreenCaptureKitSelection m_pendingContentSelection;
 
     RetainPtr<WebDisplayMediaPromptHelper> m_promptHelper;
     CompletionHandler<void(std::optional<CaptureDevice>)> m_completionHandler;

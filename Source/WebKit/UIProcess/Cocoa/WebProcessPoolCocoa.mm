@@ -356,7 +356,7 @@ static void logProcessPoolState(const WebProcessPool& pool)
             }
         }
 
-        RELEASE_LOG(Process, "WebProcessProxy %p - %" PUBLIC_LOG_STRING ", domain: %" PRIVATE_LOG_STRING ", pageURLs: %" SENSITIVE_LOG_STRING, process.ptr(), processDescription.release().utf8(), domainString.utf8(), pageURLs.release().utf8());
+        RELEASE_LOG(Process, "WebProcessProxy %p - %" PUBLIC_LOG_STRING ", domain: %" PRIVATE_LOG_STRING ", pageURLs: %" SENSITIVE_LOG_STRING, process.ptr(), makeUTF8CString(processDescription.release()), makeUTF8CString(domainString), makeUTF8CString(pageURLs.release()));
     }
 }
 
@@ -1465,7 +1465,7 @@ void WebProcessPool::applyEDRSuppressionIfNeeded(WebCore::ScreenProperties& scre
 }
 
 #if PLATFORM(MAC)
-const WebCore::ScreenProperties& WebProcessPool::cachedScreenProperties()
+const WebCore::ScreenProperties& WebProcessPool::cachedScreenProperties() LIFETIME_BOUND
 {
     if (!m_cachedScreenProperties) {
         auto screenProperties = WebCore::collectScreenProperties();
@@ -1615,7 +1615,7 @@ void WebProcessPool::suppressEDR(bool suppressEDR)
 }
 
 #if ENABLE(EXTENSION_CAPABILITIES)
-ExtensionCapabilityGranter& WebProcessPool::extensionCapabilityGranter()
+ExtensionCapabilityGranter& WebProcessPool::extensionCapabilityGranter() LIFETIME_BOUND
 {
     if (!m_extensionCapabilityGranter)
         lazyInitialize(m_extensionCapabilityGranter, ExtensionCapabilityGranter::create().releaseNonNull());
@@ -1838,7 +1838,7 @@ void WebProcessPool::registerAssetFonts(WebProcessProxy& process)
                 protectedThis->m_assetFontURLs = Vector<URL> { };
                 for (auto& fontName : borrow(assetFonts)) {
                     URL fontURL = fontURLFromName(fontName);
-                    RELEASE_LOG(Process, "Registering font name %s with url %s", fontName.characters(), fontURL.string().utf8());
+                    RELEASE_LOG(Process, "Registering font name %s with url %s", fontName.characters(), makeUTF8CString(fontURL.string()));
                     protectedThis->m_assetFontURLs->append(WTF::move(fontURL));
                 }
             }

@@ -113,8 +113,6 @@ messages -> RemoteMediaPlayerProxy {
     SetPlatformDynamicRangeLimit(WebCore::PlatformDynamicRangeLimit platformDynamicRangeLimit)
 
 #if PLATFORM(IOS_FAMILY)
-    ErrorLog() -> (String errorLog) Synchronous
-    AccessLog() -> (String accessLog) Synchronous
     SetSceneIdentifier(String sceneIdentifier)
 #endif
 
@@ -124,7 +122,6 @@ messages -> RemoteMediaPlayerProxy {
 #endif
 
 #if PLATFORM(COCOA)
-    NativeImageForCurrentTime() -> (std::optional<MachSendRight> sendRight, WebCore::ColorSpace colorSpace) Synchronous
     ColorSpace() -> (WebCore::ColorSpace colorSpace) Synchronous
 #endif
     VideoFrameForCurrentTimeIfChanged(WebKit::RemoteVideoFrameReference reference) -> (struct std::optional<WebKit::RemoteVideoFrameProxyProperties> videoFrame, bool changed) Synchronous

@@ -351,7 +351,7 @@ NetworkDataTaskCocoa::NetworkDataTaskCocoa(NetworkSession& session, NetworkDataT
     updateTaskWithStoragePartitionIdentifier(request);
 #endif
 
-    WTFBeginSignpost(m_task.get(), DataTask, "%" PUBLIC_LOG_STRING " %" PRIVATE_LOG_STRING " pri: %.2f preconnect: %d", request.httpMethod().utf8(), url.string().utf8(), toNSURLSessionTaskPriority(request.priority()), parameters.shouldPreconnectOnly == PreconnectOnly::Yes);
+    WTFBeginSignpost(m_task.get(), DataTask, "%" PUBLIC_LOG_STRING " %" PRIVATE_LOG_STRING " pri: %.2f preconnect: %d", makeUTF8CString(request.httpMethod()), makeUTF8CString(url.string()), toNSURLSessionTaskPriority(request.priority()), parameters.shouldPreconnectOnly == PreconnectOnly::Yes);
 
     switch (parameters.storedCredentialsPolicy) {
     case WebCore::StoredCredentialsPolicy::Use:
@@ -546,6 +546,12 @@ void NetworkDataTaskCocoa::willPerformHTTPRedirection(WebCore::ResourceResponse&
         request.clearHTTPAuthorization();
         request.clearHTTPOrigin();
 
+        // https://fetch.spec.whatwg.org/#http-network-compression-dictionary-fetch
+        // To be added with https://github.com/whatwg/fetch/pull/1854
+        // 3. If request's mode is "no-cors", then return the result of running fallback.
+        // Only same-origin no-cors loads get here, and one that has left its origin stays opaque.
+        if (m_compressionDictionary && m_compressionDictionary->isNoCors)
+            m_compressionDictionary = std::nullopt;
     } else if (m_storedCredentialsPolicy == WebCore::StoredCredentialsPolicy::Use) {
         // Only consider applying authentication credentials if this is actually a redirect and the redirect
         // URL didn't include credentials of its own.

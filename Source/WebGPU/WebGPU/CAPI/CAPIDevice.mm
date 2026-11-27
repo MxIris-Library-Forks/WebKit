@@ -144,7 +144,7 @@ WGPUFuture wgpuDeviceCreateComputePipelineAsync(WGPUDevice device, const WGPUCom
     @autoreleasepool {
         WebGPU::CAPI::Future future { protect(WebGPU::CAPI::fromAPI(device))->instance() };
         createComputePipelineAsync(device, *descriptor, [callbackInfo, future](WGPUCreatePipelineAsyncStatus status, WGPUComputePipeline pipeline, String&& message) {
-            auto utf8 = message.utf8();
+            auto utf8 = makeUTF8CString(message);
             callbackInfo.callback(status, pipeline, WebGPU::CAPI::toAPI(utf8), callbackInfo.userdata1, callbackInfo.userdata2);
             future.complete();
         });
@@ -222,7 +222,7 @@ WGPUFuture wgpuDeviceCreateRenderPipelineAsync(WGPUDevice device, const WGPURend
     @autoreleasepool {
         WebGPU::CAPI::Future future { protect(WebGPU::CAPI::fromAPI(device))->instance() };
         createRenderPipelineAsync(device, *descriptor, [callbackInfo, future](WGPUCreatePipelineAsyncStatus status, WGPURenderPipeline pipeline, String&& message) {
-            auto utf8 = message.utf8();
+            auto utf8 = makeUTF8CString(message);
             callbackInfo.callback(status, pipeline, WebGPU::CAPI::toAPI(utf8), callbackInfo.userdata1, callbackInfo.userdata2);
             future.complete();
         });
@@ -299,6 +299,22 @@ WGPUAdapter wgpuDeviceGetAdapter(WGPUDevice device)
     }
 }
 
+// The future completes when the device is lost, and stays completed while the device lives. Every
+// call with the device returns the same future. The future takes the device-lost callback of the
+// device of the C++ API (WebGPU::Device::resolveDeviceLostPromise()): a client that gets the future
+// must not set that callback on the device, as setting another callback completes the future as if
+// the device were lost.
+WGPUFuture wgpuDeviceGetLostFuture(WGPUDevice device)
+{
+    @autoreleasepool {
+        Ref protectedDevice = WebGPU::CAPI::fromAPI(device);
+        RefPtr instance = protectedDevice->instance();
+        if (!instance)
+            return WGPU_FUTURE_INIT;
+        return { WebGPU::CAPI::EventManager::ensure(*instance)->deviceLostFuture(protectedDevice) };
+    }
+}
+
 // The caller owns the reference to the queue, as for every object the C API returns.
 WGPUQueue wgpuDeviceGetQueue(WGPUDevice device)
 {
@@ -332,7 +348,7 @@ WGPUFuture wgpuDevicePopErrorScope(WGPUDevice device, WGPUPopErrorScopeCallbackI
         WebGPU::CAPI::Future future { protectedDevice->instance() };
         protectedDevice->popErrorScope([callbackInfo, future](bool succeeded, std::optional<WebGPU::Error>&& error) {
             if (error) {
-                auto message = error->message.utf8();
+                auto message = makeUTF8CString(error->message);
                 callbackInfo.callback(WGPUPopErrorScopeStatus_Success, WebGPU::CAPI::toAPI(error), WebGPU::CAPI::toAPI(message), callbackInfo.userdata1, callbackInfo.userdata2);
             } else if (succeeded)
                 callbackInfo.callback(WGPUPopErrorScopeStatus_Success, WGPUErrorType_NoError, WebGPU::CAPI::toAPI(""_s), callbackInfo.userdata1, callbackInfo.userdata2);

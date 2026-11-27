@@ -1995,7 +1995,7 @@ void Document::setReadyState(ReadyState readyState)
                 eventTiming->domLoading = now;
             // We do this here instead of in the Document constructor because monotonicTimestamp() is 0 when the Document constructor is running.
             if (!url().isEmpty())
-                WTFBeginSignpostWithTimeDelta(this, NavigationAndPaintTiming, -Seconds(monotonicTimestamp()), "Loading %" PRIVATE_LOG_STRING " | isMainFrame: %d", url().string().utf8(), frame() && frame()->isMainFrame());
+                WTFBeginSignpostWithTimeDelta(this, NavigationAndPaintTiming, -Seconds(monotonicTimestamp()), "Loading %" PRIVATE_LOG_STRING " | isMainFrame: %d", makeUTF8CString(url().string()), frame() && frame()->isMainFrame());
             WTFEmitSignpost(this, NavigationAndPaintTiming, "domLoading");
         }
         break;
@@ -6479,7 +6479,7 @@ void Document::screenshareCaptureStateDidChange()
     processCaptureStateDidChange([] (auto& page) {
         return page.mutedState().contains(MediaProducerMutedState::ScreenCaptureIsMuted) || page.mutedState().contains(MediaProducerMutedState::WindowCaptureIsMuted);
     }, [] (auto& source) {
-        return source.deviceType() == CaptureDevice::DeviceType::Screen || source.deviceType() == CaptureDevice::DeviceType::Window;
+        return CaptureDevice::isVideoScreenShare(source.deviceType());
     }, MediaSessionAction::Togglescreenshare);
 }
 
@@ -6550,6 +6550,7 @@ static void updateCaptureSourceToPageMutedState(Document& document, Page& page, 
         source.setMuted(page.mutedState().contains(MediaProducerMutedState::ScreenCaptureIsMuted));
         break;
     case CaptureDevice::DeviceType::Window:
+    case CaptureDevice::DeviceType::BrowserTab:
         source.setMuted(page.mutedState().contains(MediaProducerMutedState::WindowCaptureIsMuted));
         break;
     case CaptureDevice::DeviceType::SystemAudio:
@@ -11198,8 +11199,7 @@ static bool isSourceMatchingMediaCaptureKind(const RealtimeMediaSource& source, 
     case MediaProducerMediaCaptureKind::Camera:
         return source.deviceType() == CaptureDevice::DeviceType::Camera;
     case MediaProducerMediaCaptureKind::Display: {
-        auto deviceType = source.deviceType();
-        return deviceType == CaptureDevice::DeviceType::Screen || deviceType == CaptureDevice::DeviceType::Window;
+        return CaptureDevice::isVideoScreenShare(source.deviceType());
     }
     case MediaProducerMediaCaptureKind::SystemAudio:
         return source.deviceType() == CaptureDevice::DeviceType::SystemAudio;

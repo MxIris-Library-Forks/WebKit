@@ -29,6 +29,7 @@
 #if ENABLE(LEGACY_ENCRYPTED_MEDIA)
 
 #include "Event.h"
+#include "WebCoreOpaqueRoot.h"
 #include "WebKitMediaKeyError.h"
 
 namespace WebCore {
@@ -53,7 +54,8 @@ public:
         return adoptRef(*new WebKitMediaKeyMessageEvent(type, WTF::move(initializer), isTrusted));
     }
 
-    Uint8Array* message() const { return m_message.get(); }
+    Uint8Array* message() const LIFETIME_BOUND { return m_message.get(); }
+    WebCoreOpaqueRoot opaqueRoot() const { return WebCoreOpaqueRoot { static_cast<JSC::ArrayBufferView*>(m_message.get()) }; }
     String destinationURL() const { return m_destinationURL; }
 
 private:

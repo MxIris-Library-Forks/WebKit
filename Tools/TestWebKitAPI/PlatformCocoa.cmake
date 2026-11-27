@@ -665,6 +665,8 @@ if (ENABLE_WEBGPU)
         Tests/WGSL/MetalCompilationTests.mm
         Tests/WGSL/TypeCheckingTests.mm
 
+        Tests/WebGPU/CAPIHandleTests.cpp
+        Tests/WebGPU/DeviceLostFutureTests.cpp
         Tests/WebGPU/DeviceLostTests.cpp
         Tests/WebGPU/FutureTests.cpp
         Tests/WebGPU/InstanceDestroyTests.cpp
@@ -884,6 +886,7 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/WKWebExtensionAPINotifications.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIOffscreen.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIPermissions.swift
+    Tests/WebKit/WKWebView/WKWebExtensionAPIRuntime.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIScripting.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPIStorage.swift
     Tests/WebKit/WKWebView/WKWebExtensionAPITabs.swift

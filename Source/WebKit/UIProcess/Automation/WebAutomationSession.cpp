@@ -703,7 +703,7 @@ void WebAutomationSession::closeBrowsingContext(const Inspector::Protocol::Autom
         auto callbacks = protectedThis->m_pendingCloseBrowsingContextCallbacksPerPage.take(pageID);
         if (callbacks.isEmpty())
             return;
-        RELEASE_LOG(Automation, "[s:%s] closeBrowsingContext completed after %.0f s although the client did not close page %" PRIu64, protectedThis->sessionIdentifier().utf8(), closeBrowsingContextTimeout.seconds(), pageID.toUInt64());
+        RELEASE_LOG(Automation, "[s:%s] closeBrowsingContext completed after %.0f s although the client did not close page %" PRIu64, makeUTF8CString(protectedThis->sessionIdentifier()), closeBrowsingContextTimeout.seconds(), pageID.toUInt64());
         for (auto& callback : borrow(callbacks))
             callback({ });
     });
@@ -1188,11 +1188,18 @@ void WebAutomationSession::goForwardInBrowsingContext(const Inspector::Protocol:
     waitForHistoryTraversalToComplete(*page, pageLoadStrategy, pageLoadTimeout, WTF::move(callback), page->goForward());
 }
 
+// The classic waits fail with WindowNotFound or FrameNotFound when the page or frame goes away before they end.
+static bool isNavigableClosedError(const String& error)
+{
+    return error.startsWith(STRING_FOR_PREDEFINED_ERROR_NAME(WindowNotFound)) || error.startsWith(STRING_FOR_PREDEFINED_ERROR_NAME(FrameNotFound));
+}
+
 void WebAutomationSession::traverseHistoryInBrowsingContext(const Inspector::Protocol::Automation::BrowsingContextHandle& handle, int delta, CommandCallback<void>&& callback)
 {
     // https://w3c.github.io/webdriver-bidi/#command-browsingContext-traverseHistory
     auto page = webPageProxyForHandle(handle);
-    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
+    // https://w3c.github.io/webdriver-bidi/#get-a-navigable: a context that names no navigable is "no such frame".
+    ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, FrameNotFound);
 
     if (!delta) {
         callback({ });
@@ -1204,7 +1211,16 @@ void WebAutomationSession::traverseHistoryInBrowsingContext(const Inspector::Pro
     RefPtr targetItem = page->backForwardListWrapper().itemAtDeltaFromCurrentIndex(delta, AllowSkippingBackForwardItems::No);
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!targetItem, NoSuchHistoryEntry);
 
-    waitForHistoryTraversalToComplete(*page, defaultPageLoadStrategy, defaultPageLoadTimeout, WTF::move(callback), page->goToBackForwardItem(*targetItem));
+    // The specification returns success as soon as the traversal has started; WebKit also waits for it to finish.
+    // If the page or frame goes away during that wait, the traversal has still started, so the command succeeds.
+    auto completion = [callback = WTF::move(callback)](Inspector::CommandResult<void>&& result) mutable {
+        if (!result && isNavigableClosedError(result.error())) {
+            callback({ });
+            return;
+        }
+        callback(WTF::move(result));
+    };
+    waitForHistoryTraversalToComplete(*page, defaultPageLoadStrategy, defaultPageLoadTimeout, WTF::move(completion), page->goToBackForwardItem(*targetItem));
 }
 
 void WebAutomationSession::reloadBrowsingContext(const Inspector::Protocol::Automation::BrowsingContextHandle& handle, std::optional<Inspector::Protocol::Automation::PageLoadStrategy>&& optionalPageLoadStrategy, std::optional<double>&& optionalPageLoadTimeout, CommandCallback<void>&& callback)
@@ -1272,7 +1288,7 @@ void WebAutomationSession::awaitNavigationForBidi(WebPageProxy& page, WebFramePr
             // https://w3c.github.io/webdriver-bidi/#await-a-navigation: a navigation that ends because its
             // navigable closed is an unknown error, not a missing context.
             auto& error = result.error();
-            if (error.startsWith(STRING_FOR_PREDEFINED_ERROR_NAME(WindowNotFound)) || error.startsWith(STRING_FOR_PREDEFINED_ERROR_NAME(FrameNotFound)))
+            if (isNavigableClosedError(error))
                 ASYNC_FAIL_WITH_PREDEFINED_ERROR(InternalError);
             callback(makeUnexpected(WTF::move(error)));
             return;
@@ -3206,7 +3222,7 @@ bool WebAutomationSession::isSimulatingUserInteraction() const
 }
 
 #if ENABLE(WEBDRIVER_ACTIONS_API)
-SimulatedInputDispatcher& WebAutomationSession::inputDispatcherForPage(WebPageProxy& page)
+SimulatedInputDispatcher& WebAutomationSession::inputDispatcherForPage(WebPageProxy& page) LIFETIME_BOUND
 {
     return m_inputDispatchersByPage.ensure(page.identifier(), [&] {
         return SimulatedInputDispatcher::create(page, *this);
@@ -3244,7 +3260,7 @@ void WebAutomationSession::runBidiInteractionSequence(WebPageProxy& page, std::o
         }
 
         // FIXME: Refresh the viewport when an earlier action in the sequence scrolls or re-lays out the page. <https://webkit.org/b/329451>
-        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { .viewport = SimulatedInputViewport { viewport->location(), viewport->size() }, .interpolatePointerMoves = true, .elementOriginHandleKind = NodeHandleKind::SharedReference, .scrollDeltasArePerAction = true }, WTF::move(completionHandler));
+        protectedThis->runInteractionSequence(*page, frameID, WTF::move(keyFrames), inputSources, SimulatedInputRunOptions { .viewport = SimulatedInputViewport { viewport->location(), viewport->size() }, .interpolatePointerMoves = true, .elementOriginHandleKind = NodeHandleKind::SharedReference, .scrollDeltasArePerAction = true, .interpolateScrolls = true }, WTF::move(completionHandler));
     };
 
     auto send = [page = protect(page), frameID, didGetFrameViewportHandler = WTF::move(didGetFrameViewportHandler)] mutable {
@@ -3578,7 +3594,7 @@ void WebAutomationSession::getBidiRealmInfo(const Inspector::Protocol::Automatio
 #endif
 
 #if ENABLE(WEBDRIVER_BIDI)
-void WebAutomationSession::evaluateBidiCallFunction(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, std::optional<RealmIdentifier> expectedRealmIdentifier, const String& functionDeclaration, Ref<JSON::Array>&& arguments, bool awaitPromise, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, bool userActivation, std::optional<double>&& callbackTimeout, CommandCallbackOf<String, RealmIdentifier>&& callback)
+void WebAutomationSession::evaluateBidiCallFunction(const Inspector::Protocol::Automation::BrowsingContextHandle& browsingContextHandle, const Inspector::Protocol::Automation::FrameHandle& frameHandle, std::optional<RealmIdentifier> expectedRealmIdentifier, const String& functionDeclaration, Ref<JSON::Array>&& arguments, RefPtr<JSON::Object>&& thisValue, bool awaitPromise, std::optional<double> maxObjectDepth, std::optional<double> maxDomDepth, const String& includeShadowTree, bool userActivation, std::optional<double>&& callbackTimeout, CommandCallbackOf<String, RealmIdentifier>&& callback)
 {
     auto page = webPageProxyForHandle(browsingContextHandle);
     ASYNC_FAIL_WITH_PREDEFINED_ERROR_IF(!page, WindowNotFound);
@@ -3589,11 +3605,12 @@ void WebAutomationSession::evaluateBidiCallFunction(const Inspector::Protocol::A
     auto argumentsVector = WTF::map(arguments.get(), [](auto& argument) {
         return argument->toJSONString();
     });
+    auto thisString = thisValue ? std::optional { thisValue->toJSONString() } : std::nullopt;
 
     uint64_t callbackID = m_nextEvaluateJavaScriptCallbackID++;
     m_evaluateBidiCallFunctionCallbacks.set(callbackID, WTF::move(callback));
 
-    page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::EvaluateBidiCallFunction(page->webPageIDInProcessForFrame(frameID), frameID, expectedRealmIdentifier, functionDeclaration, argumentsVector, awaitPromise, maxObjectDepth, maxDomDepth, includeShadowTree, userActivation, WTF::move(callbackTimeout)), CompletionHandler<void(String&&, std::optional<RealmIdentifier>&&, String&&)> { [protectedThis = Ref { *this }, callbackID](String&& result, std::optional<RealmIdentifier>&& realmIdentifier, String&& errorType) {
+    page->sendWithAsyncReplyToProcessContainingFrameWithoutDestinationIdentifier(frameID, Messages::WebAutomationSessionProxy::EvaluateBidiCallFunction(page->webPageIDInProcessForFrame(frameID), frameID, expectedRealmIdentifier, functionDeclaration, argumentsVector, thisString, awaitPromise, maxObjectDepth, maxDomDepth, includeShadowTree, userActivation, WTF::move(callbackTimeout)), CompletionHandler<void(String&&, std::optional<RealmIdentifier>&&, String&&)> { [protectedThis = Ref { *this }, callbackID](String&& result, std::optional<RealmIdentifier>&& realmIdentifier, String&& errorType) {
         auto callback = protectedThis->m_evaluateBidiCallFunctionCallbacks.take(callbackID);
         if (!callback)
             return;

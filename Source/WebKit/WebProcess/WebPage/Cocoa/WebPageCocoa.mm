@@ -1296,7 +1296,7 @@ std::pair<URL, DidFilterLinkDecoration> WebPage::applyLinkDecorationFilteringWit
             if (!removedParameters.isEmpty()) {
                 send(Messages::WebPageProxy::DidApplyLinkDecorationFiltering(url, sanitizedURL));
                 auto removedParametersString = makeStringByJoining(borrow(removedParameters).get(), ", "_s);
-                WEBPAGE_RELEASE_LOG(ResourceLoadStatistics, "applyLinkDecorationFilteringWithResult: Removed all query parameters after cross-site navigation: %s", removedParametersString.utf8());
+                WEBPAGE_RELEASE_LOG(ResourceLoadStatistics, "applyLinkDecorationFilteringWithResult: Removed all query parameters after cross-site navigation: %s", makeUTF8CString(removedParametersString));
             }
             return { sanitizedURL, removedParameters.isEmpty() ? DidFilterLinkDecoration::No : DidFilterLinkDecoration::Yes };
         }
@@ -1331,7 +1331,7 @@ std::pair<URL, DidFilterLinkDecoration> WebPage::applyLinkDecorationFilteringWit
         if (trigger == LinkDecorationFilteringTrigger::Navigation)
             send(Messages::WebPageProxy::DidApplyLinkDecorationFiltering(url, sanitizedURL));
         auto removedParametersString = makeStringByJoining(removedParameters, ", "_s);
-        WEBPAGE_RELEASE_LOG(ResourceLoadStatistics, "applyLinkDecorationFilteringWithResult: Blocked known tracking query parameters: %s", removedParametersString.utf8());
+        WEBPAGE_RELEASE_LOG(ResourceLoadStatistics, "applyLinkDecorationFilteringWithResult: Blocked known tracking query parameters: %s", makeUTF8CString(removedParametersString));
     }
 
     return { sanitizedURL, DidFilterLinkDecoration::Yes };
@@ -4312,8 +4312,13 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
     LOG_WITH_STREAM(VisibleRects, stream << "\nWebPage " << m_identifier << " updateVisibleContentRects " << visibleContentRectUpdateInfo);
 
     // Skip any VisibleContentRectUpdate that have been queued before DidCommitLoad suppresses the updates in the UIProcess.
-    if (m_mainFrame->firstLayerTreeTransactionIDAfterDidCommitLoad() && visibleContentRectUpdateInfo.lastLayerTreeTransactionID().lessThanSameProcess(*m_mainFrame->firstLayerTreeTransactionIDAfterDidCommitLoad()) && !visibleContentRectUpdateInfo.isFirstUpdateForNewViewSize())
+    if (m_mainFrame->firstLayerTreeTransactionIDAfterDidCommitLoad() && visibleContentRectUpdateInfo.lastLayerTreeTransactionID().lessThanSameProcess(*m_mainFrame->firstLayerTreeTransactionIDAfterDidCommitLoad()) && !visibleContentRectUpdateInfo.isFirstUpdateForNewViewSize()) {
+#if PLATFORM(MAC)
+        if (m_page->delegatesScaling() && visibleContentRectUpdateInfo.inStableState())
+            protect(m_drawingArea)->triggerRenderingUpdate();
+#endif
         return;
+    }
 
     m_hasReceivedVisibleContentRectsAfterDidCommitLoad = true;
     m_isInStableState = visibleContentRectUpdateInfo.inStableState();
@@ -4323,6 +4328,13 @@ void WebPage::updateVisibleContentRects(const VisibleContentRectUpdateInfo& visi
     // Skip progressively redrawing tiles if pinch-zooming while the system is under memory pressure.
     if (scaleFromUIProcess && !m_isInStableState && MemoryPressureHandler::singleton().isUnderMemoryPressure())
         return;
+
+#if PLATFORM(MAC)
+    auto triggerRenderingUpdateIfStable = makeScopeExit([this, protectedThis = Ref { *this }] {
+        if (m_page->delegatesScaling() && m_isInStableState)
+            protect(m_drawingArea)->triggerRenderingUpdate();
+    });
+#endif
 
     if (m_isInStableState)
         m_hasStablePageScaleFactor = true;

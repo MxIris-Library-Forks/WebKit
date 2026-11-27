@@ -67,6 +67,7 @@
 #import "WKFocusedFormControlView.h"
 #import "WKFormColorControl.h"
 #import "WKFormSelectControl.h"
+#import "WKFormSelectPicker.h"
 #import "WKFrameInfoInternal.h"
 #import "WKHighlightLongPressGestureRecognizer.h"
 #import "WKImageAnalysisGestureRecognizer.h"
@@ -5828,7 +5829,7 @@ static void logTextInteraction(const char* methodName, UIGestureRecognizer *loup
     if (selectionFlags)
         selectionChangeStream << ", " << "selectionFlags=" << toSelectionFlags(*selectionFlags);
 
-    RELEASE_LOG(TextInteraction, "Text interaction changing selection using '%s' (%s).", methodName, selectionChangeStream.release().utf8());
+    RELEASE_LOG(TextInteraction, "Text interaction changing selection using '%s' (%s).", methodName, makeUTF8CString(selectionChangeStream.release()));
 }
 
 - (void)selectPositionAtPoint:(CGPoint)point completionHandler:(void (^)(void))completionHandler
@@ -8307,6 +8308,12 @@ static UITextAutocapitalizationType toUITextAutocapitalize(WebCore::Autocapitali
 - (Vector<WebKit::OptionItem>&)focusedSelectElementOptions
 {
     return _focusedElementInformation.selectOptions;
+}
+
+- (WKSelectPicker *)visibleSelectPicker
+{
+    RetainPtr picker = dynamic_objc_cast<WKSelectPicker>([self.selectControl control]);
+    return [picker isShowingMenu] ? picker.autorelease() : nil;
 }
 
 // Note that selectability is also affected by the CSS property user-select.
@@ -11100,7 +11107,7 @@ static NSArray<NSItemProvider *> *extractItemProvidersFromDropSession(id <UIDrop
         return;
     }
 
-    RELEASE_LOG(DragAndDrop, "Drag session: %p preparing to drag with attachment identifier: %s", session.get(), info.attachmentIdentifier.utf8());
+    RELEASE_LOG(DragAndDrop, "Drag session: %p preparing to drag with attachment identifier: %s", session.get(), makeUTF8CString(info.attachmentIdentifier));
 
     RetainPtr<NSString> utiType;
     RetainPtr<NSString> fileName;
@@ -11130,7 +11137,7 @@ static NSArray<NSItemProvider *> *extractItemProvidersFromDropSession(id <UIDrop
 
         if (auto attachment = protect(strongSelf->_page)->attachmentForIdentifier(info.attachmentIdentifier); attachment && !attachment->isEmpty()) {
             attachment->doWithFileWrapper([&](NSFileWrapper *fileWrapper) {
-                RELEASE_LOG(DragAndDrop, "Drag session: %p delivering promised attachment: %s at path: %@", session.get(), info.attachmentIdentifier.utf8(), destinationURL.get().path);
+                RELEASE_LOG(DragAndDrop, "Drag session: %p delivering promised attachment: %s at path: %@", session.get(), makeUTF8CString(info.attachmentIdentifier), destinationURL.get().path);
                 NSError *fileWrapperError = nil;
                 if ([fileWrapper writeToURL:destinationURL.get() options:0 originalContentsURL:nil error:&fileWrapperError])
                     callback(destinationURL.get(), nil);
@@ -14510,7 +14517,7 @@ static inline WKTextAnimationType toWKTextAnimationType(WebCore::TextAnimationTy
     if (!layerTreeNode)
         return nil;
 
-    return layerTreeNode->uiView();
+    return protect(layerTreeNode->uiView()).autorelease();
 }
 
 - (NSArray<UIView *> *)allViewsIntersectingSelectionRange

@@ -547,7 +547,7 @@ void WebProcessPool::serviceWorkerProcessCrashed(WebProcessProxy& proxy, Process
 }
 
 #if ENABLE(GPU_PROCESS)
-GPUProcessProxy& WebProcessPool::ensureGPUProcess()
+GPUProcessProxy& WebProcessPool::ensureGPUProcess() LIFETIME_BOUND
 {
     if (!m_gpuProcess) {
         Ref gpuProcess = GPUProcessProxy::getOrCreate();
@@ -599,7 +599,7 @@ void WebProcessPool::createGPUProcessConnection(WebProcessProxy& webProcessProxy
 #endif // ENABLE(GPU_PROCESS)
 
 #if ENABLE(MODEL_PROCESS)
-ModelProcessProxy& WebProcessPool::ensureModelProcess()
+ModelProcessProxy& WebProcessPool::ensureModelProcess() LIFETIME_BOUND
 {
     if (!m_modelProcess)
         m_modelProcess = ModelProcessProxy::getOrCreate();
@@ -1267,7 +1267,7 @@ void WebProcessPool::processDidFinishLaunching(WebProcessProxy& process)
 #if ENABLE(EXTENSION_CAPABILITIES)
     for (auto& page : process.pages()) {
         if (RefPtr mediaCapability = page->mediaCapability()) {
-            WEBPROCESSPOOL_RELEASE_LOG(ProcessCapabilities, "processDidFinishLaunching[envID=%" PUBLIC_LOG_STRING "]: updating media capability", mediaCapability->environmentIdentifier().utf8());
+            WEBPROCESSPOOL_RELEASE_LOG(ProcessCapabilities, "processDidFinishLaunching[envID=%" PUBLIC_LOG_STRING "]: updating media capability", makeUTF8CString(mediaCapability->environmentIdentifier()));
             page->updateMediaCapability();
         }
     }

@@ -36,22 +36,45 @@ namespace WebCore {
 class HitTestRequest;
 class HitTestResult;
 class RenderBlock;
+class RenderBox;
 
 namespace Paint {
 
-// Hit tests a block subtree by walking it in reverse paint order with PaintOrderIterator.
+// The static functions hit test one block. hitTest() walks the block's subtree in reverse paint order with
+// PaintOrderIterator when the subtree can be iterated, using a BlockHitTester instance for the walk.
 class BlockHitTester {
 public:
-    BlockHitTester(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction);
-
-    bool hitTest();
+    static bool hitTest(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction);
 
 private:
+    BlockHitTester(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation& locationInContainer, const LayoutPoint& accumulatedOffset, HitTestAction);
+
+    bool hitTestSubtree();
+
+    static bool hitTestBlock(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& accumulatedOffset, HitTestAction);
+    static bool hitTestChildren(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& adjustedLocation, HitTestAction);
+    static bool hitTestContents(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& scrolledOffset, HitTestAction);
+    static bool hitTestInlineChildren(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& scrolledOffset, HitTestAction);
+
+    enum class HitTestBlockType : bool { Block, StackingContainer };
+    static bool hitTestChild(RenderBlock&, RenderBox& child, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& childPoint, HitTestAction, HitTestBlockType);
+    static bool hitTestFloat(RenderBlock&, RenderBox& floatBox, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& floatBoxLocation);
+    static bool hitTestExcludedChildrenInBorder(RenderBlock&, const HitTestRequest&, HitTestResult&, const HitTestLocation&, const LayoutPoint& adjustedLocation, HitTestAction);
+
     struct Parent {
         HitTestAction action;
         bool shouldHitTestContent;
         // False when the location is outside the block's clip, so nothing inside it can be hit.
         bool checkChildren;
+    };
+
+    bool hitTestLegendAfterItems(RenderBlock& container, HitTestAction, const LayoutPoint& adjustedLocation);
+    bool hitTestOutsideListMarker(RenderBlock&, HitTestAction, const LayoutPoint& adjustedLocation);
+
+    // A stacking container being hit tested, one walk per action.
+    struct StackingContainer {
+        size_t depth;
+        uint8_t actionIndex { 0 };
     };
 
     void pushParent(Parent&& parent) { m_parentStack.append(WTF::move(parent)); }
@@ -65,6 +88,7 @@ private:
     const LayoutPoint m_accumulatedOffset;
     const HitTestAction m_action;
     Vector<Parent, 16> m_parentStack;
+    Vector<StackingContainer, 4> m_stackingContainerStack;
 };
 
 } // namespace Paint

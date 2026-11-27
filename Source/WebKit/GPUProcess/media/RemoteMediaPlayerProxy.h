@@ -69,10 +69,6 @@
 #include <wtf/RetainPtr.h>
 #endif
 
-namespace WTF {
-class MachSendRight;
-}
-
 namespace WebCore {
 class AudioTrackPrivate;
 struct MediaPlayerLoadOptions;
@@ -141,8 +137,6 @@ public:
     void setBufferingPolicy(WebCore::MediaPlayer::BufferingPolicy);
 
 #if PLATFORM(IOS_FAMILY)
-    void accessLog(CompletionHandler<void(String)>&&);
-    void errorLog(CompletionHandler<void(String)>&&);
     void setSceneIdentifier(String&&);
 #endif
 
@@ -330,11 +324,11 @@ private:
     const Vector<WebCore::ContentType>& mediaContentTypesRequiringHardwareSupport() const final;
     bool mediaPlayerShouldCheckHardwareSupport() const final;
 
-    const std::optional<Vector<String>>& allowedMediaContainerTypes() const final { return m_configuration.allowedMediaContainerTypes; };
-    const std::optional<Vector<String>>& allowedMediaCodecTypes() const final { return m_configuration.allowedMediaCodecTypes; };
-    const std::optional<Vector<WebCore::FourCC>>& allowedMediaVideoCodecIDs() const final { return m_configuration.allowedMediaVideoCodecIDs; };
-    const std::optional<Vector<WebCore::FourCC>>& allowedMediaAudioCodecIDs() const final { return m_configuration.allowedMediaAudioCodecIDs; };
-    const std::optional<Vector<WebCore::FourCC>>& allowedMediaCaptionFormatTypes() const final { return m_configuration.allowedMediaCaptionFormatTypes; };
+    const std::optional<Vector<String>>& allowedMediaContainerTypes() const LIFETIME_BOUND final { return m_configuration.allowedMediaContainerTypes; };
+    const std::optional<Vector<String>>& allowedMediaCodecTypes() const LIFETIME_BOUND final { return m_configuration.allowedMediaCodecTypes; };
+    const std::optional<Vector<WebCore::FourCC>>& allowedMediaVideoCodecIDs() const LIFETIME_BOUND final { return m_configuration.allowedMediaVideoCodecIDs; };
+    const std::optional<Vector<WebCore::FourCC>>& allowedMediaAudioCodecIDs() const LIFETIME_BOUND final { return m_configuration.allowedMediaAudioCodecIDs; };
+    const std::optional<Vector<WebCore::FourCC>>& allowedMediaCaptionFormatTypes() const LIFETIME_BOUND final { return m_configuration.allowedMediaCaptionFormatTypes; };
 
     bool mediaPlayerShouldDisableHDR() const final { return m_configuration.shouldDisableHDR; }
 
@@ -368,7 +362,6 @@ private:
 
 #if PLATFORM(COCOA)
     WebCore::FloatSize mediaPlayerVideoLayerSize() const final;
-    void nativeImageForCurrentTime(CompletionHandler<void(std::optional<WTF::MachSendRight>&&, WebCore::ColorSpace)>&&);
     void colorSpace(CompletionHandler<void(WebCore::ColorSpace)>&&);
 #endif
     void videoFrameForCurrentTimeIfChanged(RemoteVideoFrameReference, CompletionHandler<void(std::optional<RemoteVideoFrameProxy::Properties>&&, bool)>&&);
@@ -400,7 +393,7 @@ private:
 #endif
 
 #if !RELEASE_LOG_DISABLED
-    const Logger& mediaPlayerLogger() final { return m_logger; }
+    const Logger& mediaPlayerLogger() LIFETIME_BOUND final { return m_logger; }
     uint64_t mediaPlayerLogIdentifier() { return m_configuration.logIdentifier; }
     const Logger& logger() { return mediaPlayerLogger(); }
     uint64_t logIdentifier() { return mediaPlayerLogIdentifier(); }

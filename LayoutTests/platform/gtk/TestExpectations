@@ -1012,6 +1012,8 @@ webkit.org/b/278719 fast/events/touch/touch-event-frames.html [ Failure ]
 webkit.org/b/278719 fast/events/touch/touch-event-pageXY.html [ Failure ]
 webkit.org/b/278719 fast/events/touch/touch-handler-count.html [ Failure ]
 webkit.org/b/278719 fast/events/touch/touch-stale-node-crash.html [ Timeout ]
+webkit.org/b/329826 fast/events/touch/touch-events-not-cancelable-once-panning.html [ Failure ]
+webkit.org/b/329826 fast/events/touch/touch-events-not-cancelable-once-panning-multiple-fingers.html [ Failure ]
 webkit.org/b/278719 imported/w3c/web-platform-tests/touch-events/idlharness.window.html [ Failure ]
 webkit.org/b/278719 imported/w3c/web-platform-tests/touch-events/touch-globaleventhandler-interface.html [ Failure ]
 
@@ -1269,7 +1271,6 @@ webkit.org/b/327258 fast/css-grid-layout/grid-auto-columns-rows-get-set.html [ F
 webkit.org/b/327677 media/video-page-visibility-restriction.html [ Pass Timeout ]
 
 webkit.org/b/329155 http/tests/IndexedDB/transaction-stop-during-request-dispatch.html [ Failure Pass ]
-webkit.org/b/328270 http/tests/IndexedDB/transaction-abort-pending-requests-stop.html [ Pass Failure ]
 webkit.org/b/329156 imported/w3c/web-platform-tests/webrtc-encoded-transform/script-transform-sendKeyFrameRequest.https.html [ Failure Pass ]
 
 # Remaining failures after unskipping directories in platform/glib.
@@ -1314,5 +1315,3 @@ imported/w3c/web-platform-tests/css/css-masking/clip.html [ Skip ]
 
 webkit.org/b/329529 imported/w3c/web-platform-tests/html/canvas/element/manual/draw-element-image/changes-in-paint-event.tentative.html [ ImageOnlyFailure Pass ]
 webkit.org/b/331428 adaptive-dark-mode/fingerprint/widgets-appearance-auto.html [ Pass Timeout ]
-
-webkit.org/b/333085 [ Release ] imported/w3c/web-platform-tests/css/css-overflow/scrollbar-gutter-scroll-into-view.html [ ImageOnlyFailure ]

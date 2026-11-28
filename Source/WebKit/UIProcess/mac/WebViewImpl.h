@@ -25,8 +25,6 @@
 
 #pragma once
 
-#if !__has_feature(modules) || (defined(WK_SUPPORTS_SWIFT_OBJCXX_INTEROP) && WK_SUPPORTS_SWIFT_OBJCXX_INTEROP)
-
 #include <wtf/Platform.h>
 
 #if PLATFORM(MAC)
@@ -269,9 +267,6 @@ public:
 
     void renewGState();
     void setFrameSize(CGSize);
-    void disableFrameSizeUpdates();
-    void enableFrameSizeUpdates();
-    bool frameSizeUpdatesDisabled() const;
     void setFrameAndScrollBy(CGRect, CGSize);
     void updateWindowAndViewFrames();
 
@@ -1285,5 +1280,3 @@ inline void decrementCheckedPtrCountOnWebViewImpl(WebKit::WebViewImpl* obj)
 }
 
 #endif // PLATFORM(MAC)
-
-#endif // !__has_feature(modules) || (defined(WK_SUPPORTS_SWIFT_OBJCXX_INTEROP) && WK_SUPPORTS_SWIFT_OBJCXX_INTEROP)

@@ -30,6 +30,11 @@
 #include <WebCore/LayoutShape.h>
 #include <wtf/EnumSet.h>
 #include <wtf/TZoneMalloc.h>
+#include <wtf/WeakPtr.h>
+
+namespace WebCore {
+class RenderElement;
+}
 
 namespace WebCore::Layout {
 
@@ -53,6 +58,7 @@ public:
         enum class Position { Start, End };
         Item(Position, const BoxGeometry& absoluteBoxGeometry, LayoutPoint localTopLeft, RefPtr<const LayoutShape>&&);
         Item(const Box&, Position, const BoxGeometry& absoluteBoxGeometry, LayoutPoint localTopLeft, std::optional<size_t> line);
+        Item(const Box&, Position, const Rect& marginBoxRect, const BoxGeometry& absoluteBoxGeometry, LayoutPoint localTopLeft);
         Item(const Box&, Position);
 
         ~Item();
@@ -63,11 +69,11 @@ public:
 
         BoxGeometry boxGeometry() const;
 
-        AxisPosition<ParentFormattingContextRoot> marginBoxTop() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::marginBoxRect(m_absoluteBoxGeometry).top() }; }
-        AxisPosition<ParentFormattingContextRoot> marginBoxBottom() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::marginBoxRect(m_absoluteBoxGeometry).bottom() }; }
-        AxisPosition<ParentFormattingContextRoot> marginBoxLeft() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::marginBoxRect(m_absoluteBoxGeometry).left() }; }
-        AxisPosition<ParentFormattingContextRoot> marginBoxRight() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::marginBoxRect(m_absoluteBoxGeometry).right() }; }
-        LayoutSize marginBoxSize() const { return BoxGeometry::marginBoxRect(m_absoluteBoxGeometry).size(); }
+        AxisPosition<ParentFormattingContextRoot> marginBoxTop() const { return AxisPosition<ParentFormattingContextRoot> { m_marginBoxRect.top() }; }
+        AxisPosition<ParentFormattingContextRoot> marginBoxBottom() const { return AxisPosition<ParentFormattingContextRoot> { m_marginBoxRect.bottom() }; }
+        AxisPosition<ParentFormattingContextRoot> marginBoxLeft() const { return AxisPosition<ParentFormattingContextRoot> { m_marginBoxRect.left() }; }
+        AxisPosition<ParentFormattingContextRoot> marginBoxRight() const { return AxisPosition<ParentFormattingContextRoot> { m_marginBoxRect.right() }; }
+        LayoutSize marginBoxSize() const { return m_marginBoxRect.size(); }
         AxisPosition<ParentFormattingContextRoot> borderBoxTop() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::borderBoxRect(m_absoluteBoxGeometry).top() }; }
         AxisPosition<ParentFormattingContextRoot> borderBoxLeft() const { return AxisPosition<ParentFormattingContextRoot> { BoxGeometry::borderBoxRect(m_absoluteBoxGeometry).left() }; }
         BoxGeometry::HorizontalEdges inlineAxisMargin() const { return m_absoluteBoxGeometry.horizontalMargin(); }
@@ -75,12 +81,15 @@ public:
         const LayoutShape* shape() const { return m_shape.get(); }
         std::optional<size_t> placedByLine() const { return m_placedByLine; }
 
-        const Box* layoutBox() const { return m_layoutBox.get(); }
+        const Box* layoutBox() const;
 
     private:
-        CheckedPtr<const Box> m_layoutBox;
+        // Destroying the whole render tree destroys floats without taking them out of the lists (see RenderBox::removeFloatingAndInvalidateForLayout()),
+        // so an item refers to its float weakly, through the float's renderer.
+        SingleThreadWeakPtr<const RenderElement> m_renderer;
         Position m_position;
         BoxGeometry m_absoluteBoxGeometry;
+        Rect m_marginBoxRect;
         LayoutPoint m_localTopLeft;
         RefPtr<const LayoutShape> m_shape;
         std::optional<size_t> m_placedByLine;

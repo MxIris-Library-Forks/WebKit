@@ -1,0 +1,8 @@
+
+PASS Property color value 'attr(data-missing type(<color>), {rgb(1, 2, 3)})'
+PASS Property color value 'attr(data-missing type(<color>), { rgb(1, 2, 3) })'
+PASS Property color value 'attr(data-missing type(<color>), {rgb(1, 2, 3)} )'
+PASS Property font-family value 'attr(data-missing, {Arial, sans-serif})'
+PASS e.style['color'] = "attr(data-missing type(<color>), {rgb(1, 2, 3)} rgb(4, 5, 6))" should not set the property value
+PASS e.style['font-family'] = "attr(data-missing, {Arial}, sans-serif)" should not set the property value
+

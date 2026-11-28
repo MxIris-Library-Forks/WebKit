@@ -5527,6 +5527,14 @@ SVGExternalResourcesEnabled:
   humanReadableDescription: "Enable referencing SVG resources (paint servers, etc.) via external or data: URLs"
   defaultValue: true
 
+SVGSpatialMediaFragmentsEnabled:
+  type: bool
+  status: preview
+  category: css
+  humanReadableName: "SVG spatial media fragments"
+  humanReadableDescription: "Enable #xywh= spatial media fragments on SVG documents"
+  defaultValue: false
+
 SWVPDecodersAlwaysEnabled:
   type: bool
   status: internal
@@ -5565,16 +5573,6 @@ SansSerifFontFamily:
   defaultValue:
     default: '"Helvetica"_str'
     WebCore: '""_str'
-
-ScopedCustomElementRegistryEnabled:
-  type: bool
-  status: stable
-  category: dom
-  humanReadableName: "Scoped custom element registry"
-  humanReadableDescription: "Enable scoped custom element registry"
-  defaultValue:
-    "PLATFORM(COCOA)": true
-    default: false
 
 # FIXME: Is this implemented for WebKitLegacy? If not, this should be excluded from WebKitLegacy entirely.
 # FIXME: This should have it's own ENABLE.
@@ -7535,6 +7533,17 @@ WebGLEnabled:
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
   richJavaScript: true
+
+WebGLOnWebGPUEnabled:
+  type: bool
+  status: internal
+  category: dom
+  humanReadableName: "WebGL on WebGPU"
+  humanReadableDescription: "Run WebGL with ANGLE in the Web Process on WebGPU, which runs in the GPU Process"
+  condition: ENABLE(WEBGL_WEBGPU)
+  defaultValue: false
+  disableInLockdownMode: true
+  sharedPreferenceForWebProcess: true
 
 WebGLTimerQueriesEnabled:
   type: bool

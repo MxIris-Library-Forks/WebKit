@@ -59,7 +59,6 @@ add_custom_target(TestWebKitAPISwiftArgs DEPENDS "${_test_swift_resp}")
 set(_testwebkitapi_swiftmodule_dir "${CMAKE_CURRENT_BINARY_DIR}/SwiftModules")
 _WEBKIT_SWIFT_SHARED_IMPORTER_OPTIONS(_testwebkitapi_swift_options "${_test_swift_resp}" ON)
 list(APPEND _testwebkitapi_swift_options
-    "-D ENABLE_CXX_INTEROP"
     -no-verify-emitted-module-interface
     -F${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     "-Xcc -I${CMAKE_BINARY_DIR}"
@@ -824,11 +823,14 @@ list(APPEND TestWebKit_SOURCES
     Tests/WebKit/WKWebView/DigitalCredentialsNetworkProcess.swift
     Tests/WebKit/WKWebView/HTTP2Server.swift
     Tests/WebKit/WKWebView/HTTP3Server.swift
+    Tests/WebKit/WKWebView/ImageServicesMenuTests.swift
+    Tests/WebKit/WKWebView/LayoutModeTests.swift
     Tests/WebKit/WKWebView/NavigationResponseProcessSwapTests.swift
     Tests/WebKit/WKWebView/PDFLookUpTests.swift
     Tests/WebKit/WKWebView/ProcessSwapBackForwardTests.swift
     Tests/WebKit/WKWebView/ProcessSwapCOOPProcessReuseTests.swift
     Tests/WebKit/WKWebView/ProcessSwapStaleNavigationTests.swift
+    Tests/WebKit/WKWebView/ProcessSwapWebInspectorTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAnimationControlTests.swift
     Tests/WebKit/WKWebView/SiteIsolationAutocorrectionTests.swift
     Tests/WebKit/WKWebView/SiteIsolationBackForwardTests.swift

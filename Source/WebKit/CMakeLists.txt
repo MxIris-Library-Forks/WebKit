@@ -956,10 +956,9 @@ if (NOT USE_FRAMEWORK_BUNDLES)
 endif ()
 
 if (NOT APPLE AND SWIFT_REQUIRED)
-    # Export-macro stubs, NODELETE=, WK_SUPPORTS_SWIFT_OBJCXX_INTEROP and the
-    # full ENABLE/HAVE/USE config-var set now come from
-    # _WEBKIT_COMPUTE_SWIFT_SHARED_CLANG_FLAGS in WebKitMacros.cmake. Only
-    # Linux-specific importer flags remain here.
+    # Export-macro stubs, NODELETE= and the full ENABLE/HAVE/USE config-var
+    # set now come from _WEBKIT_COMPUTE_SWIFT_SHARED_CLANG_FLAGS in
+    # WebKitMacros.cmake. Only Linux-specific importer flags remain here.
     set(WebKit_SWIFT_CLANG_FLAG_PAIRS
         # libstdc++ gates coroutine support in <bits/version.h> behind
         # __glibcxx_want_coroutine.  Swift's Clang 21 compiles <bits/version.h>
@@ -1569,9 +1568,7 @@ if (ENABLE_BACK_FORWARD_LIST_SWIFT)
         PROPERTIES GENERATED TRUE)
     list(APPEND WebKit_SOURCES
         ${WebKit_DERIVED_SOURCES_DIR}/WebBackForwardListMessageReceiver.swift
-        ${WEBKIT_DIR}/Platform/Logging.swift
         ${WEBKIT_DIR}/Shared/API/APIArray.swift
-        ${WEBKIT_DIR}/UIProcess/StdlibExtras.swift
         ${WEBKIT_DIR}/UIProcess/WebBackForwardList.swift
     )
 endif ()
@@ -1599,11 +1596,13 @@ if (SWIFT_REQUIRED)
         ${WebKit_DERIVED_SOURCES_DIR}/IPCTesterReceiverMessageReceiver.swift
         PROPERTIES GENERATED TRUE)
     list(APPEND WebKit_SOURCES
+        ${WEBKIT_DIR}/Platform/Logging.swift
         ${WEBKIT_DIR}/Shared/Concurrency+Extras.swift
         ${WEBKIT_DIR}/Shared/Foundation+Extras.swift
         ${WEBKIT_DIR}/Shared/IPCTesterReceiver.swift
         ${WEBKIT_DIR}/Shared/RunJavaScriptResult.swift
         ${WEBKIT_DIR}/Shared/WTFExpected+Extras.swift
+        ${WEBKIT_DIR}/UIProcess/StdlibExtras.swift
         ${WebKit_DERIVED_SOURCES_DIR}/IPCTesterReceiverMessageReceiver.swift
     )
 endif ()

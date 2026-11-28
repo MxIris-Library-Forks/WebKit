@@ -631,6 +631,7 @@ UIProcess/ios/WKMouseDeviceObserver.mm @nonARC
 UIProcess/ios/WKMouseInteraction.mm @nonARC
 UIProcess/ios/WKPageHostedPortalView.mm @nonARC
 UIProcess/ios/WKPasswordView.mm @nonARC
+UIProcess/ios/WKPickerPresenter.mm @nonARC
 UIProcess/ios/WKPortalVolumetricSceneController.mm @nonARC
 UIProcess/ios/WKScrollView.mm @nonARC
 UIProcess/ios/WKScrollViewTrackingTapGestureRecognizer.mm @nonARC
@@ -672,10 +673,8 @@ UIProcess/mac/WKImmediateActionController.mm @nonARC
 UIProcess/mac/PositionInformationManager.cpp
 UIProcess/mac/WKPrintingView.mm @nonARC
 UIProcess/mac/WKQuickLookPreviewController.mm @nonARC
-UIProcess/mac/WKSharingServicePickerDelegate.mm @nonARC
 UIProcess/mac/WKTextFinderClient.mm @nonARC
 UIProcess/mac/WKTextAnimationManagerMac.mm @nonARC
-UIProcess/mac/WKViewLayoutStrategy.mm @nonARC
 UIProcess/mac/WebViewImpl.mm @nonARC
 
 UIProcess/Media/cocoa/AudioSessionRoutingArbitratorProxyCocoa.mm @nonARC

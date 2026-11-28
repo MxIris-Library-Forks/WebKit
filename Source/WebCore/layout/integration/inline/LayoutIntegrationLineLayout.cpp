@@ -313,13 +313,13 @@ LineLayout* LineLayout::containing(RenderObject& renderer)
                 return parent->inlineLayout();
             return { };
         }
-        auto adjustedContainingBlock = [&]() -> RenderBlockFlow* {
+        auto adjustedContainingBlock = [&] -> CheckedPtr<RenderBlockFlow> {
             if (renderer.isOutOfFlowPositioned()) {
                 // Here we are looking for the containing block as if the out-of-flow box was inflow (for static position purpose).
                 CheckedPtr containingBlock = renderer.parent();
                 if (containingBlock && containingBlock->isInlineBox())
                     containingBlock = containingBlock->containingBlock();
-                return dynamicDowncast<RenderBlockFlow>(containingBlock.unsafeGet());
+                return dynamicDowncast<RenderBlockFlow>(WTF::move(containingBlock));
             }
             if (renderer.isFloating()) {
                 // Note that containigBlock() on boxes in top layer (i.e. dialog) may return incorrect result during style change even with not-yet-updated style.
@@ -1003,11 +1003,10 @@ void LineLayout::preparePlacedFloats()
 
         auto boxGeometry = Layout::BoxGeometry { };
         auto logicalRect = [&] {
-            // FIXME: We are flooring here for legacy compatibility. See FloatingObjects::intervalForFloatingObject and RenderBlockFlow::clearFloats.
-            auto logicalTop = isHorizontalWritingMode ? LayoutUnit(visualRect.y().floor()) : visualRect.x();
-            auto logicalLeft = isHorizontalWritingMode ? visualRect.x() : LayoutUnit(visualRect.y().floor());
-            auto logicalHeight = (isHorizontalWritingMode ? LayoutUnit(visualRect.maxY().floor()) : visualRect.maxX()) - logicalTop;
-            auto logicalWidth = (isHorizontalWritingMode ? visualRect.maxX() : LayoutUnit(visualRect.maxY().floor())) - logicalLeft;
+            auto logicalTop = isHorizontalWritingMode ? visualRect.y() : visualRect.x();
+            auto logicalLeft = isHorizontalWritingMode ? visualRect.x() : visualRect.y();
+            auto logicalHeight = (isHorizontalWritingMode ? visualRect.maxY() : visualRect.maxX()) - logicalTop;
+            auto logicalWidth = (isHorizontalWritingMode ? visualRect.maxX() : visualRect.maxY()) - logicalLeft;
             if (!placedFloatsIsLeftToRight) {
                 auto rootBorderBoxWidth = m_inlineContentConstraints->visualLeft() + m_inlineContentConstraints->horizontal().logicalWidth + m_inlineContentConstraints->horizontal().logicalLeft;
                 logicalLeft = rootBorderBoxWidth - (logicalLeft + logicalWidth);

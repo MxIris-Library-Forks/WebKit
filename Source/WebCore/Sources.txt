@@ -2691,6 +2691,7 @@ platform/graphics/CornerShapeUtilities.cpp
 platform/graphics/Color.cpp
 platform/graphics/ColorBlending.cpp
 platform/graphics/ColorConversion.cpp
+platform/graphics/ColorGamutMapping.cpp
 platform/graphics/ColorInterpolation.cpp
 platform/graphics/ColorInterpolationMethod.cpp
 platform/graphics/ColorLuminance.cpp
@@ -3196,6 +3197,7 @@ rendering/paint/OutlinePainter.cpp @header:RenderStyleGetters @cost:6
 rendering/paint/PaintClipPathScope.cpp
 rendering/paint/PaintOrderIterator.cpp @header:RenderStyleGetters @cost:3
 rendering/paint/PaintTextStyle.cpp @header:RenderStyleGetters
+rendering/paint/TablePainter.cpp @header:RenderStyleGetters @cost:6
 rendering/paint/TextBoxPainter.cpp @header:RenderStyleGetters
 rendering/paint/TextDecorationPainter.cpp @header:RenderStyleGetters
 rendering/paint/TextPainter.cpp @header:RenderStyleGetters
@@ -3786,6 +3788,7 @@ svg/SVGVKernElement.cpp
 svg/SVGViewElement.cpp
 svg/SVGViewSpec.cpp
 svg/SVGZoomAndPan.cpp
+svg/SpatialMediaFragment.cpp
 svg/animation/SMILTime.cpp
 svg/animation/SMILTimeContainer.cpp
 svg/animation/SVGSMILElement.cpp

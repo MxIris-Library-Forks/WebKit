@@ -2314,11 +2314,11 @@ ScrollableArea* EventHandler::enclosingScrollableArea(Node* node) const
         }
 
         if (RefPtr plugin = dynamicDowncast<RenderEmbeddedObject>(*renderer)) {
-            if (CheckedPtr scrollableArea = plugin->scrollableArea()) {
-                Ref frame = m_frame.get();
-                RefPtr page = frame->page();
-                if (!page || page->chrome().client().usePluginRendererScrollableArea(frame))
-                    return scrollableArea.unsafeGet();
+            Ref frame = m_frame;
+            RefPtr page = frame->page();
+            if (!page || page->chrome().client().usePluginRendererScrollableArea(frame)) {
+                if (auto* scrollableArea = plugin->scrollableArea())
+                    return scrollableArea;
             }
         }
 
@@ -5917,8 +5917,13 @@ std::expected<bool, RemoteFrameGeometryTransformer> EventHandler::handleTouchEve
             RefPtr targetTouches = isTouchCancelEvent ? emptyList : RefPtr { touchesByTarget.get(target.get()) };
             ASSERT(targetTouches);
 
+#if ENABLE(COORDINATED_TOUCH_EVENTS)
+            auto isCancelable = event.canPreventNativeGestures() ? Event::IsCancelable::Yes : Event::IsCancelable::No;
+#else
+            auto isCancelable = Event::IsCancelable::Yes;
+#endif
             Ref<TouchEvent> touchEvent = TouchEvent::create(effectiveTouches.get(), targetTouches.get(), changedTouches[state].m_touches.get(),
-                stateName, downcast<Node>(*target).document().windowProxy(), { }, event.modifiers());
+                stateName, downcast<Node>(*target).document().windowProxy(), { }, event.modifiers(), isCancelable);
             target->dispatchEvent(touchEvent);
             swallowedEvent = swallowedEvent || touchEvent->defaultPrevented() || touchEvent->defaultHandled();
         }
